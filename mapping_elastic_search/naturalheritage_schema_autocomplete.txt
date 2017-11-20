@@ -1,0 +1,123 @@
+curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application/json' -d'
+{
+"settings": {
+"analysis": {
+"filter": {
+"english_stemmer": {
+"type": "stemmer",
+"name": "english"
+},
+"edge_ngram": {
+"type": "edgeNGram",
+"min_gram": "2",
+"max_gram": "25",
+"token_chars": ["letter", "digit"]
+}
+},
+"analyzer": {
+"edge_ngram_analyzer": {
+"filter": ["lowercase", "english_stemmer", "edge_ngram"],
+"tokenizer": "standard"
+},
+"keyword_analyzer": {
+"filter": ["lowercase", "english_stemmer"],
+"tokenizer": "standard"
+}
+}
+}
+}
+,
+"mappings": {
+"document": {
+"_all": {
+"type": "text",
+"analyzer": "edge_ngram_analyzer",
+"search_analyzer": "standard"
+},
+"properties": {
+"title": {
+"type": "text",
+"include_in_all": true,
+"term_vector": "yes",
+"analyzer": "edge_ngram_analyzer",
+"search_analyzer": "standard"
+},
+"content": {
+"type": "text",
+"include_in_all": false,
+"fielddata": true
+},
+"content_ngrams": {
+"type": "text",
+"include_in_all": true,
+"term_vector": "yes",
+"analyzer": "edge_ngram_analyzer",
+"search_analyzer": "standard",
+"fielddata": true
+},
+"url": {
+"type": "text",
+"include_in_all": false
+
+},
+"label": {
+"type": "text",
+"include_in_all": false
+
+},
+"bundle_name": {
+"type": "keyword",
+"include_in_all": true
+},
+"institution": {
+"type": "keyword",
+"include_in_all": true
+
+},
+"authors": {
+"type": "keyword",
+"include_in_all": true
+},
+"keywords": {
+"type": "keyword",
+"include_in_all": true
+},
+"creation_date": {
+"type" : "date"
+},
+"modification_date": {
+"type" : "date"
+}
+}
+}
+}
+}
+'
+
+
+"settings": {
+"analysis": {
+"filter": {
+"english_poss_stemmer": {
+"type": "stemmer",
+"name": "possessive_english"
+},
+"edge_ngram": {
+"type": "edgeNGram",
+"min_gram": "2",
+"max_gram": "25",
+"token_chars": ["letter", "digit"]
+}
+},
+"analyzer": {
+"edge_ngram_analyzer": {
+"filter": ["lowercase", "english_poss_stemmer", "edge_ngram"],
+"tokenizer": "standard"
+},
+"keyword_analyzer": {
+"filter": ["lowercase", "english_poss_stemmer"],
+"tokenizer": "standard"
+}
+}
+}
+}
