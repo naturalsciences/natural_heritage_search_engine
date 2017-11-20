@@ -1,0 +1,19 @@
+naturalheritage_search_homepage:
+    path:     /
+    defaults: { _controller: NaturalheritageSearchBundle:Default:index }
+
+naturalheritage_search_searchelasticsearch:
+    path:     /search/{textpattern}
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:searchelasticsearch 
+
+naturalheritage_search_autocompleteelasticsearch:
+    path:     /autocomplete/{textpattern}
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocomplete
+        textpattern: "" 
+
+naturalheritage_search_autocompleteselect2elasticsearch:
+    path:     /autocompleteselect2
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompleteselect2      
