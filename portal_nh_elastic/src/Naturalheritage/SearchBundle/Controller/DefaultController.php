@@ -21,25 +21,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class DefaultController extends Controller
 {
     
+    private $max_results=10;
+
     public function indexAction()
     {
-        //return $this->render('NaturalheritageSearchBundle:Default:index.html.twig');
-	$elasticSearch = new ElasticSearch();
-	$request=$this->getRequest();
 
-	$form = $this->createForm(new ElasticSearchType, $elasticSearch, array('csrf_protection'=>false));
-	$form->bind($request);
-	if($form->isValid())
-	{
-		//return $this->render('NaturalheritageSearchBundle:Default:solrsearch.html.twig', array('SolrSearch'=>$solrSearch));
-		return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch.html.twig', array('form'=>$form->createView()));
-	}
-	else
-	{
-		$errMsg=(string)$form->getErrors(true, false);
-		$validityIssue=$form->getErrorsAsString();
-		return $this->render('NaturalheritageSearchBundle:Default:error.html.twig', array("errorMsg"=>$errMsg, "validityIssue"=>$validityIssue));
-	}    
+	return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch.html.twig');
+	
     }
 
     protected function returnBucket($criteria, $aggregation)
@@ -57,76 +45,74 @@ class DefaultController extends Controller
 	return $nested;
     }
 
-    protected function parseElasticResult($results)
+    protected function parseElasticResult($results, $page, $params)
     {
 	$returned=Array();
 	
-	// Build a list of available choices
+	$pagination = array(
+            'page' => $page,
+            'route' => 'naturalheritage_search_searchelasticsearchpartial',
+            'pages_count' => ceil($results->count() / $this->max_results),
+            'route_params' => $params
+        );
 	$choices = Array();
-
-	
-	
 	$choices[] = $this->returnBucket('institution', $results->getAggregation('institution'));
 	$choices[] = $this->returnBucket('collection', $results->getAggregation('collection'));
 	$returned["documents"]=$results;
 	$returned["facets"]=$choices;
+	$returned["count"]= $results->count();
+        $returned['pagination']=$pagination;
+        
 	return $returned;
     }
 
-    public function searchelasticsearchAction($textpattern)
+    protected function doSearch($textpattern, $page)
     {
-	$request=$this->getRequest();
-	$elasticSearch = new ElasticSearch();
-	$form = $this->createForm(new ElasticSearchType, $elasticSearch, array('csrf_protection'=>false));
-	$form->bind($request);
-	
-	
-	
-	if($form->isValid())
+	$resultArray=Array();
+	if(strlen($textpattern)>2)
 	{
-		if(strlen($textpattern)>2)
-		{
-			//try{	
-			$textpattern=strtolower($textpattern);		
-			$finder = $this->container->get('es.manager.default.document');
-			$search = $finder->createSearch();
-
-			$termQuery = new MatchPhraseQuery('content_ngrams', $textpattern);
-			$termQuery2 = new MatchPhraseQuery('content', $textpattern);			
-			$termsAggregationInstitution = new TermsAggregation('institution');
-			$termsAggregationInstitution->setField('institution');
-			$termsAggregationCollection = new TermsAggregation('collection');
-			$termsAggregationCollection->setField('bundle_name');
-				
-			$search->addQuery($termQuery, BoolQuery::SHOULD);
-			$search->addQuery($termQuery2, BoolQuery::SHOULD);
-			$search->addAggregation($termsAggregationInstitution);
-			$search->addAggregation($termsAggregationCollection);
-
-
-			$results = $finder->findDocuments($search);
-
-			$resultsArray=$this->parseElasticResult($results);
 			
-			return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch.html.twig', array('form'=>$form->createView(), 'results'=>$resultsArray["documents"], 'facets'=>$resultsArray["facets"]));
-			//} catch(\Exception $e){
-			   // print_r($e);
-			 // }
+		$textpattern=strtolower($textpattern);		
+		$finder = $this->container->get('es.manager.default.document');
+		$search = $finder->createSearch();
+		$termQuery = new MatchPhraseQuery('content_ngrams', $textpattern);
+		$termQuery2 = new MatchPhraseQuery('content', $textpattern);			
+		$termsAggregationInstitution = new TermsAggregation('institution');
+		$termsAggregationInstitution->setField('institution');
+		$termsAggregationCollection = new TermsAggregation('collection');
+		$termsAggregationCollection->setField('bundle_name');
+		$search->addQuery($termQuery, BoolQuery::SHOULD);
+		$search->addQuery($termQuery2, BoolQuery::SHOULD);
+		$search->addAggregation($termsAggregationInstitution);
+		$search->addAggregation($termsAggregationCollection);
 
-		}
-		else
-		{
-		
-				return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch.html.twig', array('form'=>$form->createView()));
-			
-		}	
+		$search->setSize($this->max_results);
+		$search->setFrom($this->max_results*($page-1));
+		$results = $finder->findDocuments($search);
+		$resultArray=$this->parseElasticResult($results, $page, array("textpattern"=>$textpattern));
+	}
+	return $resultArray;
+    }
+
+    public function searchelasticsearchAction()
+    {
+	return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch.html.twig');
+	
+   
+    }
+                    
+    public function searchelasticsearchforpartialAction($textpattern, $page)
+    {
+	$resultArray=$this->doSearch($textpattern, $page);
+	if(count($resultArray)>0)
+	{
+		return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch_partial_result.html.twig', array('results'=>$resultArray["documents"], 'facets'=>$resultArray["facets"], 'count'=>$resultArray["count"], 'pagination'=>$resultArray['pagination']));
 	}
 	else
 	{
-		$errMsg=(string)$form->getErrors(true, false);
-		$validityIssue=$form->getErrorsAsString();
-		return $this->render('NaturalheritageSearchBundle:Default:error.html.twig', array("errorMsg"=>$errMsg, "validityIssue"=>$validityIssue));
-	}    
+		return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch_partial_result.html.twig');
+	}
+
     }
 
 

@@ -7,6 +7,12 @@ naturalheritage_search_searchelasticsearch:
     defaults:  
         _controller: NaturalheritageSearchBundle:Default:searchelasticsearch 
 
+naturalheritage_search_searchelasticsearchpartial:
+    path:     /searchpartial/{textpattern}/{page}
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:searchelasticsearchforpartial 
+        page: 1
+
 naturalheritage_search_autocompleteelasticsearch:
     path:     /autocomplete/{textpattern}
     defaults:  

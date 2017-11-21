@@ -1,0 +1,32 @@
+<div class="pagination">
+	<div class="pagination-buttons">
+	    {% if pagination.page>1 %}
+		<button class="pager" value="1"><<</button>
+		<button class="pager" {{pagination.page - 1}} ><</button>
+	    {% endif %}
+	    {#display p numbers only from p-4 to p+4 but don't go <1 or >pages_count#}
+	    {% for p in range(max(pagination.page-4, 1), 
+	min(pagination.page+4, pagination.pages_count)) %}
+		<button{% if p == pagination.page %} class="current-page pager" {% else %} class="pager" {% endif %} value="{{ p }}">{{ p }}</button>
+	    {% endfor %}
+	    {% if pagination.page<pagination.pages_count %}
+		<button value="{{ pagination.page + 1 }}" class="pager">></button>
+		<button value="{{ pagination.pages_count }}" class="pager">>></button>
+	    {% endif %}
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(
+
+		function()
+		{	
+
+			$('.pager').click(
+				function()
+				{
+					PAGER.pager_fct($(this).val());
+					
+				});	
+		}	
+	);
+</script>
