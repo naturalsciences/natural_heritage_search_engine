@@ -3,6 +3,19 @@ import urllib
 import json
 from elasticsearch import Elasticsearch
 
+import linecache
+import sys
+
+def PrintException():
+    exc_type, exc_obj, tb = sys.exc_info()
+    f = tb.tb_frame
+    lineno = tb.tb_lineno
+    filename = f.f_code.co_filename
+    linecache.checkcache(filename)
+    line = linecache.getline(filename, lineno, f.f_globals)
+    print 'EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj)
+
+
 
 class MarsParser(object):
 
@@ -19,13 +32,13 @@ class MarsParser(object):
 		try:
 			return data["batching"]["last"]
 		except Exception, e:
-			print(str(e))
+			 PrintException()
 
 	def getNextPage(self, data):
 		try:
 			return data["batching"]["next"]
 		except Exception, e:
-			print(str(e))
+			 PrintException()
 
 	def get_page_content(self, p_url, p_params, p_headers):
 		try:
@@ -33,7 +46,7 @@ class MarsParser(object):
 			contents = urllib2.urlopen(request).read()
 			return contents
 		except Exception, e:
-			print(str(e))
+			 PrintException()
 
 	def browse_and_map_items(self, data):
 		try:
@@ -57,11 +70,11 @@ class MarsParser(object):
 					self.m_elastic_instance.create(index=self.m_index_name, doc_type='document', id=elastic_json['id'], body=elastic_json)
 				except Exception as inst:
 					print "Error adding URL: "+url
-					print "\tWith Message: "+str(inst)
+					PrintException()
 				else:
-					print "Added Article \""+elastic_json['title']+"\" with URL "+elastic_json['url']
+					print "Added Article with URL "+elastic_json['url']
 		except Exception, e:
-			print(str(e))
+			 PrintException()
 
 	def handle_mars_service(self, p_url, p_params, p_headers):
 		try:		
@@ -78,13 +91,13 @@ class MarsParser(object):
 				p_params=""
 				self.browse_and_map_items(json_text)
 		except Exception, e:
-			print(str(e))
+			 PrintException()
 
 	def run(self):
 		try:
 			self.handle_mars_service(self.m_url, self.m_params, self.m_headers)
 		except Exception, e:
-			print(str(e))
+			 PrintException()
 
 ####################### end class ###############
 

@@ -15,7 +15,30 @@
 Solr search<br/>
 <form>
 <input type="hidden" id="base_url" value="{{url('homepage')}}"></input>
+
+Free text:
 <select id="elastic_search_freetext" class="select2" style='width:300px'></select>
+<input type="button" id="toogle_details" name="toggle_details" value="Detailed Search"></input>
+<div id="detailed_search" name="detailed_search" style="display:none">
+<table>
+<tr>
+<td>
+	Institution:
+</td>
+<td>
+	<select id="elastic_search_institution" class="select2" multiple="multiple" style='width:300px' ></select>
+</td>
+</tr>
+<tr>
+<td>
+	Authors:
+</td>
+<td>
+	<select id="elastic_search_authors" class="select2" multiple="multiple" style='width:300px' ></select>
+</td>
+</tr>
+</table>
+</div>
 <br/>
  <button type="button" id="solr_search" class="nh_submit">Search</button> 
 </form>
@@ -25,4 +48,87 @@ Solr search<br/>
 
 
 </body>
+<script language="javascript">
+var hide_details=false;
+var route;
+$(document).ready(
+	
+	function()
+	{
+
+		route=$("#base_url").val();
+		$("#toogle_details").click(
+			function()
+			{
+
+				hide_details=!hide_details;
+				if(hide_details)
+				{
+					$("#detailed_search").show();
+				}
+				else
+				{
+					$("#detailed_search").hide();
+				}
+			}
+		);
+
+		$('#elastic_search_freetext').select2({
+				//width: "300px",
+				tags: true,
+				multiple: false,
+				  ajax: {
+				    url: route.concat("autocompletefulltext"),
+				    data: function (params) {
+				      var query = {
+					q: params.term
+				      }
+
+				      
+					
+				      return query;
+				    },
+					processResults: function(data) {
+					       return {results: data};
+					}
+				  }
+				});
+
+		$('#elastic_search_institution').select2({
+				//width: "300px",
+				tags: true,
+				tokenSeparators: ['|'],
+				  ajax: {
+				    url: route.concat("autocompletegetall/institution"),
+					processResults: function(data) {
+				       return {results: data};
+					}
+				  }
+				});
+
+
+		$('#elastic_search_authors').select2({
+				//width: "300px",
+				tags: true,
+				tokenSeparators: ['|'],
+				  ajax: {
+				    url: route.concat("autocompleteauthors"),
+				    data: function (params) {
+				      var query = {
+					q: params.term
+				      }
+
+				      
+					
+				      return query;
+				    },
+					processResults: function(data) {
+					       return {results: data};
+					}
+				  }
+				});
+
+	}
+);
+</script>
 </html>

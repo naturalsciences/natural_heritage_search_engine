@@ -8,7 +8,7 @@ naturalheritage_search_searchelasticsearch:
         _controller: NaturalheritageSearchBundle:Default:searchelasticsearch 
 
 naturalheritage_search_searchelasticsearchpartial:
-    path:     /searchpartial/{textpattern}/{page}
+    path:     /searchpartial
     defaults:  
         _controller: NaturalheritageSearchBundle:Default:searchelasticsearchforpartial 
         page: 1
@@ -19,7 +19,18 @@ naturalheritage_search_autocompleteelasticsearch:
         _controller: NaturalheritageSearchBundle:Default:autocomplete
         textpattern: "" 
 
-naturalheritage_search_autocompleteselect2elasticsearch:
-    path:     /autocompleteselect2
+naturalheritage_search_autocompletefulltext:
+    path:     /autocompletefulltext
     defaults:  
-        _controller: NaturalheritageSearchBundle:Default:autocompleteselect2      
+        _controller: NaturalheritageSearchBundle:Default:autocompletefulltext
+
+
+naturalheritage_field_autocompleteselectall:
+    path:     /autocompletegetall/{keywordfield}
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompletefieldall
+
+naturalheritage_search_autocompleteauthors:
+    path:     /autocompleteauthors
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompleteauthors            

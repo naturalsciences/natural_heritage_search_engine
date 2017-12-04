@@ -75,8 +75,20 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
 
 },
 "authors": {
-"type": "keyword",
-"include_in_all": true
+"type": "text",
+"include_in_all": false,
+"fielddata": true,
+"fields": {
+"authors_ngrams": 
+{
+"type": "text",
+"include_in_all": true,
+"term_vector": "yes",
+"analyzer": "edge_ngram_analyzer",
+"search_analyzer": "standard",
+"fielddata": true
+}
+}
 },
 "keywords": {
 "type": "keyword",
@@ -120,4 +132,4 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
 }
 }
 }
-}
+}'

@@ -22,6 +22,20 @@ class DefaultController extends Controller
 {
     
     private $max_results=10;
+    private $client_created=false;
+    private $elastic_client=NULL;
+
+    protected function instantiateClient()
+    {
+	
+	if(!isset($this->elastic_client))
+	{
+		$hosts = [$this->getParameter('elastic_server_for_api')	];
+		$clientBuilder = ClientBuilder::create();   // Instantiate a new ClientBuilder
+		$clientBuilder->setHosts($hosts);           // Set the hosts
+		$this->elastic_client = $clientBuilder->build();          // Build the client object
+	}
+    }
 
     public function indexAction()
     {
@@ -45,52 +59,94 @@ class DefaultController extends Controller
 	return $nested;
     }
 
-    protected function parseElasticResult($results, $page, $params)
+    protected function parseElasticResult($results, $page)
     {
 	$returned=Array();
 	
 	$pagination = array(
             'page' => $page,
             'route' => 'naturalheritage_search_searchelasticsearchpartial',
-            'pages_count' => ceil($results->count() / $this->max_results),
-            'route_params' => $params
+            'pages_count' => ceil($results->count() / $this->max_results)
         );
 	$choices = Array();
 	$choices[] = $this->returnBucket('institution', $results->getAggregation('institution'));
 	$choices[] = $this->returnBucket('collection', $results->getAggregation('collection'));
+	$choices[] = $this->returnBucket('authors', $results->getAggregation('authors'));
 	$returned["documents"]=$results;
 	$returned["facets"]=$choices;
 	$returned["count"]= $results->count();
         $returned['pagination']=$pagination;
-        
+ 	        
 	return $returned;
     }
 
-    protected function doSearch($textpattern, $page)
+
+
+    protected function doSearch($query_params, $page)
     {
 	$resultArray=Array();
-	if(strlen($textpattern)>2)
+	//$jsonQuery=Array();
+	$finder = $this->container->get('es.manager.default.document');
+	$search = $finder->createSearch();
+	foreach($query_params as $key=>$value)
 	{
-			
-		$textpattern=strtolower($textpattern);		
-		$finder = $this->container->get('es.manager.default.document');
-		$search = $finder->createSearch();
-		$termQuery = new MatchPhraseQuery('content_ngrams', $textpattern);
-		$termQuery2 = new MatchPhraseQuery('content', $textpattern);			
-		$termsAggregationInstitution = new TermsAggregation('institution');
-		$termsAggregationInstitution->setField('institution');
-		$termsAggregationCollection = new TermsAggregation('collection');
-		$termsAggregationCollection->setField('bundle_name');
-		$search->addQuery($termQuery, BoolQuery::SHOULD);
-		$search->addQuery($termQuery2, BoolQuery::SHOULD);
-		$search->addAggregation($termsAggregationInstitution);
-		$search->addAggregation($termsAggregationCollection);
-
-		$search->setSize($this->max_results);
-		$search->setFrom($this->max_results*($page-1));
-		$results = $finder->findDocuments($search);
-		$resultArray=$this->parseElasticResult($results, $page, array("textpattern"=>$textpattern));
+		//$jsonQuery[$key]=$value;
+		if($key=="fulltext")
+		{
+			if(strlen($value)>2)
+			{
+				$bool = new BoolQuery();
+				$termQuery = new MatchPhraseQuery('content_ngrams', $value);
+				$termQuery2 = new MatchPhraseQuery('content', $value);
+				$bool->add($termQuery, BoolQuery::SHOULD);
+				$bool->add($termQuery2, BoolQuery::SHOULD);
+				$search->addQuery($bool, BoolQuery::MUST);
+			}
+		}
+		if($key=="institutions")
+		{
+			$institutions=explode("|",$value);
+			$bool = new BoolQuery();
+			foreach($institutions as $value)
+			{
+				$termQuery = new TermQuery('institution', $value);
+				$bool->add($termQuery, BoolQuery::SHOULD);
+			}
+			$search->addQuery($bool, BoolQuery::MUST);				
+		}
+		if($key=="authors")
+		{
+			if(strlen($value)>2)
+			{
+				$authors=explode("|",$value);
+				$bool = new BoolQuery();
+				foreach($authors as $value)
+				{
+					$termQuery = new MatchPhraseQuery('authors', $value);
+					$termQuery2 = new MatchPhraseQuery('authors.authors_ngram', $value);
+					$bool->add($termQuery, BoolQuery::SHOULD);
+					$bool->add($termQuery2, BoolQuery::SHOULD);
+				}
+				$search->addQuery($bool, BoolQuery::MUST);
+			}
+		}
 	}
+	
+
+	$termsAggregationInstitution = new TermsAggregation('institution');
+	$termsAggregationInstitution->setField('institution');
+	$termsAggregationCollection = new TermsAggregation('collection');
+	$termsAggregationCollection->setField('bundle_name');
+	$termsAggregationAuthors = new TermsAggregation('authors');
+	$termsAggregationAuthors->setField('authors');
+	$search->addAggregation($termsAggregationInstitution);
+	$search->addAggregation($termsAggregationCollection);
+	$search->addAggregation($termsAggregationAuthors);
+	$search->setSize($this->max_results);
+	$search->setFrom($this->max_results*($page-1));
+	$results = $finder->findDocuments($search);
+	$resultArray=$this->parseElasticResult($results, $page);
+		
 	return $resultArray;
     }
 
@@ -101,9 +157,16 @@ class DefaultController extends Controller
    
     }
                     
-    public function searchelasticsearchforpartialAction($textpattern, $page)
+
+    public function searchelasticsearchforpartialAction(Request $request)
     {
-	$resultArray=$this->doSearch($textpattern, $page);
+
+	$page=1;
+	if($request->request->has('page'))
+	{
+		$page=$request->request->get('page');
+	}
+	$resultArray=$this->doSearch($request->request, $page);
 	if(count($resultArray)>0)
 	{
 		return	 $this->render('NaturalheritageSearchBundle:Default:elasticsearch_partial_result.html.twig', array('results'=>$resultArray["documents"], 'facets'=>$resultArray["facets"], 'count'=>$resultArray["count"], 'pagination'=>$resultArray['pagination']));
@@ -138,24 +201,23 @@ class DefaultController extends Controller
 		}	
 	}
 
-	public function autocompleteAction($textpattern)
+	public function autocompleteAction($textpattern, $fields, $fields_highlight)
 	{
-		$hosts = [$this->getParameter('elastic_server_for_api')	];
-		$clientBuilder = ClientBuilder::create();   // Instantiate a new ClientBuilder
-		$clientBuilder->setHosts($hosts);           // Set the hosts
-		$client = $clientBuilder->build();          // Build the client object
+		$this->instantiateClient();
+		$client = $this->elastic_client;          
 		$params = [
 		    'index' => $this->getParameter('elastic_index'),
 		    'type' => $this->getParameter('elastic_type'),
 		    'body' => [
+			'_source'=> $fields,
 			'query' => [
 			    'multi_match' => [
 				'query' => $textpattern,
 				'type' => 'phrase',
-				'fields'=> ['content', 'content_ngrams']
+				'fields'=> $fields
 			    ]
 			],
-			'highlight' => ['fields'    => array('content_ngrams' => new \stdClass(), 'content' => new \stdClass()),  'fragment_size' => 300]
+			'highlight' => ['fields'    => $fields_highlight,  'fragment_size' => 300]
 		    ]
 		];
 		$patternregex = '/\b'.$textpattern.'[^\s]*?\b.*?(\.|$)/i';
@@ -165,8 +227,10 @@ class DefaultController extends Controller
 		$returned=Array();
 		foreach($results["hits"]["hits"] as $key=>$doc)
 		{				
-			$this->get_highlights($returned, $doc["highlight"], $patternregex, "content_ngrams");
-			$this->get_highlights($returned, $doc["highlight"], $patternregex, "content");
+			foreach($fields as $single_field)
+			{
+				$this->get_highlights($returned, $doc["highlight"], $patternregex, $single_field);
+			}
 		}
 		$i=1;
 		$json_array=Array();
@@ -183,9 +247,53 @@ class DefaultController extends Controller
 		return new JsonResponse($json_array);
 	}
 
-	public function autocompleteselect2Action(Request $request)
+	public function autocompletefulltextAction(Request $request)
 	{
 		 $key = $request->query->get('q');
-		return $this->autocompleteAction($key); 
+		return $this->autocompleteAction($key, ['content', 'content_ngrams'], array('content_ngrams' => new \stdClass(), 'content' => new \stdClass())); 
+	}
+
+	public function autocompleteauthorsAction(Request $request)
+	{
+		 $key = $request->query->get('q');
+		return $this->autocompleteAction($key, ['authors', 'authors.authors_ngrams'], array('authors' => new \stdClass(), 'authors.authors_ngrams' => new \stdClass())); 
+	}
+
+	public function autocompletefieldallAction( $keywordfield)
+	{
+		$returned=Array();
+		
+			$this->instantiateClient();
+			$client = $this->elastic_client;          
+			$params = [
+			    'index' => $this->getParameter('elastic_index'),
+			    'type' => $this->getParameter('elastic_type'),
+			    'size' => 0,
+			    'body' => [
+				'_source'=> $keywordfield,
+				'aggs' => [
+				    'getall' => [
+					'terms' => 
+						['field' => $keywordfield,
+						]
+				    ]
+				]
+			    ]
+			];
+		
+			$results = $client->search($params);
+			
+		
+			$returned=Array();
+			$i=0;
+			foreach($results["aggregations"]["getall"]["buckets"] as $key=>$doc)
+			{				
+				$row["id"]=$doc["key"];
+				$row["text"]=$doc["key"];
+				$returned[]=$row;			
+				$i++;
+			}
+		
+		return new JsonResponse($returned);
 	}
 }

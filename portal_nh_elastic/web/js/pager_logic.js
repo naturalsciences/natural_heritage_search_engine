@@ -23,16 +23,53 @@ $(document).ready(
 		{	
 			route=$("#base_url").val();
 			
+			function buildQuery()
+			{
+				returned={};
+				var fulltext=$("#elastic_search_freetext").val();
+				var institutions=$("#elastic_search_institution").select2("val").join("|");
+				var authors=$("#elastic_search_authors").select2("val").join("|");
+				if(!!$("#elastic_search_freetext").val())
+				{				
+					returned["fulltext"]=$("#elastic_search_freetext").val();
+				}
+				if($("#elastic_search_institution").length)
+				{				
+					if($("#elastic_search_institution").select2("val").join("|").length>0)
+					{					
+						returned["institutions"]=$("#elastic_search_institution").select2("val").join("|");
+					}
+				}
+				if(("#elastic_search_authors").length)
+				{	
+					if($("#elastic_search_authors").select2("val").join("|").length>0)
+					{				
+						returned["authors"]=$("#elastic_search_authors").select2("val").join("|");
+					
+					}				
+				}
+				
+				return returned;
+			}
+
+			var parseQueryArray=function(params)
+			{
+				
+			}
+			
 			$(".nh_submit").click(
 			
 				function()
 				{
-					var base_url=route.concat("searchpartial/");
-					query_url= base_url.concat($("#elastic_search_freetext").val());
+				
+					
+					var base_url=route.concat("searchpartial");
+					query_url= buildQuery();
 					$.ajax(
 					{
 						type:"POST",
-						url: query_url ,
+						url: base_url,
+						data :query_url,
 						success: function(response)
 						{
 							$('#result_search').html(response);
@@ -41,38 +78,20 @@ $(document).ready(
 								
 					}
 					)
-				});
-
-			$('.select2').select2({
-				//width: "300px",
-				tags: true,
-				multiple: false,
-				  ajax: {
-				    url: route.concat("autocompleteselect2"),
-				    data: function (params) {
-				      var query = {
-					q: params.term
-				      }
-
-				      // Query parameters will be ?search=[term]&type=public
-					
-				      return query;
-				    },
-					processResults: function(data) {
-					       return {results: data};
-					}
-				  }
-				});
+				});			
 
 
 
 			PAGER={
 			    pager_fct: function (page) {
-					var base_url=query_url.concat("/").concat(page);
+					query_url['page']=page;
+					var base_url=$("#base_url").val();	
+					base_url=base_url.concat("searchpartial");
 					$.ajax(
 					{
 						type:"POST",
 						url: base_url,
+						data :query_url,
 						success: function(response)
 						{
 							$('#result_search').html(response);
