@@ -2,6 +2,11 @@ naturalheritage_search_homepage:
     path:     /
     defaults: { _controller: NaturalheritageSearchBundle:Default:index }
 
+naturalheritage_search_homepage_iframe:
+    path:     /iframe
+    defaults: { _controller: NaturalheritageSearchBundle:Default:indexiframe }
+
+
 naturalheritage_search_searchelasticsearch:
     path:     /search/{textpattern}
     defaults:  
@@ -30,7 +35,18 @@ naturalheritage_field_autocompleteselectall:
     defaults:  
         _controller: NaturalheritageSearchBundle:Default:autocompletefieldall
 
-naturalheritage_search_autocompleteauthors:
-    path:     /autocompleteauthors
+naturalheritage_search_autocompletewho:
+    path:     /autocompletewho
     defaults:  
-        _controller: NaturalheritageSearchBundle:Default:autocompleteauthors            
+        _controller: NaturalheritageSearchBundle:Default:autocompletewho
+
+naturalheritage_search_autocompletewhere:
+    path:     /autocompletewhere
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompletewhere            
+
+naturalheritage_search_autocompletewhat:
+    path:     /autocompletewhat
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompletewhat            
+                

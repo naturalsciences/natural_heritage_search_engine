@@ -5,16 +5,20 @@
 {% endif %}
 {% if facets is defined %}
 <h3>Facets:</h3>
-<ul>
+<table
+<tr>
     {% for facet in facets %}
-	<li>{{facet['criteria']}}
-	<ul>
-		  {% for facet_detail in facet['details'] %}
-		   <li>{{facet_detail['value']}}: {{facet_detail['count']}}</li>
-		  {% endfor %}
-	</ul></li>
+    <td class="align-top">
+        <li>{{facet['criteria']}}
+        <ul>
+              {% for facet_detail in facet['details'] %}
+               <li>{{facet_detail['value']}}: {{facet_detail['count']}}</li>
+              {% endfor %}
+        </ul></li>
+     </td>   
     {% endfor %}
-</ul>
+</tr>
+</table>
 {% endif %}
 {% if results is defined %}
 <h3>Results:</h3>
@@ -22,9 +26,13 @@
     {% for result in results %}
 	<li><ul>
 	<li>{{ result.institution }}</li>
-	<li>{{ result.bundleName }}</li>
-	<li>{{ result.title }}</li>
-        <li><a href={{ result.id }} target="_blank">{{ result.id }}</a></li>
+	<li>{{ result.main_collection }}</li>
+    <li>{{ result.sub_collection }}</li>
+	<li>{{ result.object_type }}</li>
+        {% for identifier in result.object_identifiers %}
+     <li>{{ identifier.identifier_type }} : {{ identifier.identifier }}</li>
+     {% endfor %}
+       <li><a href={{ result.id }} target="_blank">{{ result.id }}</a></li>
 	</ul></li>
     {% endfor %}
 </ul>
