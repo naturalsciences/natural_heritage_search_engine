@@ -86,7 +86,13 @@ class Document
      */
     public $object_identifiers;
     
-    
+    /**
+     * @var ContentMetaObject
+     *
+     * @ES\Embedded(class="NaturalheritageSearchBundle:Coordinates", multiple=true)
+     */
+    public $coordinates;
+        
   
 }
 
