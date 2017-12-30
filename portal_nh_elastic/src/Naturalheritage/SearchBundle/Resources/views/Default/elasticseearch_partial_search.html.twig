@@ -73,6 +73,10 @@ Free text:
 </table>
 </div>
 <br/>
+<div class="detailed_search" style="display:none">
+{% include 'NaturalheritageSearchBundle:Default:map.html.twig' %}
+</div>
+<br/>
  <button type="button" id="solr_search" class="nh_submit">Search</button> 
 </form>
 
@@ -98,6 +102,7 @@ $(document).ready(
 				if(hide_details)
 				{
 					$(".detailed_search").show();
+					MAP.map.updateSize();
 				}
 				else
 				{

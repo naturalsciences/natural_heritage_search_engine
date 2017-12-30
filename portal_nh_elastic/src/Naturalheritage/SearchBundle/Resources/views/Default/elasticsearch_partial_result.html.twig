@@ -21,18 +21,23 @@
 </table>
 {% endif %}
 {% if results is defined %}
+
 <h3>Results:</h3>
 <ul>
     {% for result in results %}
-	<li><ul>
+	<li>{% if ids is defined %}{{ ids[result.id] }}{% endif %}<ul>
 	<li>{{ result.institution }}</li>
 	<li>{{ result.main_collection }}</li>
     <li>{{ result.sub_collection }}</li>
 	<li>{{ result.object_type }}</li>
         {% for identifier in result.object_identifiers %}
-     <li>{{ identifier.identifier_type }} : {{ identifier.identifier }}</li>
-     {% endfor %}
+     		<li>{{ identifier.identifier_type }} : {{ identifier.identifier }}</li>
+     	{% endfor %}
        <li><a href={{ result.id }} target="_blank">{{ result.id }}</a></li>
+	{% for coordinate in result.coordinates %}
+		<input type="hidden" class="coords_for_map" value='{"id":"{{ ids[result.id] }}", "lat":{{ coordinate.geo_ref_point.lat }}, "lon":{{ coordinate.geo_ref_point.lon }}, "url":"{{ result.id }}"}'/>
+		
+	{% endfor %}
 	</ul></li>
     {% endfor %}
 </ul>

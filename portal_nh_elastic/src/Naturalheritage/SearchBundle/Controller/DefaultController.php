@@ -18,6 +18,8 @@ use ONGR\ElasticsearchDSL\Query\FullText\MultiMatchQuery;
 use ONGR\ElasticsearchDSL\Query\Compound\BoolQuery;
 use ONGR\ElasticsearchDSL\Query\Joining\NestedQuery;
 use ONGR\ElasticsearchDSL\Query\TermLevel\RangeQuery;
+use ONGR\ElasticsearchDSL\Query\MatchAllQuery;
+use ONGR\ElasticsearchDSL\Query\Geo\GeoBoundingBoxQuery;
 
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -104,12 +106,19 @@ class DefaultController extends Controller
 	$choices = Array();
 	$choices[] = $this->returnBucket('institution', $results->getAggregation('institution'));
 	$choices[] = $this->returnBucket('Collection', $results->getAggregation('main_collection'));
-    $choices[] = $this->returnBucket('Sub-collection', $results->getAggregation('sub_collection'));
+    	$choices[] = $this->returnBucket('Sub-collection', $results->getAggregation('sub_collection'));
 	$choices[] = $this->returnBucket('Object type', $results->getAggregation('object_type'));
-    $choices[] = $this->returnBucket('Who', $results->getAggregation('search_criteria_who'));
-    $choices[] = $this->returnBucket('Country', $results->getAggregation('country'));
-    $choices[] = $this->returnBucket('Geographical', $results->getAggregation('locality'));
-   
+    	$choices[] = $this->returnBucket('Who', $results->getAggregation('search_criteria_who'));
+    	$choices[] = $this->returnBucket('Country', $results->getAggregation('country'));
+    	$choices[] = $this->returnBucket('Geographical', $results->getAggregation('locality'));
+	$keys=Array();   
+	$id=($page-1)*($this->max_results);	
+	foreach($results as $doc)
+	{
+		$keys[$doc->id]=++$id;
+		
+	}
+	$returned["ids"]=$keys;
 	$returned["documents"]=$results;
 	$returned["facets"]=$choices;
 	$returned["count"]= $results->count();
@@ -158,6 +167,22 @@ class DefaultController extends Controller
                 }
             }
 		}			
+    }
+
+    protected function parseBBOX(&$p_search, $p_north, $p_west, $p_south, $p_east)
+    {
+	$location = [
+	    ['lat' => $p_north, 'lon' => $p_west],
+	    [ 'lat' => $p_south, 'lon' => $p_east],
+	];
+
+	$boolQuery = new BoolQuery();
+	$boolQuery->add(new MatchAllQuery());
+	$geoQuery = new GeoBoundingBoxQuery('coordinates.geo_ref_point', $location);
+ 	$nested =  new NestedQuery("coordinates", $geoQuery);
+ 	$p_search->addQuery($nested, BoolQuery::MUST);
+	//$boolQuery->add($geoQuery, BoolQuery::FILTER);
+	//$p_search->addQuery($boolQuery);
     }
     
     protected function doSearch($query_params, $page)
@@ -232,6 +257,10 @@ class DefaultController extends Controller
             {
                 $this->parseSearchCriteria($search, $query_detail, "dates", $main_key, Array("dates.date_begin" ), Array("dates.date_type"=> $query_detail["sub_category"] ), true,"lte");
             }
+	    elseif($main_key=="bbox")
+	    {
+		$this->parseBBOX($search, $query_detail["north"], $query_detail["west"], $query_detail["south"], $query_detail["east"] );
+            }
             
            
         
@@ -239,48 +268,50 @@ class DefaultController extends Controller
 	
 
 	$buckets= array("institution", "main_collection", "sub_collection","object_type");
-    foreach($buckets as $bucket)
-    {
-        $termsAggregation = new TermsAggregation($bucket);
-        $termsAggregation->setField($bucket);
-        $search->addAggregation($termsAggregation);
-    }
-    $displayWho=  new TermsAggregation("search_criteria_who_base");
-    $displayWho->setField("search_criteria.value.value_full");
-    $filterWho= new TermQuery('search_criteria.main_category', 'who');
-    $filterAggregationWho = new FilterAggregation('who', $filterWho);
-    $filterAggregationWho->addAggregation($displayWho);    
-	$nestedAggregationWho = new NestedAggregation('search_criteria_who', 'search_criteria');
-    $nestedAggregationWho->addAggregation($filterAggregationWho);
-    $search->addAggregation($nestedAggregationWho);
-    
-    $displayCountry=  new TermsAggregation("search_criteria_country_base");
-    $displayCountry->setField("search_criteria.value.value_full");
-    $filterCountry= new TermQuery('search_criteria.sub_category', 'country');
-    $filterAggregationCountry = new FilterAggregation('country', $filterCountry);
-    $filterAggregationCountry->addAggregation($displayCountry);    
-	$nestedAggregationCountry = new NestedAggregation('country', 'search_criteria');
-    $nestedAggregationCountry->addAggregation($filterAggregationCountry);
-    $search->addAggregation($nestedAggregationCountry);
-    
-    $displayLocality=  new TermsAggregation("search_criteria_locality_base");
-    $displayLocality->setField("search_criteria.value.value_full");
-    $filterIsWhere= new TermQuery('search_criteria.main_category', 'where');
-    $filterIsNotCountry= new TermQuery('search_criteria.sub_category', 'country');
-    $filterIsNotCountry2= new TermQuery('search_criteria.sub_category', 'Country');
-    $bool = new BoolQuery();
-    $bool->add($filterIsWhere, BoolQuery::MUST);
-    $bool->add($filterIsNotCountry, BoolQuery::MUST_NOT);
-    $bool->add($filterIsNotCountry2, BoolQuery::MUST_NOT);
-    $filterAggregationLocality = new FilterAggregation('locality', $bool);
-    $filterAggregationLocality->addAggregation($displayLocality);    
-	$nestedAggregationLocality = new NestedAggregation('locality', 'search_criteria');
-    $nestedAggregationLocality->addAggregation($filterAggregationLocality);
-    $search->addAggregation($nestedAggregationLocality);
+	    foreach($buckets as $bucket)
+	    {
+		$termsAggregation = new TermsAggregation($bucket);
+		$termsAggregation->setField($bucket);
+		$search->addAggregation($termsAggregation);
+	    }
+	    $displayWho=  new TermsAggregation("search_criteria_who_base");
+	    $displayWho->setField("search_criteria.value.value_full");
+	    $filterWho= new TermQuery('search_criteria.main_category', 'who');
+	    $filterAggregationWho = new FilterAggregation('who', $filterWho);
+	    $filterAggregationWho->addAggregation($displayWho);    
+		$nestedAggregationWho = new NestedAggregation('search_criteria_who', 'search_criteria');
+	    $nestedAggregationWho->addAggregation($filterAggregationWho);
+	    $search->addAggregation($nestedAggregationWho);
+	    
+	    $displayCountry=  new TermsAggregation("search_criteria_country_base");
+	    $displayCountry->setField("search_criteria.value.value_full");
+	    $filterCountry= new TermQuery('search_criteria.sub_category', 'country');
+	    $filterAggregationCountry = new FilterAggregation('country', $filterCountry);
+	    $filterAggregationCountry->addAggregation($displayCountry);    
+		$nestedAggregationCountry = new NestedAggregation('country', 'search_criteria');
+	    $nestedAggregationCountry->addAggregation($filterAggregationCountry);
+	    $search->addAggregation($nestedAggregationCountry);
+	    
+	    $displayLocality=  new TermsAggregation("search_criteria_locality_base");
+	    $displayLocality->setField("search_criteria.value.value_full");
+	    $filterIsWhere= new TermQuery('search_criteria.main_category', 'where');
+	    $filterIsNotCountry= new TermQuery('search_criteria.sub_category', 'country');
+	    $filterIsNotCountry2= new TermQuery('search_criteria.sub_category', 'Country');
+	    $bool = new BoolQuery();
+	    $bool->add($filterIsWhere, BoolQuery::MUST);
+	    $bool->add($filterIsNotCountry, BoolQuery::MUST_NOT);
+	    $bool->add($filterIsNotCountry2, BoolQuery::MUST_NOT);
+	    $filterAggregationLocality = new FilterAggregation('locality', $bool);
+	    $filterAggregationLocality->addAggregation($displayLocality);    
+		$nestedAggregationLocality = new NestedAggregation('locality', 'search_criteria');
+	    $nestedAggregationLocality->addAggregation($filterAggregationLocality);
+	    $search->addAggregation($nestedAggregationLocality);
     
 	$search->setSize($this->max_results);
 	$search->setFrom($this->max_results*($page-1));
 	$results = $finder->findDocuments($search);
+	
+	
 	$resultArray=$this->parseElasticResult($results, $page);
 		
 	return $resultArray;
@@ -305,7 +336,7 @@ class DefaultController extends Controller
 	$resultArray=$this->doSearch($request->request, $page);
 	if(count($resultArray)>0)
 	{
-		return	 $this->render($this->template_results, array('results'=>$resultArray["documents"], 'facets'=>$resultArray["facets"], 'count'=>$resultArray["count"], 'pagination'=>$resultArray['pagination']));
+		return	 $this->render($this->template_results, array('results'=>$resultArray["documents"], 'facets'=>$resultArray["facets"], 'count'=>$resultArray["count"], 'pagination'=>$resultArray['pagination'], 'ids'=>$resultArray['ids']));
 	}
 	else
 	{

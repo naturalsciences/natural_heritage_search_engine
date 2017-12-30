@@ -33,26 +33,26 @@ $(document).ready(
 				if(!!$("#elastic_search_freetext").val())
 				{				
 					var criteria={};
-                    criteria["fulltext"]=$("#elastic_search_freetext").val();
-                    returned["fulltext"]=criteria;
+                    			criteria["fulltext"]=$("#elastic_search_freetext").val();
+                    			returned["fulltext"]=criteria;
 				}
 				if($("#elastic_search_institution").length)
 				{				
 					if($("#elastic_search_institution").select2("val").join("|").length>0)
 					{	
-                        var criteria={};    
+                        			var criteria={};    
 						criteria["institutions"]=$("#elastic_search_institution").select2("val").join("|");
-                        returned["institutions"]=criteria;
+                        			returned["institutions"]=criteria;
 					}
 				}
                 
-                if($("#elastic_search_collection").length)
+                		if($("#elastic_search_collection").length)
 				{				
 					if($("#elastic_search_collection").select2("val").join("|").length>0)
 					{	
-                        var criteria={};    
+                        			var criteria={};    
 						criteria["collections"]=$("#elastic_search_collection").select2("val").join("|");
-                        returned["collections"]=criteria;
+                        			returned["collections"]=criteria;
 					}
 				}
                 
@@ -60,76 +60,86 @@ $(document).ready(
 				{	
 					if($("#elastic_search_who").select2("val").join("|").length>0)
 					{	
-                        var criteria={};                    
+                        			var criteria={};                    
 						criteria["who"]=$("#elastic_search_who").select2("val").join("|");
-                        criteria["sub_category"]="*";
-                        returned["who"]=criteria;
-					
+                        			criteria["sub_category"]="*";
+                       				 returned["who"]=criteria;
 					}				
 				}
                 
-                if(("#elastic_search_where").length)
+               	 		if(("#elastic_search_where").length)
 				{	
 					if($("#elastic_search_where").select2("val").join("|").length>0)
 					{	
-                        var criteria={};                    
+                        			var criteria={};                    
 						criteria["where"]=$("#elastic_search_where").select2("val").join("|");
-                        criteria["sub_category"]="*";
-                        returned["where"]=criteria;
-					
+                        			criteria["sub_category"]="*";
+                       				returned["where"]=criteria;
 					}				
 				}
                 
-                if(("#elastic_search_what").length)
+                		if(("#elastic_search_what").length)
 				{	
 					if($("#elastic_search_what").select2("val").join("|").length>0)
 					{	
-                        var criteria={};                    
+                        			var criteria={};                    
 						criteria["what"]=$("#elastic_search_what").select2("val").join("|");
-                        criteria["sub_category"]="*";
-                        returned["what"]=criteria;
-					
+                        			criteria["sub_category"]="*";
+                        			returned["what"]=criteria;					
 					}				
 				}
                              
-                if($("#elastic_search_when_start").val().length)
-                {
-                    if($("#elastic_search_when_start").val().length>0)
+				if($("#elastic_search_when_start").val().length)
+				{
+				    	if($("#elastic_search_when_start").val().length>0)
 					{	
-                        var criteria={};                    
+				        	var criteria={};                    
 						criteria["date_from"]=$("#elastic_search_when_start").val();
-                        criteria["sub_category"]="*";
-                        returned["date_from"]=criteria;
+				        	criteria["sub_category"]="*";
+				        	returned["date_from"]=criteria;
 					}	
-                }
+				}
 
-                if($("#elastic_search_when_end").val().length)
-                {
-                    if($("#elastic_search_when_end").val().length>0)
+				if($("#elastic_search_when_end").val().length)
+				{
+				    	if($("#elastic_search_when_end").val().length>0)
 					{	
-            
-						 var criteria={}; 
-                         criteria["date_to"]=$("#elastic_search_when_end").val();
-                         criteria["sub_category"]="*";
-                         returned["date_to"]=criteria;
+			    			 var criteria={}; 
+					         criteria["date_to"]=$("#elastic_search_when_end").val();
+					         criteria["sub_category"]="*";
+					         returned["date_to"]=criteria;
 					}	
-                }
+				}
 				
+				if($("#tmpN").val().length && $("#tmpS").val().length && $("#tmpW").val().length && $("#tmpE").val().length)
+				{
+					if($("#tmpN").val().length>0 && $("#tmpS").val().length>0 && $("#tmpW").val().length>0 && $("#tmpE").val().length>0)
+					{
+						if($.isNumeric($("#tmpN").val()) && $.isNumeric($("#tmpS").val()) && $.isNumeric($("#tmpW").val()) && $.isNumeric($("#tmpE").val()))
+						{
+							var criteria={};
+							criteria["north"]=$("#tmpN").val();
+							criteria["west"]=$("#tmpW").val();
+							criteria["east"]=$("#tmpE").val();
+							criteria["south"]=$("#tmpS").val();
+							returned["bbox"]=criteria;
+
+						}
+					}
+				}
+
 				return returned;
 			}
 
-			var parseQueryArray=function(params)
-			{
-				
-			}
+			
 			
 			$(".nh_submit").click(
 			
 				function()
 				{
-                    var base_url=route.concat("searchpartial");
-                    query_url= buildQuery();
-                   	$.ajax(
+                    			var base_url=route.concat("searchpartial");
+                    			query_url= buildQuery();
+                   			$.ajax(
 					{
 						type:"POST",
 						url: base_url,
