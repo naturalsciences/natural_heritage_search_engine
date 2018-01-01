@@ -14,6 +14,8 @@ class Document
     {
         $this->object_identifiers = new ArrayCollection();
     }
+
+   
     
     /**
      * @var string
@@ -85,6 +87,14 @@ class Document
      * @ES\Embedded(class="NaturalheritageSearchBundle:ObjectIdentifiers", multiple=true)
      */
     public $object_identifiers;
+
+    /**
+     * @var ContentMetaObject
+     *
+     * @ES\Embedded(class="NaturalheritageSearchBundle:Coordinates", multiple=true)
+     */
+    public $coordinates;
+   
     
     
   

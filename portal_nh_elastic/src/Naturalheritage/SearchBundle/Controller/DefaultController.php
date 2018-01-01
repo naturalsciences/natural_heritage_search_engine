@@ -61,10 +61,18 @@ class DefaultController extends Controller
         }
     }
 
+    public function getAllExpandedSearchCriteria()
+    {
+	$returned=Array();
+	$returned["who"]=$this->autocompletefieldallnested_base("search_criteria", "sub_category", "main_category", "who");
+	$returned["where"]=$this->autocompletefieldallnested_base("search_criteria", "sub_category", "main_category", "where");
+	return $returned;
+    }
+
     public function indexAction()
     {
-
-	return	 $this->render($this->template_index);
+	$expanded_search=$this->getAllExpandedSearchCriteria();
+	return	 $this->render($this->template_index, Array('expanded_search'=>$expanded_search));
 	
     }
 
@@ -586,51 +594,121 @@ class DefaultController extends Controller
 
 	public function autocompletefieldallAction( $keywordfield)
 	{
-        if($keywordfield=="institution")
-        {
-            $keywordfields=Array("institution");
-        }
-        elseif($keywordfield=="collection")
-        {
-            $keywordfields=Array("department", "main_collection", "sub_collection");
-        }
-		$returned=Array();
-		foreach($keywordfields as $keywordfield_value)
-        {
-			$this->instantiateClient();
-			$client = $this->elastic_client;          
-			$params = [
-			    'index' => $this->getParameter('elastic_index'),
-			    'type' => $this->getParameter('elastic_type'),
-			    'size' => 0,
-			    'body' => [
-				'_source'=> $keywordfield_value,
-				'aggs' => [
-				    'getall' => [
-					'terms' => 
-						['field' => $keywordfield_value,
-						]
+		if($keywordfield=="institution")
+		{
+		    $keywordfields=Array("institution");
+		}
+		elseif($keywordfield=="collection")
+		{
+		    $keywordfields=Array("department", "main_collection", "sub_collection");
+		}
+			$returned=Array();
+			foreach($keywordfields as $keywordfield_value)
+		{
+				$this->instantiateClient();
+				$client = $this->elastic_client;          
+				$params = [
+				    'index' => $this->getParameter('elastic_index'),
+				    'type' => $this->getParameter('elastic_type'),
+				    'size' => 0,
+				    'body' => [
+					'_source'=> $keywordfield_value,
+					'aggs' => [
+					    'getall' => [
+						'terms' => 
+							['field' => $keywordfield_value,
+							]
+					    ]
+					]
 				    ]
-				]
-			    ]
-			];
+				];
 		
-			$results = $client->search($params);
+				$results = $client->search($params);
 			
 		
 			
-			$i=0;
-			foreach($results["aggregations"]["getall"]["buckets"] as $key=>$doc)
-			{				
-				$row["id"]=$doc["key"];
-				$row["text"]=$doc["key"];
-				$returned[]=$row;			
-				$i++;
-			}
-        }
+				$i=0;
+				foreach($results["aggregations"]["getall"]["buckets"] as $key=>$doc)
+				{				
+					$row["id"]=$doc["key"];
+					$row["text"]=$doc["key"];
+					$returned[]=$row;			
+					$i++;
+				}
+		}
 		sort($returned);
 		
 		//$returned=array_unique($returned);
+		return new JsonResponse($returned);
+	}
+
+	public function autocompletefieldallnested_base($parent, $keywordfield, $filterfield, $filtercriteria)
+	{
+		$returned=Array();
+
+		$this->instantiateClient();
+		$client = $this->elastic_client;          
+		$params = [
+		        'index' => $this->getParameter('elastic_index'),
+		        'type' => $this->getParameter('elastic_type'),
+		        'size' => 0,
+		        'body' => [
+		        'query' => [
+		                'nested' => [
+		                    'path'=> $parent,
+		                    'query' => [
+		                                    'match' =>  [
+		                                       $parent.".".$filterfield => $filtercriteria
+		                                            ]
+		                               ]
+		                    ]
+		            ]
+		            ,
+		            "aggs" => [
+		                        $parent => [
+		                        "nested" => [ "path"=> $parent]
+		                         ,
+		                        "aggs" => [
+		                              "filtercriteria" =>
+		                                   [
+		                                       "filter" => [ "term" => [$parent.".".$filterfield => $filtercriteria]],
+		                                       "aggs"=> [
+		                                                  "getall" => [
+		                                                     "terms" =>
+		                                                      [ "field" => $parent.".".$keywordfield]
+		                                                    ]
+		                                              ]
+		                                  ]    
+		                              ]
+		                                  
+		                        ]
+		                      ]
+		          ]
+                 ];
+		
+		$results = $client->search($params);
+			
+		
+			
+		$i=0;
+
+		foreach($results["aggregations"][$parent]["filtercriteria"]["getall"]["buckets"] as $key=>$doc)
+		{				
+			$row["id"]=$doc["key"];
+			$row["text"]=$doc["key"];
+			$returned[]=$row;			
+			$i++;
+		}
+		
+		sort($returned);
+		return $returned;
+	}
+
+
+	public function autocompletefieldallnestedAction($parent, $keywordfield, $filterfield, $filtercriteria)
+	{
+
+		$returned=$this->autocompletefieldallnested_base($parent, $keywordfield, $filterfield, $filtercriteria);
 		return new JsonResponse($returned);
 	}
 }

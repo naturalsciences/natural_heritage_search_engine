@@ -45,6 +45,7 @@ Free text:
 </td>
 <td>
 	<select id="elastic_search_who" class="select2" multiple="multiple" style='width:300px' ></select>
+	        {% include 'NaturalheritageSearchBundle:Default:expandsearch.html.twig' with { 'base_name':"expand_who", 'expanded_checkboxes':expanded_search['who']} %}		
 </td>
 </tr>
 <tr class="detailed_search" style="display:none">
@@ -53,7 +54,7 @@ Free text:
 </td>
 <td>
 	<select id="elastic_search_where" class="select2" multiple="multiple" style='width:300px' ></select>
-   
+        {% include 'NaturalheritageSearchBundle:Default:expandsearch.html.twig' with { 'base_name':"expand_where", 'expanded_checkboxes':expanded_search['where']} %}
 </td>
 </tr>
 <tr class="detailed_search" style="display:none">
@@ -88,6 +89,23 @@ Free text:
 <script language="javascript">
 var hide_details=false;
 var route;
+
+var expanded_search_builder=function(p_class)
+		{
+			returned=Array();
+			$('.'+p_class+':checked').each(function() {
+			    returned.push($(this).val());
+			});
+			if(returned.length==$('.'+p_class).length)
+			{
+				return -1;
+			}
+			else
+			{
+				return returned.join("|");
+			}
+		}
+
 $(document).ready(
 	
 	function()
@@ -110,6 +128,8 @@ $(document).ready(
 				}
 			}
 		);
+
+		
 
 		$('#elastic_search_freetext').select2({
 				//width: "300px",
@@ -166,7 +186,8 @@ $(document).ready(
 				    url: route.concat("autocompletewho"),
 				    data: function (params) {
 				      var query = {
-					q: params.term
+					q: params.term,
+					expanded: expanded_search_builder("expand_who_checkboxes")
 				      }
 
 				      
@@ -174,7 +195,7 @@ $(document).ready(
 				      return query;
 				    },
 					processResults: function(data) {
-					       return {results: data};
+						return {results: data};
 					}
 				  }
 				});

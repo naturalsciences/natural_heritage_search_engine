@@ -48,5 +48,11 @@ naturalheritage_search_autocompletewhere:
 naturalheritage_search_autocompletewhat:
     path:     /autocompletewhat
     defaults:  
-        _controller: NaturalheritageSearchBundle:Default:autocompletewhat            
+        _controller: NaturalheritageSearchBundle:Default:autocompletewhat
+
+naturalheritage_search_keyword_nested:
+    path:     /autocompletegetall_nested/{parent}/{keywordfield}/{filterfield}/{filtercriteria}
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompletefieldallnested
+         
                 

@@ -175,7 +175,45 @@ $(document).ready(
 			    }
 			};
 
-			
+			//expand search criteria
+			var expand_url=route.concat("autocompletegetall_nested");
+                        $(".expand_criteria").click(
+				function()
+				{
+					
+					//alert($(this).attr("id"));
+					var tmpID=$(this).attr("id");
+					$("#"+tmpID+"_expanded_search").show();
+					/*var container = $("#"+tmpID+"_expanded");
+					var url=expand_url.concat("/").concat($("#"+$(this).attr("id")+"_parent").val());
+					url=url.concat("/").concat($("#"+$(this).attr("id")+"_keywordfield").val());
+					url=url.concat("/").concat($("#"+$(this).attr("id")+"_filterfield").val());
+					url=url.concat("/").concat($("#"+$(this).attr("id")+"_filtercriteria").val());
+					
+					$.ajax(
+					{
+						type:"POST",
+						url: url,
+						success: function(response)
+						{
+							
+							$.each(response,
+							    function(idx, item)
+							    {
+								if(response[idx].text.length>0)
+								{
+									$('<label />', { text: ' '+ response[idx].text+" : "}).appendTo(container);
+									$('<input />', { type: 'checkbox', class: tmpID.concat('_checkbox'), id: tmpID.concat('_checkbox'), value: response[idx].text, checked:true}).appendTo(container);
+							        }  
+							    }
+							);
+						}
+						
+								
+					}
+					);*/
+				}
+			);
 			
 		}
 	);
