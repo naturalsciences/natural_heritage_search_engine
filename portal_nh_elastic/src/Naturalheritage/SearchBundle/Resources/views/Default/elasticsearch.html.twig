@@ -3,20 +3,20 @@
 	
 	<link href="{{asset('assets/vendor/bootstrap-4.0.0-beta.2-dist/css/bootstrap.min.css')}}" rel="stylesheet" />
     	<link href="{{asset('assets/vendor/bootstrap-datepicker-1.6.4-dist/css/bootstrap-datepicker.min.css')}}" rel="stylesheet" />
-	<link href="{{asset('assets/vendor/select2/dist/css/select2.min.css')}}" rel="stylesheet" />
+	<link href="{{asset('assets/vendor/select2/dist/css/select2.css')}}" rel="stylesheet" />
 	<link href="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.css')}}" rel="stylesheet" />		
 
 </head>
 <body>
 <script src="{{asset('assets/vendor/jquery/dist/jquery.min.js')}}"></script>
-<script src="{{asset('assets/vendor/select2/dist/js/select2.full.min.js')}}"></script>
+<script src="{{asset('assets/vendor/select2/dist/js/select2.full.js')}}"></script>
 <script src="{{asset('assets/vendor/bootstrap-4.0.0-beta.2-dist/js/bootstrap.min.js')}}"></script>
 <script src="{{asset('assets/vendor/bootstrap-datepicker-1.6.4-dist/js/bootstrap-datepicker.min.js')}}"></script>
 <script src="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.js')}}"></script>
 <script src="{{asset('assets/../js/pager_logic.js')}}"></script>
 <H1>Natural Heritage portal</H1>
 
-Solr search<br/>
-{% include 'NaturalheritageSearchBundle:Default:elasticseearch_partial_search.html.twig' %}
+Elasticsearch search<br/>
+{% include 'NaturalheritageSearchBundle:Default:elasticsearch_partial_search.html.twig' with {'map' : map|default('on')} %}
 </body>
 </html>

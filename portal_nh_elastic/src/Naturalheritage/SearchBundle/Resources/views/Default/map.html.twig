@@ -3,50 +3,9 @@
 
       p.collapse{
          display:none;
-      }
+      }      
+
       
-      .ol-popup {
-        position: absolute;
-        background-color: white;
-        -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-        filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #cccccc;
-        bottom: 12px;
-        left: -50px;
-        min-width: 280px;
-      }
-      .ol-popup:after, .ol-popup:before {
-        top: 100%;
-        border: solid transparent;
-        content: " ";
-        height: 0;
-        width: 0;
-        position: absolute;
-        pointer-events: none;
-      }
-      .ol-popup:after {
-        border-top-color: white;
-        border-width: 10px;
-        left: 48px;
-        margin-left: -10px;
-      }
-      .ol-popup:before {
-        border-top-color: #cccccc;
-        border-width: 11px;
-        left: 48px;
-        margin-left: -11px;
-      }
-      .ol-popup-closer {
-        text-decoration: none;
-        position: absolute;
-        top: 2px;
-        right: 8px;
-      }
-      .ol-popup-closer:after {
-        content: "✖";
-      }
       
       
 </style>
@@ -56,14 +15,10 @@
 
 	  <div  style="width:650px;height:750px;" id="map" class="map"></div>
 	  <div id="mouse-position"></div>
-	  <div id="popup" class="ol-popup">
-      	  <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-      	  <div id="popup-content"></div>
-  </div>
 <div style="text-align: center">
-North : <input type="text" name="tmpN" id="tmpN"/><br/>
-West : <input type="text" name="tmpW" id="tmpW"/> East : <input type="text" name="tmpE" id="tmpE"/><br/>
-South :<input type="text" name="tmpS" id="tmpS"/>
+North : <input type="text" name="tmpN" id="tmpN" class="memoryforfacet" /><br/>
+West : <input type="text" name="tmpW" id="tmpW" class="memoryforfacet" /> East : <input type="text" name="tmpE" id="tmpE" class="memoryforfacet" /><br/>
+South :<input type="text" name="tmpS" id="tmpS" class="memoryforfacet" />
 </div>
 <br/>
  <script type="text/javascript">
@@ -83,9 +38,7 @@ var clusters;
 var modeRemovePage=false;
 var layerLoaded=false;
 
-var container = document.getElementById('popup');
-var content = document.getElementById('popup-content');
-var closer = document.getElementById('popup-closer');
+
 
 bingBackground= new ol.layer.Tile(
 		    {
@@ -93,10 +46,7 @@ bingBackground= new ol.layer.Tile(
 		        source: new ol.source.BingMaps({key: 'Ap9VNKmWsntrnteCapydhid0fZxzbV_9pBTjok2rQZS4pi15zfBbIkJkvrZSuVnJ', imagerySet:'AerialWithLabels' })
 		    }
 		);
-		 var view= new ol.View({
-		    center: [-4,15],
-		    zoom: 5
-		}); 
+
 
 view= new ol.View({
             center: [-4,15],
@@ -178,170 +128,15 @@ scaleLineControl = new ol.control.ScaleLine();
 
 ////////CLUSTER
 
-      var getFeaturesRow=function(tmpFeatures)
-      {
      
-            if(layerLoaded===true&&modeRemovePage===true)
-            {
-                map.removeLayer(clusters);
-            }
-           
-            
-
-         var vectorSource = new ol.source.Vector({});;
-   	vectorSource.addFeatures(tmpFeatures);
-       
-      
-        var clusterSource = new ol.source.Cluster({
-          distance: 40,
-          source: vectorSource
-        });
-        
-      	var styleCache = {};
-     	var keysForClick=[];
-      	clusters = new ol.layer.Vector({
-        source: clusterSource,
-        style: function(feature) {
-        
-        $.each(feature.get('features'),
-                    function(idx, item)
-                    {
-                        keysForClick[item.get('id')||'']=item.get('url')||'';
-                     
-                    }
-                );
-               
-          var size = feature.get('features').length;
-          var style = styleCache[size];
-          if (!style) {
-            style = new ol.style.Style({
-              image: new ol.style.Circle({
-                radius: 10,
-                stroke: new ol.style.Stroke({
-                  color: '#fff'
-                }),
-                fill: new ol.style.Fill({
-                  color: '#3399CC'
-                })
-              }),
-              text: new ol.style.Text({
-                text: size.toString(),
-                fill: new ol.style.Fill({
-                  color: '#fff'
-                })
-              })
-            });
-            styleCache[size] = style;
-          }
-          return style;
-        },
-        keysForClick: keysForClick
-      });
-
-        map.addLayer(clusters);
-        map.removeLayer(selectionBox);
-        layerLoaded=true;
-        
-        var extent = vectorSource.getExtent();
-       
-       
-        map.getView().fit(extent, map.getSize(),{maxZoom:12});
-       if(map.getView().getZoom()>10)
-       {
-            map.getView().setZoom(10);
-       }
-        
-         
-      };
-
-     var createGeoJSON=function()
-     {
-
-	var tmpFeatureArray=Array();
-	$(".coords_for_map").each(
-		function(index)
-		{
-			var tmp=$(this).val();
-			var jsonCoord=JSON.parse(tmp);
-			var tmpPoint=new ol.geom.Point(ol.proj.transform([jsonCoord.lon, jsonCoord.lat], 'EPSG:4326', 'EPSG:3857'));
-			var tmpFeature = new ol.Feature();
-			tmpFeature.setGeometry(tmpPoint);
-			tmpFeature.setId(jsonCoord.id);
-			tmpFeature.set('id_page', jsonCoord.id);
-			tmpFeature.set('url', jsonCoord.url);
-			tmpFeatureArray.push(tmpFeature);
-			
-		}
-	);
-	return tmpFeatureArray;
-     }
-
-///////////////	
-
-//////////////POP-UP (CLICK)
 
 
-                  /**
-                   * Create an overlay to anchor the popup to the map.
-                   */
-                    overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
-                    element: container,
-                    autoPan: true,
-                    autoPanAnimation: {
-                      duration: 250
-                    }
-                  }));
-                  
-                   /**
-                   * Add a click handler to hide the popup.
-                   * @return {boolean} Don't follow the href.
-                   */
-                  closer.onclick = function() {
-                    overlay.setPosition(undefined);
-                    closer.blur();
-                    return false;
-                  };
 
-		    var isCluster=function(feature) {
-		      if (!feature || !feature.get('features')) { 
-			    return false; 
-		      }
-		      return feature.get('features').length >= 1;
-		    }
+
 		  
 
 
-		 var initMapClick=function()
-                  {
 
-		        map.on('click', function(evt) {
-			    var coordinate = evt.coordinate;
-
-			    var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
-			    coordinate, 'EPSG:3857', 'EPSG:4326'));
-			  var feature = map.forEachFeatureAtPixel(evt.pixel, 
-				          function(feature) { return feature; });
-
-			  if (isCluster(feature)) {
-			    
-			 
-			   var html="";
-			    // is a cluster, so loop through all the underlying features
-			    var features = feature.get('features');
-			    for(var i = 0; i < features.length; i++) {
-			      // here you'll have access to your normal attributes:
-			      //console.log(features[i].get('name'));
-			   
-			     
-			      html+="<a target='_blank' href='"+(features[i].get('url')||'')+"'>Item n°."+(features[i].get('id_page')||'')+"</a>"+"<br/>";
-			      
-			    }
-			   
-			     content.innerHTML = '<p>' + html +'</p>';
-				overlay.setPosition(coordinate);
-			  } 
-			});
-		}
 
 ////////////////////////////
 	       
@@ -402,17 +197,10 @@ $(document).ready(
 		            }
 		        }
             );
-	     initMapClick();
-	     map.addOverlay(overlay);	 
+	    	 
 	}
 );
 
-$(document).ajaxComplete(
-	function()
-	{
-		tmpFeatureArray=createGeoJSON();
-		getFeaturesRow(tmpFeatureArray);
-	}
-);
+
 </script>
 </div>

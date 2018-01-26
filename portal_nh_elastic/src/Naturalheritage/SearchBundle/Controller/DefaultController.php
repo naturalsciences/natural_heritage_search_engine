@@ -24,6 +24,7 @@ use ONGR\ElasticsearchDSL\Query\Geo\GeoBoundingBoxQuery;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class DefaultController extends Controller
 {
@@ -34,7 +35,13 @@ class DefaultController extends Controller
     protected $template_index = 'NaturalheritageSearchBundle:Default:elasticsearch.html.twig';
     protected $template_iframe = 'NaturalheritageSearchBundle:Default:elasticsearch_stripped.html.twig';
     protected $template_results= 'NaturalheritageSearchBundle:Default:elasticsearch_partial_result.html.twig';
-    
+    protected $template_iframe_search = 'NaturalheritageSearchBundle:Frames:elasticsearch_frame_search.html.twig';
+    protected $template_iframe_result = 'NaturalheritageSearchBundle:Frames:elasticsearch_frame_search.html.twig';
+    protected $template_iframe_map = 'NaturalheritageSearchBundle:Frames:map.html.twig';
+    protected $frame_modules=false;
+    protected $session=null;
+    protected $search_map="on";
+   
     protected function recursiveFind(array $array, $needle)
     {
         $iterator  = new \RecursiveArrayIterator($array);
@@ -46,6 +53,15 @@ class DefaultController extends Controller
             if ($key === $needle) {
                 return $value;
             }
+        }
+    }
+    
+    protected function start_nh_session()
+    {
+        if($this->session===NULL)
+        {
+            $this->session = new Session();
+            $this->session->start();
         }
     }
     
@@ -61,35 +77,53 @@ class DefaultController extends Controller
         }
     }
 
-    public function getAllExpandedSearchCriteria()
-    {
-	$returned=Array();
-	$returned["who"]=$this->autocompletefieldallnested_base("search_criteria", "sub_category", "main_category", "who");
-	$returned["where"]=$this->autocompletefieldallnested_base("search_criteria", "sub_category", "main_category", "where");
-	return $returned;
-    }
-
     public function indexAction()
+    {        
+        return	 $this->render($this->template_index, array('map'=>$this->search_map));	
+    }
+    
+    public function indexNoMapAction()
     {
-	$expanded_search=$this->getAllExpandedSearchCriteria();
-	return	 $this->render($this->template_index, Array('expanded_search'=>$expanded_search));
+       $this->search_map="off";
+       return $this->indexAction();
 	
     }
 
-    public function indexiframeAction()
+    public function indexiframemoduleAction()
     {
-	$this->template_index=$this->template_iframe;
-	return $this->indexAction();
+       $this->start_nh_session();
+        $this->frame_modules=true;
+        $this->template_index=$this->template_iframe_search;
+        return	 $this->render($this->template_index,array('map'=>$this->search_map));
+    }
+    
+    public function indexmapframemoduleAction()
+    {
+        $this->start_nh_session();
+        return	 $this->render($this->template_iframe_map);
+    }
+    
+    public function indexIFrameAction()
+    {
+        $this->template_index=$this->template_iframe;
+        return $this->indexAction();
+    }
+
+    public function indexIFrameNoMapAction()
+    {
+        $this->search_map="off";        
+        return $this->indexIFrameAction();
     }
 
 
-    protected function returnBucket($criteria, $aggregation)
+
+    protected function returnBucket($criteria, $aggregation, $jquery_control)
     {
 	
         $nested=Array();
         $nested['criteria']=$criteria;
         $nested['details']=Array();
-        
+        $nested['jquery_control']=$jquery_control;
       
         $buckets=$this->recursiveFind((array)$aggregation, "buckets");
         
@@ -104,35 +138,36 @@ class DefaultController extends Controller
 
     protected function parseElasticResult($results, $page)
     {
-	$returned=Array();
+		$returned=Array();
 	
-	$pagination = array(
+		$pagination = array(
             'page' => $page,
             'route' => 'naturalheritage_search_searchelasticsearchpartial',
             'pages_count' => ceil($results->count() / $this->max_results)
         );
-	$choices = Array();
-	$choices[] = $this->returnBucket('institution', $results->getAggregation('institution'));
-	$choices[] = $this->returnBucket('Collection', $results->getAggregation('main_collection'));
-    	$choices[] = $this->returnBucket('Sub-collection', $results->getAggregation('sub_collection'));
-	$choices[] = $this->returnBucket('Object type', $results->getAggregation('object_type'));
-    	$choices[] = $this->returnBucket('Who', $results->getAggregation('search_criteria_who'));
-    	$choices[] = $this->returnBucket('Country', $results->getAggregation('country'));
-    	$choices[] = $this->returnBucket('Geographical', $results->getAggregation('locality'));
-	$keys=Array();   
-	$id=($page-1)*($this->max_results);	
-	foreach($results as $doc)
-	{
-		$keys[$doc->id]=++$id;
-		
-	}
-	$returned["ids"]=$keys;
-	$returned["documents"]=$results;
-	$returned["facets"]=$choices;
-	$returned["count"]= $results->count();
-        $returned['pagination']=$pagination;
- 	        
-	return $returned;
+		$choices = Array();
+		$choices[] = $this->returnBucket('institution', $results->getAggregation('institution'),"#elastic_search_institution");
+		$choices[] = $this->returnBucket('Collection', $results->getAggregation('main_collection'), "#elastic_search_collection");
+    	$choices[] = $this->returnBucket('Sub-collection', $results->getAggregation('sub_collection'), "#elastic_search_collection");
+		$choices[] = $this->returnBucket('Object type', $results->getAggregation('object_type'),"#elastic_search_what");
+    	$choices[] = $this->returnBucket('Who', $results->getAggregation('search_criteria_who'), "#elastic_search_who");
+    	$choices[] = $this->returnBucket('Country', $results->getAggregation('country'), "#elastic_search_where");
+    	$choices[] = $this->returnBucket('Geographical', $results->getAggregation('locality'), "#elastic_search_where");
+		$keys=Array();   
+		$id=($page-1)*($this->max_results);	
+		foreach($results as $doc)
+		{
+			$keys[$doc->id]=++$id;
+			
+		}
+		$returned["ids"]=$keys;
+		$returned["documents"]=$results;
+		$returned["facets"]=$choices;
+		//$returned['facets_to_search_criteria']=Array();	
+		$returned["count"]= $results->count();
+		$returned['pagination']=$pagination;
+	
+		return $returned;
     }
 
 
@@ -265,14 +300,14 @@ class DefaultController extends Controller
             {
                 $this->parseSearchCriteria($search, $query_detail, "dates", $main_key, Array("dates.date_begin" ), Array("dates.date_type"=> $query_detail["sub_category"] ), true,"lte");
             }
-	    elseif($main_key=="bbox")
-	    {
-		$this->parseBBOX($search, $query_detail["north"], $query_detail["west"], $query_detail["south"], $query_detail["east"] );
-            }
-            
+			elseif($main_key=="bbox")
+			{
+			$this->parseBBOX($search, $query_detail["north"], $query_detail["west"], $query_detail["south"], $query_detail["east"] );
+				}
+				
            
         
-	}
+		}
 	
 
 	$buckets= array("institution", "main_collection", "sub_collection","object_type");
@@ -315,15 +350,17 @@ class DefaultController extends Controller
 	    $nestedAggregationLocality->addAggregation($filterAggregationLocality);
 	    $search->addAggregation($nestedAggregationLocality);
     
-	$search->setSize($this->max_results);
-	$search->setFrom($this->max_results*($page-1));
-	$results = $finder->findDocuments($search);
+		$search->setSize($this->max_results);
+		$search->setFrom($this->max_results*($page-1));
+		$results = $finder->findDocuments($search);
 	
 	
-	$resultArray=$this->parseElasticResult($results, $page);
+		$resultArray=$this->parseElasticResult($results, $page);
 		
 	return $resultArray;
     }
+	
+
 
     public function searchelasticsearchAction()
     {
@@ -592,123 +629,74 @@ class DefaultController extends Controller
     
     
 
-	public function autocompletefieldallAction( $keywordfield)
+	public function autocompletefieldallAction(Request $request, $keywordfield)
 	{
-		if($keywordfield=="institution")
-		{
-		    $keywordfields=Array("institution");
-		}
-		elseif($keywordfield=="collection")
-		{
-		    $keywordfields=Array("department", "main_collection", "sub_collection");
-		}
-			$returned=Array();
-			foreach($keywordfields as $keywordfield_value)
-		{
-				$this->instantiateClient();
-				$client = $this->elastic_client;          
-				$params = [
-				    'index' => $this->getParameter('elastic_index'),
-				    'type' => $this->getParameter('elastic_type'),
-				    'size' => 0,
-				    'body' => [
-					'_source'=> $keywordfield_value,
-					'aggs' => [
-					    'getall' => [
-						'terms' => 
-							['field' => $keywordfield_value,
-							]
-					    ]
-					]
+        $filter=[
+                        'match_all'=>(object)[]
+                        ];
+        $extra_filter=[];
+       
+        if($keywordfield=="institution")
+        {
+            $keywordfields=Array("institution");
+        }
+        elseif($keywordfield=="collection")
+        {
+             if($request->query->has('institutions'))
+             {
+                //$extra_filter.=$request->query->get('institutions');
+                $tmp=$request->query->get('institutions');
+                $build_query=explode('|',$tmp);
+               
+                $extra_filter=["bool"=>["must"=>["terms"=>["institution"=>$build_query]]]];
+                
+             }
+            $keywordfields=Array("department", "main_collection", "sub_collection");
+        }
+		$returned=Array();
+		foreach($keywordfields as $keywordfield_value)
+        {
+			$this->instantiateClient();
+			$client = $this->elastic_client;
+            if(count($extra_filter)>0)
+            {
+                $filter=$extra_filter;
+            }
+			$params = [
+			    'index' => $this->getParameter('elastic_index'),
+			    'type' => $this->getParameter('elastic_type'),
+			    'size' => 0,
+			    'body' => [
+				'_source'=> $keywordfield_value,
+				'aggs' => [
+                 
+				    'getall' => [
+                    'filter'=> $filter,
+					'aggs'=>['nh_terms'=>['terms' => 
+						['field' => $keywordfield_value,
+						]]]
+ 
 				    ]
-				];
+				]
+			    ]
+			];
 		
-				$results = $client->search($params);
+			$results = $client->search($params);
 			
 		
 			
-				$i=0;
-				foreach($results["aggregations"]["getall"]["buckets"] as $key=>$doc)
-				{				
-					$row["id"]=$doc["key"];
-					$row["text"]=$doc["key"];
-					$returned[]=$row;			
-					$i++;
-				}
-		}
+			$i=0;
+			foreach($results["aggregations"]["getall"]['nh_terms']["buckets"] as $key=>$doc)
+			{				
+				$row["id"]=$doc["key"];
+				$row["text"]=$doc["key"];
+				$returned[]=$row;			
+				$i++;
+			}
+        }
 		sort($returned);
 		
 		//$returned=array_unique($returned);
-		return new JsonResponse($returned);
-	}
-
-	public function autocompletefieldallnested_base($parent, $keywordfield, $filterfield, $filtercriteria)
-	{
-		$returned=Array();
-
-		$this->instantiateClient();
-		$client = $this->elastic_client;          
-		$params = [
-		        'index' => $this->getParameter('elastic_index'),
-		        'type' => $this->getParameter('elastic_type'),
-		        'size' => 0,
-		        'body' => [
-		        'query' => [
-		                'nested' => [
-		                    'path'=> $parent,
-		                    'query' => [
-		                                    'match' =>  [
-		                                       $parent.".".$filterfield => $filtercriteria
-		                                            ]
-		                               ]
-		                    ]
-		            ]
-		            ,
-		            "aggs" => [
-		                        $parent => [
-		                        "nested" => [ "path"=> $parent]
-		                         ,
-		                        "aggs" => [
-		                              "filtercriteria" =>
-		                                   [
-		                                       "filter" => [ "term" => [$parent.".".$filterfield => $filtercriteria]],
-		                                       "aggs"=> [
-		                                                  "getall" => [
-		                                                     "terms" =>
-		                                                      [ "field" => $parent.".".$keywordfield]
-		                                                    ]
-		                                              ]
-		                                  ]    
-		                              ]
-		                                  
-		                        ]
-		                      ]
-		          ]
-                 ];
-		
-		$results = $client->search($params);
-			
-		
-			
-		$i=0;
-
-		foreach($results["aggregations"][$parent]["filtercriteria"]["getall"]["buckets"] as $key=>$doc)
-		{				
-			$row["id"]=$doc["key"];
-			$row["text"]=$doc["key"];
-			$returned[]=$row;			
-			$i++;
-		}
-		
-		sort($returned);
-		return $returned;
-	}
-
-
-	public function autocompletefieldallnestedAction($parent, $keywordfield, $filterfield, $filtercriteria)
-	{
-
-		$returned=$this->autocompletefieldallnested_base($parent, $keywordfield, $filterfield, $filtercriteria);
 		return new JsonResponse($returned);
 	}
 }

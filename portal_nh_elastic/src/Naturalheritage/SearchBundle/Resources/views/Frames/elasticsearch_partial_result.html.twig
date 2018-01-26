@@ -54,9 +54,6 @@
 		<input type="hidden" class="coords_for_map" value='{"id":"{{ ids[result.id] }}", "lat":{{ coordinate.geo_ref_point.lat }}, "lon":{{ coordinate.geo_ref_point.lon }}, "url":"{{ result.id }}"}'/>
 		
 	{% endfor %}
-    {% for coordinate in result.coordinates %}
-    <li>{% include 'NaturalheritageSearchBundle:Default:map_detail.html.twig' with { 'map_id' : ids[result.id], 'lat': coordinate.geo_ref_point.lat, 'long':coordinate.geo_ref_point.lon } %}</li>
-    {% endfor %}
 	</ul></li>
     {% endfor %}
 </ul>

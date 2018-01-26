@@ -1,0 +1,102 @@
+<style >
+
+
+      p.collapse{
+         display:none;
+      }
+     
+      
+</style>
+<div id="map_container_nh_{{ map_id }}" class="map_container_nh">
+
+	  <div  style="width:300px;height:300px;" id="map_{{ map_id }}" class="map_{{ map_id }}"></div>
+	  <div id="mouse-position_{{ map_id }}"></div>
+
+</div>
+ <script type="text/javascript">
+    var map;
+    var bingBackground;
+    var view;
+    var mousePositionControl;
+    var scaleLineControl;
+    mousePositionControl= new ol.control.MousePosition(
+            {
+                coordinateFormat: ol.coordinate.createStringXY(4),
+                projection:'EPSG:4326',
+                className: 'custom-mouse-position',
+                target: document.getElementById('mouse-position_{{ map_id }}'),
+                undefinedHTML: '&nbsp;'
+                
+            }
+        );
+        
+    scaleLineControl = new ol.control.ScaleLine();
+
+        
+        bingBackground= new ol.layer.Tile(
+		    {
+		        preload: Infinity,
+		        source: new ol.source.BingMaps({key: 'Ap9VNKmWsntrnteCapydhid0fZxzbV_9pBTjok2rQZS4pi15zfBbIkJkvrZSuVnJ', imagerySet:'AerialWithLabels' })
+		    }
+		);
+
+
+        view= new ol.View({
+            center: [-4,15],
+            zoom: 5
+        });
+        
+        var geometry=new ol.geom.Point([{{ long }}, {{ lat }}]);
+       
+       var style= new ol.style.Style({
+              image: new ol.style.Circle({
+                radius: 10,
+                stroke: new ol.style.Stroke({
+                  color: '#fff'
+                }),
+                fill: new ol.style.Fill({
+                  color: '#3399CC'
+                })
+              }),
+              text: new ol.style.Text({
+                text: "1",
+                fill: new ol.style.Fill({
+                  color: '#fff'
+                })
+              })
+            });
+       
+         var iconFeature = new ol.Feature({
+               label:"1",
+                geometry: geometry.transform('EPSG:4326', 'EPSG:3857')
+            });
+            
+         
+           
+       var vectorSource = new ol.source.Vector({
+        features: [iconFeature]
+      });
+
+      var vectorLayer = new ol.layer.Vector({
+        source: vectorSource,
+        style: style
+      });
+           
+        map=new ol.Map({
+            layers:[bingBackground, vectorLayer],
+            target: 'map_{{ map_id }}',
+            view: view,
+            controls: ol.control.defaults({
+            attributionOptions: ({collapsible: false})
+            }).extend([mousePositionControl, scaleLineControl ])
+        });
+    
+        
+       
+      
+     
+      var extent = vectorLayer.getSource().getExtent();
+        map.getView().fit(extent);
+        map.getView().setZoom(11);
+
+ </script>

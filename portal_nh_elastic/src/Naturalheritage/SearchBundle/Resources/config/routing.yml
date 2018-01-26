@@ -4,8 +4,15 @@ naturalheritage_search_homepage:
 
 naturalheritage_search_homepage_iframe:
     path:     /iframe
-    defaults: { _controller: NaturalheritageSearchBundle:Default:indexiframe }
+    defaults: { _controller: NaturalheritageSearchBundle:Default:indexIFrame }
+    
+naturalheritage_search_homepage_no_map:
+    path:     /no_map
+    defaults: { _controller: NaturalheritageSearchBundle:Default:indexNoMap }
 
+naturalheritage_search_homepage_iframe_no_map:
+    path:     /iframe_no_map
+    defaults: { _controller: NaturalheritageSearchBundle:Default:indexIFrameNoMap }
 
 naturalheritage_search_searchelasticsearch:
     path:     /search/{textpattern}
@@ -49,10 +56,13 @@ naturalheritage_search_autocompletewhat:
     path:     /autocompletewhat
     defaults:  
         _controller: NaturalheritageSearchBundle:Default:autocompletewhat
+        
+naturalheritage_search_homepage_iframe_module:
+    path:     /iframe_module
+    defaults: { _controller: NaturalheritageSearchBundle:Default:indexiframemodule }        
 
-naturalheritage_search_keyword_nested:
-    path:     /autocompletegetall_nested/{parent}/{keywordfield}/{filterfield}/{filtercriteria}
+naturalheritage_search_mapframe:
+    path:     /iframe_module_map
     defaults:  
-        _controller: NaturalheritageSearchBundle:Default:autocompletefieldallnested
-         
+        _controller: NaturalheritageSearchBundle:Default:indexmapframemodule      
                 

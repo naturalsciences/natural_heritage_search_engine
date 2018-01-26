@@ -1,0 +1,436 @@
+SESSION:{{ app.session.id }}
+<style >
+
+
+      p.collapse{
+         display:none;
+      }
+      
+      .ol-popup {
+        position: absolute;
+        background-color: white;
+        -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+        filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -50px;
+        min-width: 280px;
+      }
+      .ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+      .ol-popup:after {
+        border-top-color: white;
+        border-width: 10px;
+        left: 48px;
+        margin-left: -10px;
+      }
+      .ol-popup:before {
+        border-top-color: #cccccc;
+        border-width: 11px;
+        left: 48px;
+        margin-left: -11px;
+      }
+      .ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 2px;
+        right: 8px;
+      }
+      .ol-popup-closer:after {
+        content: "✖";
+      }
+      
+      
+</style>
+<input type="button" id="show_map" class="show_map" value="Hide map"></input>
+<div id="map_container_nh" class="map_container_nh">
+<head>
+    	<link href="{{asset('assets/vendor/bootstrap-4.0.0-beta.2-dist/css/bootstrap.min.css')}}" rel="stylesheet" />
+    	<link href="{{asset('assets/vendor/bootstrap-datepicker-1.6.4-dist/css/bootstrap-datepicker.min.css')}}" rel="stylesheet" />
+
+	<link href="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.css')}}" rel="stylesheet" />		
+</head>
+<body>
+<script src="{{asset('assets/vendor/jquery/dist/jquery.min.js')}}"></script>
+
+<script src="{{asset('assets/vendor/bootstrap-4.0.0-beta.2-dist/js/bootstrap.min.js')}}"></script>
+<script src="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.js')}}"></script>
+<div  class="detailed_search" style="text-align:center">
+
+North : <input type="text" name="tmpN" id="tmpN" class="memoryforfacet" /><br/>
+West : <input type="text" name="tmpW" id="tmpW" class="memoryforfacet" /> East : <input type="text" name="tmpE" id="tmpE" class="memoryforfacet" /><br/>
+South :<input type="text" name="tmpS" id="tmpS" class="memoryforfacet" />
+
+</div>
+
+<input type="button" style='margin-bottom: 10px' id="modeMap" name="modeMap" value="To selection mode"></input>
+
+	  <div  style="width:650px;height:750px;" id="map" class="map"></div>
+	  <div id="mouse-position"></div>
+	  <div id="popup" class="ol-popup">
+      	  <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      	  <div id="popup-content"></div>
+  </div>
+
+<br/>
+ <script type="text/javascript">
+var map;
+var bingBackground;
+var view;
+var map_visible=true;
+var moveDraw=false;
+var autoDraw=false;
+var boxIsLoaded=false;
+var interactionMove;
+var mousePositionControl;
+var scaleLineControl;
+var selectionBox;
+
+var clusters;
+var modeRemovePage=false;
+var layerLoaded=false;
+
+var container = document.getElementById('popup');
+var content = document.getElementById('popup-content');
+var closer = document.getElementById('popup-closer');
+
+bingBackground= new ol.layer.Tile(
+		    {
+		        preload: Infinity,
+		        source: new ol.source.BingMaps({key: 'Ap9VNKmWsntrnteCapydhid0fZxzbV_9pBTjok2rQZS4pi15zfBbIkJkvrZSuVnJ', imagerySet:'AerialWithLabels' })
+		    }
+		);
+		 var view= new ol.View({
+		    center: [-4,15],
+		    zoom: 5
+		}); 
+
+view= new ol.View({
+            center: [-4,15],
+            zoom: 5
+        });
+
+mousePositionControl= new ol.control.MousePosition(
+            {
+                coordinateFormat: ol.coordinate.createStringXY(4),
+                projection:'EPSG:4326',
+                className: 'custom-mouse-position',
+                target: document.getElementById('mouse-position'),
+                undefinedHTML: '&nbsp;'
+                
+            }
+        );
+        
+scaleLineControl = new ol.control.ScaleLine();
+        
+
+//////SELECTION MODE
+
+ interactionMove = new ol.interaction.DragBox({
+        condition: ol.events.condition.noModifierKeys,
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: [0, 0, 255, 1]
+            })
+        })
+    });
+
+    interactionMove.on('boxend', function(evt){
+        if(moveDraw===true)
+        {
+           var sourceSelection = new ol.source.Vector();
+            var geom = evt.target.getGeometry();
+            //console.log(geom);
+            //clone prevent layer to loose progresively transparency
+            var feat = new ol.Feature({geometry: geom.clone()});
+            //ource.clear();
+            sourceSelection.addFeature(feat);
+            getSelectionZone(geom);
+            if(boxIsLoaded)
+            {
+                  map.removeLayer(selectionBox);
+            }
+            selectionBox=new ol.layer.Vector({
+            source: sourceSelection
+            });
+           
+            map.addLayer(selectionBox);
+           autoDraw=true;
+           boxIsLoaded=true;
+           
+       }
+    });
+    
+    
+    var getSelectionZone=function(mapGeom)
+    {
+        var geomTmp=mapGeom.clone();
+        var geomWGS=geomTmp.transform('EPSG:3857', 'EPSG:4326');
+      
+        var topLeft=ol.extent.getTopLeft(geomWGS.getExtent());
+        var bottomRight=ol.extent.getBottomRight(geomWGS.getExtent());
+        var north=topLeft[1];
+        var west=topLeft[0];
+        var south=bottomRight[1];
+        var east=bottomRight[0];
+      
+         $("#tmpN").val(north);
+         $("#tmpW").val(west);
+         $("#tmpE").val(east);
+         $("#tmpS").val(south);
+       
+    };
+
+///////// 	
+
+////////CLUSTER
+
+      var getFeaturesRow=function(tmpFeatures)
+      {
+     
+            if(layerLoaded===true&&modeRemovePage===true)
+            {
+                map.removeLayer(clusters);
+            }
+           
+            
+
+         var vectorSource = new ol.source.Vector({});;
+   	vectorSource.addFeatures(tmpFeatures);
+       
+      
+        var clusterSource = new ol.source.Cluster({
+          distance: 40,
+          source: vectorSource
+        });
+        
+      	var styleCache = {};
+     	var keysForClick=[];
+      	clusters = new ol.layer.Vector({
+        source: clusterSource,
+        style: function(feature) {
+        
+        $.each(feature.get('features'),
+                    function(idx, item)
+                    {
+                        keysForClick[item.get('id')||'']=item.get('url')||'';
+                     
+                    }
+                );
+               
+          var size = feature.get('features').length;
+          var style = styleCache[size];
+          if (!style) {
+            style = new ol.style.Style({
+              image: new ol.style.Circle({
+                radius: 10,
+                stroke: new ol.style.Stroke({
+                  color: '#fff'
+                }),
+                fill: new ol.style.Fill({
+                  color: '#3399CC'
+                })
+              }),
+              text: new ol.style.Text({
+                text: size.toString(),
+                fill: new ol.style.Fill({
+                  color: '#fff'
+                })
+              })
+            });
+            styleCache[size] = style;
+          }
+          return style;
+        },
+        keysForClick: keysForClick
+      });
+
+        map.addLayer(clusters);
+        map.removeLayer(selectionBox);
+        layerLoaded=true;
+        
+        var extent = vectorSource.getExtent();
+       
+       
+        map.getView().fit(extent, map.getSize(),{maxZoom:12});
+       if(map.getView().getZoom()>10)
+       {
+            map.getView().setZoom(10);
+       }
+        
+         
+      };
+
+     var createGeoJSON=function()
+     {
+
+	var tmpFeatureArray=Array();
+	$(".coords_for_map").each(
+		function(index)
+		{
+			var tmp=$(this).val();
+			var jsonCoord=JSON.parse(tmp);
+			var tmpPoint=new ol.geom.Point(ol.proj.transform([jsonCoord.lon, jsonCoord.lat], 'EPSG:4326', 'EPSG:3857'));
+			var tmpFeature = new ol.Feature();
+			tmpFeature.setGeometry(tmpPoint);
+			tmpFeature.setId(jsonCoord.id);
+			tmpFeature.set('id_page', jsonCoord.id);
+			tmpFeature.set('url', jsonCoord.url);
+			tmpFeatureArray.push(tmpFeature);
+			
+		}
+	);
+	return tmpFeatureArray;
+     }
+
+///////////////	
+
+//////////////POP-UP (CLICK)
+
+
+                  /**
+                   * Create an overlay to anchor the popup to the map.
+                   */
+                    overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+                    element: container,
+                    autoPan: true,
+                    autoPanAnimation: {
+                      duration: 250
+                    }
+                  }));
+                  
+                   /**
+                   * Add a click handler to hide the popup.
+                   * @return {boolean} Don't follow the href.
+                   */
+                  closer.onclick = function() {
+                    overlay.setPosition(undefined);
+                    closer.blur();
+                    return false;
+                  };
+
+		    var isCluster=function(feature) {
+		      if (!feature || !feature.get('features')) { 
+			    return false; 
+		      }
+		      return feature.get('features').length >= 1;
+		    }
+		  
+
+
+		 var initMapClick=function()
+                  {
+
+		        map.on('click', function(evt) {
+			    var coordinate = evt.coordinate;
+
+			    var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
+			    coordinate, 'EPSG:3857', 'EPSG:4326'));
+			  var feature = map.forEachFeatureAtPixel(evt.pixel, 
+				          function(feature) { return feature; });
+
+			  if (isCluster(feature)) {
+			    
+			 
+			   var html="";
+			    // is a cluster, so loop through all the underlying features
+			    var features = feature.get('features');
+			    for(var i = 0; i < features.length; i++) {
+			      // here you'll have access to your normal attributes:
+			      //console.log(features[i].get('name'));
+			   
+			     
+			      html+="<a target='_blank' href='"+(features[i].get('url')||'')+"'>Item n°."+(features[i].get('id_page')||'')+"</a>"+"<br/>";
+			      
+			    }
+			   
+			     content.innerHTML = '<p>' + html +'</p>';
+				overlay.setPosition(coordinate);
+			  } 
+			});
+		}
+
+////////////////////////////
+	       
+map=new ol.Map({
+    layers:[bingBackground],
+    target: 'map',
+    view: view,
+    controls: ol.control.defaults({
+       attributionOptions: ({collapsible: false})
+    }).extend([mousePositionControl, scaleLineControl ])
+}); 
+
+/////////
+//send map to other scripts
+
+MAP={map:map};
+
+/////////
+
+$(document).ready(
+	function()
+	{
+    
+        
+		modeRemovePage=true;
+		
+		$("#show_map").click(
+			function()
+			{
+				map_visible=!map_visible;
+				if(map_visible)
+				{
+					$("#map_container_nh").show();
+					$("#show_map").prop("value","Hide map");		
+				}
+				else
+				{
+					$("#map_container_nh").hide();	
+					$("#show_map").prop("value","Show map");	
+				}
+			}
+		);
+
+		jQuery("#modeMap").click(
+		        function()
+		        {
+		            
+		            moveDraw=!moveDraw;
+		            if(moveDraw===true)
+		            {
+		                jQuery("#modeMap").val("To navigation mode");
+		                map.addInteraction(interactionMove);
+				boxIsLoaded=true;
+		            }
+		            else
+		            {
+		                 jQuery("#modeMap").val("To selection mode");
+		                 map.removeInteraction(interactionMove);
+		                 boxIsLoaded=false;
+		            }
+		        }
+            );
+	     initMapClick();
+	     map.addOverlay(overlay);	 
+	}
+);
+
+$(document).ajaxComplete(
+	function()
+	{
+		tmpFeatureArray=createGeoJSON();
+		getFeaturesRow(tmpFeatureArray);
+	}
+);
+</script>
+</div>

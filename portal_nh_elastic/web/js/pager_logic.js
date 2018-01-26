@@ -21,6 +21,7 @@ $(document).ready(
 
 		function()
 		{	
+
 			route=$("#base_url").val();
 			
 			function buildQuery()
@@ -110,24 +111,25 @@ $(document).ready(
 					         returned["date_to"]=criteria;
 					}	
 				}
-				
-				if($("#tmpN").val().length && $("#tmpS").val().length && $("#tmpW").val().length && $("#tmpE").val().length)
-				{
-					if($("#tmpN").val().length>0 && $("#tmpS").val().length>0 && $("#tmpW").val().length>0 && $("#tmpE").val().length>0)
-					{
-						if($.isNumeric($("#tmpN").val()) && $.isNumeric($("#tmpS").val()) && $.isNumeric($("#tmpW").val()) && $.isNumeric($("#tmpE").val()))
-						{
-							var criteria={};
-							criteria["north"]=$("#tmpN").val();
-							criteria["west"]=$("#tmpW").val();
-							criteria["east"]=$("#tmpE").val();
-							criteria["south"]=$("#tmpS").val();
-							returned["bbox"]=criteria;
+				if($("#tmpN").length && $("#tmpS").length && $("#tmpW").length && $("#tmpE").length)
+                {
+                    if($("#tmpN").val().length && $("#tmpS").val().length && $("#tmpW").val().length && $("#tmpE").val().length)
+                    {
+                        if($("#tmpN").val().length>0 && $("#tmpS").val().length>0 && $("#tmpW").val().length>0 && $("#tmpE").val().length>0)
+                        {
+                            if($.isNumeric($("#tmpN").val()) && $.isNumeric($("#tmpS").val()) && $.isNumeric($("#tmpW").val()) && $.isNumeric($("#tmpE").val()))
+                            {
+                                var criteria={};
+                                criteria["north"]=$("#tmpN").val();
+                                criteria["west"]=$("#tmpW").val();
+                                criteria["east"]=$("#tmpE").val();
+                                criteria["south"]=$("#tmpS").val();
+                                returned["bbox"]=criteria;
 
-						}
-					}
-				}
-
+                            }
+                        }
+                    }
+                }
 				return returned;
 			}
 
@@ -174,46 +176,76 @@ $(document).ready(
 					)
 			    }
 			};
-
-			//expand search criteria
-			var expand_url=route.concat("autocompletegetall_nested");
-                        $(".expand_criteria").click(
-				function()
+			
+		   
+			var newValues=Array();
+			var searchcopied=false;
+			var history_select={};
+			
+			var add_to_history_select=function(key)
+			{
+					
+					
+					//alert(value);
+				var id_history=key+"_history";
+				var id_button=key+"_button";
+				if(history_select.hasOwnProperty(key)==false)
 				{
-					
-					//alert($(this).attr("id"));
-					var tmpID=$(this).attr("id");
-					$("#"+tmpID+"_expanded_search").show();
-					/*var container = $("#"+tmpID+"_expanded");
-					var url=expand_url.concat("/").concat($("#"+$(this).attr("id")+"_parent").val());
-					url=url.concat("/").concat($("#"+$(this).attr("id")+"_keywordfield").val());
-					url=url.concat("/").concat($("#"+$(this).attr("id")+"_filterfield").val());
-					url=url.concat("/").concat($("#"+$(this).attr("id")+"_filtercriteria").val());
-					
-					$.ajax(
-					{
-						type:"POST",
-						url: url,
-						success: function(response)
-						{
-							
-							$.each(response,
-							    function(idx, item)
-							    {
-								if(response[idx].text.length>0)
-								{
-									$('<label />', { text: ' '+ response[idx].text+" : "}).appendTo(container);
-									$('<input />', { type: 'checkbox', class: tmpID.concat('_checkbox'), id: tmpID.concat('_checkbox'), value: response[idx].text, checked:true}).appendTo(container);
-							        }  
-							    }
-							);
-						}
-						
-								
-					}
-					);*/
+					history_select[key]=Array();
 				}
-			);
+				var values=Array();
+				var value="";
+				if($(key).hasClass("select2"))
+				{
+					value=$(key).select2("data");
+					$.each(value, function(idx,obj){
+						values.push(value[idx].text);
+						});
+				}
+				else
+				{
+					value=$(key).val();
+					values.push(value);					
+				}
+				$.each(values, function(idx, obj)
+				{
+					if(history_select[key].indexOf(values[idx])==-1)
+					{	
+						if(values[idx].length>0)
+						{
+							history_select[key].push(values[idx]);
+							var $ctrl = $('<input/>').attr({ type: 'button', id:id_button, name:id_button,value:values[idx]}).addClass("likeananchor").addClass("history_click");
+							$(id_history).append($ctrl);
+							$(id_history).append("&nbsp;");
+						}
+					}	
+				}
+				
+				);
+									
+				
+				
+			}
+			KEEPSTATE={
+				
+				newValues:newValues,
+				searchcopied:searchcopied,
+				history_select:history_select,
+				add_to_history_select:add_to_history_select
+				
+				
+			}
+			
+			
+			
+
+	
 			
 		}
+		
+
 	);
+	
+
+	
+
