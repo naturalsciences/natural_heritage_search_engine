@@ -1,0 +1,38 @@
+<div>
+	Details for "{{ keywordfield }}"
+	<table>
+		{% for criteria in subcriterias %}
+        		<tr>
+			<td>{{ criteria.text }}: </td>
+			<td> <select id="elastic_search_{{ keywordfield }}_{{ criteria.text }}" class="select2 memoryforfacet elastic_search_finesearch" multiple="multiple" style='width:300px' ></select>  And: <input id="elastic_search_{{ keywordfield }}_{{ criteria.text }}_and" type="checkbox" value="AND"/>
+				<div id="elastic_search_{{ keywordfield }}_{{ criteria.text }}_history"></div></td>
+			</tr>
+    		{% endfor %}
+	</table>
+	<script language="javascript">
+		{% for criteria in subcriterias %}
+
+			        $('#elastic_search_{{ keywordfield }}_{{ criteria.text }}').select2({
+				
+				tags: true,
+				tokenSeparators: ['|'],
+				  ajax: {
+				    url: route.concat('autocomplete{{ keywordfield }}'),
+				    data: function (params) {
+				      
+				      var query = {
+					q: params.term,
+					criteria: '{{ criteria.text }}'
+				      }
+				          
+					
+				      return query;
+				    },
+					processResults: function(data) {
+					       return {results: data};
+					}
+				  }
+				});
+		{% endfor %}
+	</script>
+</div>

@@ -64,7 +64,14 @@ $(document).ready(
                         			var criteria={};                    
 						criteria["who"]=$("#elastic_search_who").select2("val").join("|");
                         			criteria["sub_category"]="*";
-                       				 returned["who"]=criteria;
+						criteria['boolean']='OR';
+						if($('#elastic_search_who_and').is(':checked'))
+						{
+							criteria['boolean']='AND';
+							
+						}
+						
+						returned["who"]=criteria;
 					}				
 				}
                 
@@ -75,6 +82,12 @@ $(document).ready(
                         			var criteria={};                    
 						criteria["where"]=$("#elastic_search_where").select2("val").join("|");
                         			criteria["sub_category"]="*";
+						criteria['boolean']='OR';
+						if($('#elastic_search_where_and').is(':checked'))
+						{
+							criteria['boolean']='AND';
+							
+						}
                        				returned["where"]=criteria;
 					}				
 				}
@@ -112,24 +125,52 @@ $(document).ready(
 					}	
 				}
 				if($("#tmpN").length && $("#tmpS").length && $("#tmpW").length && $("#tmpE").length)
-                {
-                    if($("#tmpN").val().length && $("#tmpS").val().length && $("#tmpW").val().length && $("#tmpE").val().length)
-                    {
-                        if($("#tmpN").val().length>0 && $("#tmpS").val().length>0 && $("#tmpW").val().length>0 && $("#tmpE").val().length>0)
-                        {
-                            if($.isNumeric($("#tmpN").val()) && $.isNumeric($("#tmpS").val()) && $.isNumeric($("#tmpW").val()) && $.isNumeric($("#tmpE").val()))
-                            {
-                                var criteria={};
-                                criteria["north"]=$("#tmpN").val();
-                                criteria["west"]=$("#tmpW").val();
-                                criteria["east"]=$("#tmpE").val();
-                                criteria["south"]=$("#tmpS").val();
-                                returned["bbox"]=criteria;
+				{
+				    if($("#tmpN").val().length && $("#tmpS").val().length && $("#tmpW").val().length && $("#tmpE").val().length)
+				    {
+				        if($("#tmpN").val().length>0 && $("#tmpS").val().length>0 && $("#tmpW").val().length>0 && $("#tmpE").val().length>0)
+				        {
+				            if($.isNumeric($("#tmpN").val()) && $.isNumeric($("#tmpS").val()) && $.isNumeric($("#tmpW").val()) && $.isNumeric($("#tmpE").val()))
+				            {
+				                var criteria={};
+				                criteria["north"]=$("#tmpN").val();
+				                criteria["west"]=$("#tmpW").val();
+				                criteria["east"]=$("#tmpE").val();
+				                criteria["south"]=$("#tmpS").val();
+				                returned["bbox"]=criteria;
 
-                            }
-                        }
-                    }
-                }
+				            }
+				        }
+				    }
+				}
+
+				/*alert($("#elastic_search_who_author").select2("val"));*/
+				$( ".elastic_search_finesearch" ).each(function() {
+					if($(this).length)
+					{	
+						var id_ctrl=$(this).attr("id");
+						var meaning_ctrl = id_ctrl.replace("elastic_search_", "");
+						var code_array= meaning_ctrl.split("_");
+						var main_criteria=code_array.shift();
+						var sub_category=code_array.join("_");
+						if($(this).select2("val").join("|").length>0)
+						{	
+                        				var criteria={};                    
+							criteria["value"]=$(this).select2("val").join("|");
+                        				criteria["sub_category"]=sub_category;
+							if($("#"+id_ctrl+'_and').is(':checked'))
+							{
+								alert("AND");
+								criteria['boolean']='AND';
+							
+							}
+                        				returned["subcriteria_"+meaning_ctrl]=criteria;
+							alert(meaning_ctrl);
+							alert(criteria["value"]);			
+						}				
+					}
+				});
+				 				
 				return returned;
 			}
 
@@ -226,12 +267,43 @@ $(document).ready(
 				
 				
 			}
+
+			var browse_keywords_entries=function(keyword, institutions="", collections="")
+                        {
+
+				var query_url=Array();
+				var base_url=$("#base_url").val();
+				base_url=base_url+'/autocompletegetall/'+keyword
+				if(institutions.length>0)
+				{
+					query_url['institutions']=institutions;
+				}
+				if(collection.length>0)
+				{
+					query_url['collections']=collections;
+				}	
+				base_url=base_url.concat("searchpartial");
+				$.ajax(
+				{
+					type:"POST",
+					url: base_url,
+					data :query_url,
+					success: function(response)
+					{
+						return response;
+					}
+				
+							
+				}
+				);
+			}
 			KEEPSTATE={
 				
 				newValues:newValues,
 				searchcopied:searchcopied,
 				history_select:history_select,
-				add_to_history_select:add_to_history_select
+				add_to_history_select:add_to_history_select,
+				browse_keywords_entries:browse_keywords_entries
 				
 				
 			}

@@ -47,8 +47,9 @@ Free text:
 	Who:
 </td>
 <td>
-	<select id="elastic_search_who" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>
+	<select id="elastic_search_who" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select> And: <input id="elastic_search_who_and" type="checkbox" value="AND"/> <input type="button" id="enable_details_who" name="enable_details_who" class="enable_details" value="details"/>
 	<div id="elastic_search_who_history"></div>
+	<div id="enable_details_who_div"></div>
 </td>
 </tr>
 <tr class="detailed_search" style="display:none">
@@ -56,7 +57,7 @@ Free text:
 	Where:
 </td>
 <td>
-	<select id="elastic_search_where" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>
+	<select id="elastic_search_where" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select> And: <input id="elastic_search_where_and" type="checkbox" value="AND"/>
 	<div id="elastic_search_where_history"></div>
    
 </td>
@@ -195,9 +196,7 @@ $(document).ready(
 				    data: function (params) {
 				      var query = {
 					q: params.term
-				      }
-
-				      
+				      }	      
 					
 				      return query;
 				    },
@@ -214,11 +213,11 @@ $(document).ready(
 				  ajax: {
 				    url: route.concat("autocompletewhere"),
 				    data: function (params) {
+				      
 				      var query = {
 					q: params.term
 				      }
-
-				      
+				          
 					
 				      return query;
 				    },
@@ -250,36 +249,42 @@ $(document).ready(
 				});
                 
                 $('.select2').on('select2:select', function () { $("select[id^=edit-term] option").each(function() { var val = $(this).val(); $(this).siblings("[value='"+ val +"']").remove(); }); });
-                /*$('.select2').on('select2:select', function (e) {
-                   alert("debug");
-                   var data=$(this).select2('data');
-                   var alreadyThere=Array();
-                   $(this).val("");
-                   $.each(data, 
-                            function(key,item)
-                            {
-                                   
-                                    if(alreadyThere.indexOf(data[key].id)==-1)
-                                    {
-                                        alert(data[key].id);
-                                        alreadyThere.push(data[key].id);
-                                        var newOption = new Option(data[key].id, data[key].id, true, true);
-                                        $(this).append(newOption).trigger('change');
-                                        $(this).trigger({
-                                            type: 'select2:select',
-                                            params: {
-                                            data: {id:data[key].id, text:data[key].id}
-                                            }
-                                            });
-                                        
-                                    }
-                            }
-                   );
-                });*/
+               
                 
       $('.date_picker_nh').datepicker({
             format: 'yyyy-mm-dd',
               });
+
+       $('.enable_details').click(
+		function()
+		{
+			var iddiv=$(this).attr("id")+'_div';
+			var keywordfield="";
+			if($(this).attr("id")=="enable_details_who")
+			{
+				keywordfield="who";
+			}
+			else if($(this).attr("id")=="enable_details_where")
+			{
+				keywordfield="where";
+			}
+
+			
+			$.ajax(
+					{
+						type:"POST",
+						url: route.concat("detail_search_frame/"+keywordfield),
+						
+						success: function(response)
+						{
+							$('#'+iddiv).html(response);
+						}
+					
+								
+					}
+					)
+		}
+	);
 
 	}
 );
