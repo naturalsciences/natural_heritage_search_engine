@@ -1,9 +1,20 @@
 curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application/json' -d'
 {
+  {
   "naturalheritage": {
+    "aliases": {},
     "mappings": {
       "document": {
         "properties": {
+          "BE-RMCA-sub_collection": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
           "content_text": {
             "type": "text",
             "fields": {
@@ -182,11 +193,23 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           "search_criteria": {
             "type": "nested",
             "properties": {
+              "biological_type": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
               "main_category": {
                 "type": "keyword"
               },
               "sub_category": {
                 "type": "keyword"
+              },
+              "sub_category_weight": {
+                "type": "double"
               },
               "value": {
                 "type": "text",
@@ -232,6 +255,53 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           }
         }
       }
+    },
+    "settings": {
+      "index": {
+        "number_of_shards": "5",
+        "provided_name": "naturalheritage",
+        "creation_date": "1517828443373",
+        "analysis": {
+          "filter": {
+            "edge_ngram": {
+              "token_chars": [
+                "letter",
+                "digit"
+              ],
+              "min_gram": "2",
+              "type": "edgeNGram",
+              "max_gram": "25"
+            },
+            "english_stemmer": {
+              "name": "english",
+              "type": "stemmer"
+            }
+          },
+          "analyzer": {
+            "keyword_analyzer": {
+              "filter": [
+                "lowercase",
+                "english_stemmer"
+              ],
+              "tokenizer": "standard"
+            },
+            "edge_ngram_analyzer": {
+              "filter": [
+                "lowercase",
+                "english_stemmer",
+                "edge_ngram"
+              ],
+              "tokenizer": "standard"
+            }
+          }
+        },
+        "number_of_replicas": "1",
+        "uuid": "ck4nKUsiQaOAcQaVh_-UVA",
+        "version": {
+          "created": "6000199"
+        }
+      }
     }
   }
+}
 }'

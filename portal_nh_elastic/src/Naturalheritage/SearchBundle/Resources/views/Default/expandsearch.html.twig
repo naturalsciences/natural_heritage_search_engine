@@ -1,9 +1,0 @@
-<div>
-<input type="button" class="expand_criteria" id="{{ base_name }}" name="{{ base_name }}" value="Expand"/>
-	
-	<div id='{{ base_name }}_expanded_search' style="display:none">
-		{% for search_criteria in expanded_checkboxes %}
-		{{ search_criteria["text"] }} :  <input type="checkbox" class="{{ base_name }}_checkboxes" id="{{ base_name }}_checkboxes" name="{{ base_name }}_checkboxes" value="{{ search_criteria["text"] }}" checked="true"/>
-		{% endfor %}
-	</div>
-</div>

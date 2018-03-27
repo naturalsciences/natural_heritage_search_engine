@@ -9,7 +9,9 @@ use Naturalheritage\SearchBundle\Entity\ElasticSearch;
 use Naturalheritage\SearchBundle\Form\ElasticSearchType;
 
 use ONGR\ElasticsearchDSL\Query\TermLevel\TermQuery;
+use ONGR\ElasticsearchDSL\Query\TermLevel\TermsQuery;
 use ONGR\ElasticsearchDSL\Query\FullText\MatchPhraseQuery;
+use ONGR\ElasticsearchDSL\Query\FullText\MatchPhrasePrefixQuery;
 use ONGR\ElasticsearchDSL\Highlight\Highlight;
 use ONGR\ElasticsearchDSL\Aggregation\Bucketing\TermsAggregation;
 use ONGR\ElasticsearchDSL\Aggregation\Bucketing\FilterAggregation;
@@ -20,6 +22,8 @@ use ONGR\ElasticsearchDSL\Query\Joining\NestedQuery;
 use ONGR\ElasticsearchDSL\Query\TermLevel\RangeQuery;
 use ONGR\ElasticsearchDSL\Query\MatchAllQuery;
 use ONGR\ElasticsearchDSL\Query\Geo\GeoBoundingBoxQuery;
+use ONGR\ElasticsearchDSL\Aggregation\Pipeline\BucketScriptAggregation;
+
 
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,6 +46,7 @@ class DefaultController extends Controller
     protected $frame_modules=false;
     protected $session=null;
     protected $search_map="on";
+    protected static $levenshtein_pattern="";
    
     protected function recursiveFind(array $array, $needle)
     {
@@ -173,11 +178,12 @@ class DefaultController extends Controller
 
 
 
-    protected function parseSearchCriteria(&$p_search, $p_query_detail, $p_base_field, $p_main_key, $p_array_value_fields, $p_array_category_fields, $p_range=false, $p_range_term="gte", $p_boolean="OR")
+        
+    protected function parseSearchCriteria(&$p_search, $p_query_detail, $p_base_field, $p_main_key, $p_array_value_fields, $p_array_category_fields, $p_type="phrase", $p_range_term="gte", $p_boolean="OR", $p_default_boolean=BoolQuery::SHOULD)
     {
          
          $value=$p_query_detail[$p_main_key];
-        
+      
 	$text_pattern=explode("|",$value);
 	if(strlen($value)>2)
 	{
@@ -189,17 +195,31 @@ class DefaultController extends Controller
 				$bool2 = new BoolQuery();
 		        	foreach($p_array_value_fields as $field)
 		        	{
-		            		if(!$p_range)
-		            		{
-		                		$termQuery = new MatchPhraseQuery($field, $value);
-		                		$bool2->add($termQuery, BoolQuery::SHOULD);
-		            		}
-		           		 else
+                    
+                            
+                            if($p_type=="range")
 		            		{
 		                		$rangeQuery = new RangeQuery($field,[$p_range_term=> $value]);
-		                		$bool2->add($rangeQuery, BoolQuery::SHOULD);                        
+		                		$bool2->add($rangeQuery,$p_default_boolean);                        
 		            
 		            		}
+                            elseif($p_type=="prefix")
+		            		{
+		                		$prefixQuery = new MatchPhrasePrefixQuery($field, $value);
+		                		$bool2->add($prefixQuery, $p_default_boolean);
+		            		}
+		            		elseif($p_type=="phrase")
+		            		{
+		                		$termQuery = new MatchPhraseQuery($field, $value);
+		                		$bool2->add($termQuery, $p_default_boolean);
+		            		}
+                            elseif($p_type=="term")
+		            		{
+                           
+		                		$termQuery = new TermQuery($field, $value);
+		                		$bool2->add($termQuery,$p_default_boolean);
+		            		}
+		           		  
 		        	}
 				$nested2 =  new NestedQuery($p_base_field, $bool2);
 				
@@ -213,17 +233,28 @@ class DefaultController extends Controller
 			{
 				foreach($p_array_value_fields as $field)
 				{
-				    if(!$p_range)
+				    if($p_type=="phrase")
 				    {
 				        $termQuery = new MatchPhraseQuery($field, $value);
-				        $bool->add($termQuery, BoolQuery::SHOULD);
+				        $bool->add($termQuery, $p_default_boolean);
 				    }
-				    else
+                    elseif($p_type=="prefix")
 				    {
-				        $rangeQuery = new RangeQuery($field,[$p_range_term=> $value]);
-				        $bool->add($rangeQuery, BoolQuery::SHOULD);                        
+				        $rangeQuery = new MatchPhrasePrefixQuery($field,$value);
+				        $bool->add($rangeQuery, $p_default_boolean);                        
 				    
 				    }
+				    elseif($p_type=="range")
+				    {
+				        $rangeQuery = new RangeQuery($field,[$p_range_term=> $value]);
+				        $bool->add($rangeQuery, $p_default_boolean);                        
+				    
+				    }
+                    elseif($p_type=="term")
+		           {                  
+		                $termQuery = new TermQuery($field, $value);
+		                $bool->add($termQuery, $p_default_boolean);
+		           }
 				}
 			}
             		$nested =  new NestedQuery($p_base_field, $bool);
@@ -243,30 +274,33 @@ class DefaultController extends Controller
 
     protected function parseBBOX(&$p_search, $p_north, $p_west, $p_south, $p_east)
     {
-	$location = [
-	    ['lat' => $p_north, 'lon' => $p_west],
-	    [ 'lat' => $p_south, 'lon' => $p_east],
-	];
+        $location = [
+            ['lat' => $p_north, 'lon' => $p_west],
+            [ 'lat' => $p_south, 'lon' => $p_east],
+        ];
 
-	$boolQuery = new BoolQuery();
-	$boolQuery->add(new MatchAllQuery());
-	$geoQuery = new GeoBoundingBoxQuery('coordinates.geo_ref_point', $location);
- 	$nested =  new NestedQuery("coordinates", $geoQuery);
- 	$p_search->addQuery($nested, BoolQuery::MUST);
-	//$boolQuery->add($geoQuery, BoolQuery::FILTER);
-	//$p_search->addQuery($boolQuery);
+        $boolQuery = new BoolQuery();
+        $boolQuery->add(new MatchAllQuery());
+        $geoQuery = new GeoBoundingBoxQuery('coordinates.geo_ref_point', $location);
+        $nested =  new NestedQuery("coordinates", $geoQuery);
+        $p_search->addQuery($nested, BoolQuery::MUST);
+        //$boolQuery->add($geoQuery, BoolQuery::FILTER);
+        //$p_search->addQuery($boolQuery);
     }
     
     protected function doSearch($query_params, $page)
     {
+
         $resultArray=Array();
         //$jsonQuery=Array();
         $finder = $this->container->get('es.manager.default.document');
         $search = $finder->createSearch();
         
+        $flagHasNumber=$query_params->has("subcriteria_what_object_number");
+
         foreach($query_params as $main_key=>$query_detail)
         {
-            
+
             if($main_key=="fulltext")
             {
                 $value=$query_detail["fulltext"];
@@ -311,34 +345,63 @@ class DefaultController extends Controller
                 }
                 $search->addQuery($bool, BoolQuery::MUST);				
             }
-            elseif($main_key=="who"||$main_key=="where")
+            elseif(($main_key=="who"||$main_key=="where"||$main_key=="what")&&!$flagHasNumber)
             {
-           	$this->parseSearchCriteria($search, $query_detail, "search_criteria", $main_key, Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_key, "search_criteria.sub_category"=>$query_detail["sub_category"] ), false, 'gte', $query_detail["boolean"]);
-                
+                $this->parseSearchCriteria($search, $query_detail, "search_criteria", $main_key, Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_key, "search_criteria.sub_category"=>$query_detail["sub_category"] ),"phrase", 'gte', $query_detail["boolean"]);
             }
-            elseif($main_key=="what")
+            /*elseif($main_key=="what")
             {
                 $this->parseSearchCriteria($search, $query_detail, "object_identifiers", $main_key, Array('object_identifiers.identifier', 'object_identifiers.identifier.identifier_ngrams', 'object_identifiers.identifier.identifier_full' ), Array("object_identifiers.identifier_type"=> $query_detail["sub_category"] ));
-            }
-            elseif($main_key=="date_from")
+            }*/
+            elseif(($main_key=="date_from")&&!$flagHasNumber)
             {
-                $this->parseSearchCriteria($search, $query_detail, "dates", $main_key, Array("dates.date_begin" ), Array("dates.date_type"=> $query_detail["sub_category"] ), true,"gte");
+                $this->parseSearchCriteria($search, $query_detail, "dates", $main_key, Array("dates.date_begin" ), Array("dates.date_type"=> $query_detail["sub_category"] ), "range","gte");
             }
-            elseif($main_key=="date_to")
+            elseif(($main_key=="date_to")&&!$flagHasNumber)
             {
-                $this->parseSearchCriteria($search, $query_detail, "dates", $main_key, Array("dates.date_begin" ), Array("dates.date_type"=> $query_detail["sub_category"] ), true,"lte");
+                $this->parseSearchCriteria($search, $query_detail, "dates", $main_key, Array("dates.date_begin" ), Array("dates.date_type"=> $query_detail["sub_category"] ), "range","lte");
             }
-	     elseif($main_key=="bbox")
-	     {
-		$this->parseBBOX($search, $query_detail["north"], $query_detail["west"], $query_detail["south"], $query_detail["east"] );
-	     }
+             elseif($main_key=="bbox"&&!$flagHasNumber)
+             {
+                $this->parseBBOX($search, $query_detail["north"], $query_detail["west"], $query_detail["south"], $query_detail["east"] );
+             }
+             elseif(substr($main_key, 0,12)=="subcriteria_")
+             {
+                
+                //object number has a MUST clause
+                if(($flagHasNumber&&$main_key=="subcriteria_what_object_number")||!$flagHasNumber)
+                {
+
+                    $main_key=substr($main_key, 12);
+                    $parse_criteria=explode("_", $main_key);
+                    $main_criteria=array_shift($parse_criteria);
+                    $sub_criteria=implode("_", $parse_criteria);
+                    $sub_criteria=str_replace("_BLANK_", " ", $sub_criteria);
+                    if($main_key=="what_object_number")
+                    {
+
+                         $search = $finder->createSearch();
+                        $type="term";
+                        
+                    }
+                    else
+                    {
+
+                        $type="phrase";
+                       
+                    }   
+                    
+                   
+                    $this->parseSearchCriteria($search, $query_detail, "search_criteria", "value", Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_criteria, "search_criteria.sub_category"=>str_replace("_BLANK_", " ",$query_detail["sub_category"]) ), $type, 'gte', $query_detail["boolean"],BoolQuery::SHOULD);
+                }
+             }
 				
            
         
-	}
+        }
 	
 
-	$buckets= array("institution", "main_collection", "sub_collection","object_type");
+        $buckets= array("institution", "main_collection", "sub_collection","object_type");
 	    foreach($buckets as $bucket)
 	    {
 		$termsAggregation = new TermsAggregation($bucket);
@@ -382,10 +445,11 @@ class DefaultController extends Controller
 		$search->setFrom($this->max_results*($page-1));
 		$results = $finder->findDocuments($search);
 	
+   
 	
 		$resultArray=$this->parseElasticResult($results, $page);
 		
-	return $resultArray;
+        return $resultArray;
     }
 	
 
@@ -401,20 +465,21 @@ class DefaultController extends Controller
     public function searchelasticsearchforpartialAction(Request $request)
     {
 
-	$page=1;
-	if($request->request->has('page'))
-	{
-		$page=$request->request->get('page');
-	}
-	$resultArray=$this->doSearch($request->request, $page);
-	if(count($resultArray)>0)
-	{
-		return	 $this->render($this->template_results, array('results'=>$resultArray["documents"], 'facets'=>$resultArray["facets"], 'count'=>$resultArray["count"], 'pagination'=>$resultArray['pagination'], 'ids'=>$resultArray['ids']));
-	}
-	else
-	{
-		return	 $this->render($this->template_results);
-	}
+        $page=1;
+        if($request->request->has('page'))
+        {
+            $page=$request->request->get('page');
+        }
+        $resultArray=$this->doSearch($request->request, $page);
+        if(count($resultArray)>0)
+        {
+            return	 $this->render($this->template_results, array('results'=>$resultArray["documents"], 'facets'=>$resultArray["facets"], 'count'=>$resultArray["count"], 'pagination'=>$resultArray['pagination'], 'ids'=>$resultArray['ids']));
+        }
+        else
+        {
+            return	 $this->render($this->template_results);
+        }
+   
 
     }
 
@@ -470,93 +535,99 @@ class DefaultController extends Controller
         return ($a < $b) ? -1 : 1;
     }  
     
+        private static function sort_by_levenshtein($aw, $bw)
+    {
+           $a= levenshtein($aw, $this->levenshtein_pattern);
+           $b= levenshtein_pattern($bw, $this->levenshtein_pattern);
+            if ($a == $b) {
+                return ($aw < $bw) ? -1 : 1;
+            }
+            return ($a < $b) ? -1 : 1;
+    }  
+    
+
     public function autocompletekeywordAction($textpattern, $filters_cond, $nested_path, $fields, $fields_highlight)
     {
-        $this->instantiateClient();
-		$client = $this->elastic_client;
-        
-        if(count($filters_cond)>0)
-        {
-            $filters= Array();
-            foreach($filters_cond as $key=>$value)
-            {
-                $filters[]= ["term" => [$key=>$value]];
-            }
-          
-             $query = [ "nested"=> [
-                                    "path"=> $nested_path,
-                                    "query" => 
-                                    [
-                                        "bool" => [
-                                           "must" => [ 
-                                                'multi_match' => [
-                                                'query' => $textpattern,
-                                                 'type' => 'phrase_prefix',
-						//'fuzziness'=>'AUTO',
-                                                'fields'=> $fields
-                                                ]
-                                            ],
-                                            "filter" => [$filters]   
-                                        ]
-                                    ]
-                                ]                        
-                        ];
-        }
-        else
-        {
-            $query = [ "nested"=> [
-                                    "path"=> $nested_path,
-                                    "query" => 
-                                    [
-                                        'multi_match' => [
-                                        'query' => $textpattern,
-                                         'type' => 'phrase_prefix',
-					//'fuzziness'=>'AUTO',
-                                        'fields'=> $fields
-                                        ]
-                                    ]
-                                ]                        
-                        ];
-        
-        }
-        $params = [
-                        'size' => 100,
-                        'index' => $this->getParameter('elastic_index'),
-                        'type' => $this->getParameter('elastic_type'),
-                        'body' => [
-                        '_source'=> $fields,
-                        'query' => $query,
-                        'highlight' => ['fields'    => $fields_highlight,  'fragment_size' => 300]
-                        ]
-                    ];
-        $patternregex = "";
-		$results = $client->search($params);
-		
-		
-		$returned=Array();
-        
-		foreach($results["hits"]["hits"] as $key=>$doc)
-		{				
-			foreach($fields as $single_field)
-			{
-				$this->get_highlights($returned, $doc["highlight"], $patternregex, $single_field, false, true, true);
-			}				
-		}
-        $json_array=Array();
+            $finder = $this->container->get('es.manager.default.document');
+            $search = $finder->createSearch();
+           
+            $this->parseSearchCriteria($search, ["pattern"=> $textpattern], "search_criteria", "pattern", Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), $filters_cond , "prefix");
+
+            $displayCriteria=  new TermsAggregation("search_criteria_base");
+            $displayCriteria->setField("search_criteria.value.value_full");
             
-		usort($returned, array('Naturalheritage\SearchBundle\Controller\DefaultController', 'sort_by_nbwords'));
-		array_unshift($returned, $textpattern);
-		$returned=array_unique($returned);
-		foreach($returned as $value)
-		{
-			$row["id"]=$value;
-			$row["text"]=$value;
-			$json_array[]=$row;			
+            
+            $bool = new BoolQuery();
+            if(array_key_exists('search_criteria.sub_category', $filters_cond))
+            {
+                $filterCriteria1= new TermQuery('search_criteria.sub_category', $filters_cond['search_criteria.sub_category']);
+                $bool->add($filterCriteria1, BoolQuery::MUST);
+            }
+            $filterCriteria2= new TermQuery('search_criteria.main_category', $filters_cond['search_criteria.main_category']);
+            $bool->add($filterCriteria2, BoolQuery::MUST);
+            $filterAggregationCriteria = new FilterAggregation('criteria', $bool);
+            $filterAggregationCriteria->addAggregation($displayCriteria);    
+            $nestedAggregationCriteria = new NestedAggregation('criteria', 'search_criteria');
+            $nestedAggregationCriteria->addAggregation($filterAggregationCriteria);
+            $search->addAggregation($nestedAggregationCriteria);
+            $search->setSize(1);
+            
+            
+            $results = $finder->findDocuments($search);
+            
+            $choices = Array();
+            $choices[] = $this->returnBucket('criteria', $results->getAggregation('criteria'),"");
+            $returned=Array();
+            $json_array=Array();
+            foreach($choices as $choice);            
+            {
+               
+                 foreach($choice['details'] as $tmp)
+                 {
+                    $returned[]=$tmp['value'];
+                    
+                 }
+            }
+             //$this->levenshtein_pattern=$textpattern;
+            //usort($returned, array('Naturalheritage\SearchBundle\Controller\DefaultController', 'sort_by_nbwords'));
+            
+			 $sort_data=Array();
+            foreach($returned as $key=>$value) 
+            {
+				$sort_data[$value]=$this->pos_and_levenshtein(strtolower($value), strtolower($textpattern));
+            }
 			
-		}
-		return new JsonResponse($json_array);                
+			array_multisort($sort_data, SORT_ASC, $returned);
+			array_unshift($returned, $textpattern);
+            $returned=array_unique($returned);
+            foreach($returned as $value)
+            {
+                $row["id"]=$value;
+                $row["text"]=$value;
+                $json_array[]=$row;			
+                
+            }
+            return new JsonResponse($json_array);   
+
+            
         
     }
+	
+	public function pos_and_levenshtein($a, $b)
+	{
+		$tmp=strpos($a, $b);
+		if($tmp===FALSE)
+		{
+			return 15+	levenshtein(substr($a,0,strlen($b)), $b);		
+		}
+		else
+		{			
+			return $tmp;
+		}
+	
+	}
+    
+   
     
 	public function autocompleteAction($textpattern, $fields, $fields_highlight, $in_all=false)
 	{
@@ -632,6 +703,7 @@ class DefaultController extends Controller
 
     protected function autocompletekeywordsAction($key, $array_filters )
 	{
+    
 		 
 		return $this->autocompletekeywordAction($key, $array_filters, "search_criteria", ['search_criteria.value','search_criteria.value.value_ngrams','search_criteria.value.value_full'], array('search_criteria.value' => new \stdClass(),'search_criteria.value.value_ngrams' => new \stdClass(),'search_criteria.value.value_full' => new \stdClass())); 
 	}
@@ -640,7 +712,19 @@ class DefaultController extends Controller
     public function autocompletewhatAction(Request $request)
 	{
 		 $key = $request->query->get('q');
-		return $this->autocompletekeywordAction($key, Array(), "object_identifiers", ["object_identifiers.identifier", "object_identifiers.identifier.identifier_ngrams", "object_identifiers.identifier.identifier_full"], array('object_identifiers.identifier' => new \stdClass(),'object_identifiers.identifier.identifier_ngrams' => new \stdClass(), 'object_identifiers.identifier.identifier_full' => new \stdClass())); 
+		$filter_array= Array( "search_criteria.main_category" => "what");
+		
+        if($request->query->has('criteria'))
+		{
+        
+			if(strlen($request->query->get('criteria'))>0)
+			{
+             
+				$filter_array["search_criteria.sub_category"]=$request->query->get('criteria');
+			}
+		}
+       
+		return $this->autocompletekeywordsAction($key, $filter_array); 
 	}
     
     
@@ -661,16 +745,30 @@ class DefaultController extends Controller
     public function autocompletewhereAction(Request $request)
 	{
 		 $key = $request->query->get('q');
-		return $this->autocompletekeywordsAction($key, Array( "search_criteria.main_category" => "where")); 
+		$filter_array= Array( "search_criteria.main_category" => "where");
+		if($request->query->has('criteria'))
+		{
+			if(strlen($request->query->get('criteria'))>0)
+			{
+				$filter_array["search_criteria.sub_category"]=str_replace('_BLANK_',' ',$request->query->get('criteria'));
+			}
+		}
+		return $this->autocompletekeywordsAction($key, $filter_array); 
 	}
     
     
 
-	public function autocompletefieldall_nested($parent, $keywordfield, $filtercriteria)
+
+	public function autocompletefieldall_nested($parent, $keywordfield, $filtercriteria, $second_agg=null, $sort_criteria="sorting_weight")
 	{
 		$returned=Array();
-
-		$this->instantiateClient();
+        $tmp_agg['terms']= [ "field" => $keywordfield];
+        if(!is_null($second_agg))
+        {
+       
+            $tmp_agg["aggs"]=$second_agg;
+		}
+        $this->instantiateClient();
 		$client = $this->elastic_client;          
 		$params = [
 		        'index' => $this->getParameter('elastic_index'),
@@ -688,11 +786,8 @@ class DefaultController extends Controller
 	
 							"filter" => $filtercriteria,
 		                                       "aggs"=> 
-								[
-		                                                  "getall" => [
-		                                                     "terms" =>
-		                                                      [ "field" => $keywordfield]
-		                                                    ]
+                                                [
+		                                                  "getall" => $tmp_agg
 		                                              ]
 		                                  ]  
 						
@@ -704,22 +799,41 @@ class DefaultController extends Controller
                  ];
 		
 		$results = $client->search($params);
-			
+		
 		
 			
 		$i=0;
-
-		foreach($results["aggregations"][$parent]["filtercriteria"]["getall"]["buckets"] as $key=>$doc)
+        $tmpArray=$results["aggregations"][$parent]["filtercriteria"]["getall"]["buckets"];
+        if(!is_null($second_agg))
+        {
+            $sort_data=Array();
+            foreach($tmpArray as $key=>$value) 
+            {
+               $sort_idx=Array();
+               foreach($value['sorting_weight']['buckets']  as $tmp_sort);
+               {
+                    $sort_idx[]=$tmp_sort['key'];
+                    
+               }         
+                $sort_data[$key]=max($sort_idx);
+            }
+            
+            array_multisort($sort_data, SORT_DESC, $tmpArray);
+        }
+		foreach( $tmpArray as $key=>$doc)
 		{				
-			$row["id"]=$doc["key"];
-			$row["text"]=$doc["key"];
+			$row["id"]=str_replace(" ", "_BLANK_", $doc["key"]);
+			$row["text"]=str_replace(" ", "_BLANK_", $doc["key"]);
 			$returned[]=$row;			
 			$i++;
 		}
-		
-		sort($returned);
-		return $returned;
+		if(is_null($second_agg))
+        {
+            sort($returned);
+		}
+        return $returned;
         }    
+        
 
 	public function autocompletefieldallAction(Request $request, $keywordfield)
 	{
@@ -745,7 +859,7 @@ class DefaultController extends Controller
 		     }
 		    $keywordfields=Array("department", "main_collection", "sub_collection");
 		}
-		elseif($keywordfield=="who"||$keywordfield=="where"||$keywordfield=="what")
+		elseif($keywordfield=="who"||$keywordfield=="where")
 		{
 			$extra_filter= ["term"=> ["search_criteria.main_category"=>$keywordfield]];
 			
@@ -753,6 +867,16 @@ class DefaultController extends Controller
 			$tmp= $this->autocompletefieldall_nested("search_criteria", "search_criteria.sub_category", $extra_filter );
 			return new JsonResponse($tmp);
 		}
+        elseif($keywordfield=="what")
+		{
+			$extra_filter= ["term"=> ["search_criteria.main_category"=>$keywordfield]];
+			
+			
+			$tmp= $this->autocompletefieldall_nested("search_criteria", "search_criteria.sub_category", $extra_filter , $second_agg);
+			return new JsonResponse($tmp);
+		}
+        
+        
 		else
 		{
 			$keywordfields=Array($keywordfield);
@@ -808,7 +932,50 @@ class DefaultController extends Controller
 	public function getSearchCriteriaDetailsAction($keywordfield)
         {
 		$extra_filter= ["term"=> ["search_criteria.main_category"=>$keywordfield]];
-		$subCriterias= $this->autocompletefieldall_nested("search_criteria", "search_criteria.sub_category", $extra_filter );
+        $second_agg=NULL;
+        if($keywordfield=="what")
+        {
+            $second_agg=["sorting_weight" => ["terms" =>[ "field" => "search_criteria.sub_category_weight"] ]];
+		}
+        $subCriterias= $this->autocompletefieldall_nested("search_criteria", "search_criteria.sub_category", $extra_filter, $second_agg );
+        
 		return	 $this->render($this->template_details, array("keywordfield"=> $keywordfield, "subcriterias"=> $subCriterias));
 	}
+    
+    public function cetafRDFRouteAction($institution, $collection_string, $object_id, $sub_criteria="object_number", $format_field="format_of_document", $format_value="Web page", $object_type_field="main_object_category", $object_type_value="Zoological specimen" )
+    {
+        $finder = $this->container->get('es.manager.default.document');
+        $search = $finder->createSearch();      
+
+
+       $search->addQuery(new TermQuery('institution', $institution), BoolQuery::MUST); 
+
+
+        $bool = new BoolQuery();
+        $fields=Array("department", "main_collection", "sub_collection");
+        foreach($fields as $field)
+        {
+            $termQuery = new TermQuery($field, $collection_string);
+            $bool->add($termQuery, BoolQuery::SHOULD);                    
+        }
+        $search->addQuery($bool, BoolQuery::MUST);	
+
+      
+       $this->parseSearchCriteria(
+            $search,  
+            Array( "value" => $object_id, "sub_category" => "object_number", "boolean" => "OR" ), 
+            "search_criteria", 
+            "value",
+             Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), 
+            Array("search_criteria.main_category"=> "what", "search_criteria.sub_category"=>"object_number" ), 
+           
+            "term", 'gte', "AND",BoolQuery::MUST);
+        print_r($search->toArray());
+        
+        $results = $finder->findDocuments($search);
+        print($object_id);
+        print_r($results->count());
+        //print_r(foreech $results as $doc);
+
+    }
 }

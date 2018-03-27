@@ -25,8 +25,8 @@ South :<input type="text" name="tmpS" id="tmpS" class="memoryforfacet" />
 var map;
 var bingBackground;
 var view;
-var map_visible=true;
-var moveDraw=false;
+var map_visible=false;
+var moveDraw=true;
 var autoDraw=false;
 var boxIsLoaded=false;
 var interactionMove;
@@ -160,11 +160,9 @@ $(document).ready(
 	function()
 	{
 		modeRemovePage=true;
-		
-		$("#show_map").click(
-			function()
+		var test_map_visibility=function()
 			{
-				map_visible=!map_visible;
+				
 				if(map_visible)
 				{
 					$("#map_container_nh").show();
@@ -176,14 +174,18 @@ $(document).ready(
 					$("#show_map").prop("value","Show map");	
 				}
 			}
-		);
+        
+		$("#show_map").click(
+            function()
+            {
+                map_visible=!map_visible;
+                test_map_visibility();
+            }
+        );
 
-		jQuery("#modeMap").click(
-		        function()
-		        {
-		            
-		            moveDraw=!moveDraw;
-		            if(moveDraw===true)
+        var control_mode_map=function()
+        {
+            if(moveDraw===true)
 		            {
 		                jQuery("#modeMap").val("To navigation mode");
 		                map.addInteraction(interactionMove);
@@ -195,8 +197,22 @@ $(document).ready(
 		                 map.removeInteraction(interactionMove);
 		                 boxIsLoaded=false;
 		            }
+        }
+        
+        
+		jQuery("#modeMap").click(
+		        function()
+		        {
+		            
+		            moveDraw=!moveDraw;
+                    control_mode_map();
+		            
 		        }
             );
+            
+            test_map_visibility();
+            control_mode_map();
+           
 	    	 
 	}
 );

@@ -70,3 +70,8 @@ naturalheritage_display_details:
     path:     /detail_search_frame/{keywordfield}
     defaults: 
         _controller: NaturalheritageSearchBundle:Default:getSearchCriteriaDetails                
+
+naturalheritage_cetaf_xml:      
+    path:     /cetaf_stable_identifiers/{institution}/{collection_string}/{object_id}
+    defaults: 
+        _controller: NaturalheritageSearchBundle:Default:cetafRDFRoute              

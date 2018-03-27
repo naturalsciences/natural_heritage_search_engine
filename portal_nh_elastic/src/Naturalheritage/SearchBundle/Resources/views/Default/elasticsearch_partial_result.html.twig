@@ -15,26 +15,26 @@
 </style>
 <div>
 {% if count is defined %}
+    {% if facets is defined %}
+    <h3>Facets:</h3>
+    <table>
+    <tr>
+        {% for facet in facets %}
+        <td class="align-top">
+            <li>{{facet['criteria']}}
+            <br/>
+            <ul>
+                  {% for facet_detail in facet['details'] %}
+                   <li><input class="select_facet" type="checkbox" value="{{facet['jquery_control']}}|{{facet_detail['value']}}"/>&nbsp;{{facet_detail['value']}}: {{facet_detail['count']}}</li>
+                  {% endfor %}
+            </ul></li>
+         </td>   
+        {% endfor %}
+    </tr>
+    </table>
+    {% endif %}
 <h3>{{count}} result(s)</h3>
 {% include 'NaturalheritageSearchBundle:Default:pagination.html.twig' %}
-{% endif %}
-{% if facets is defined %}
-<h3>Facets:</h3>
-<table>
-<tr>
-    {% for facet in facets %}
-    <td class="align-top">
-        <li>{{facet['criteria']}}
-		<br/>
-        <ul>
-              {% for facet_detail in facet['details'] %}
-               <li><input class="select_facet" type="checkbox" value="{{facet['jquery_control']}}|{{facet_detail['value']}}"/>&nbsp;{{facet_detail['value']}}: {{facet_detail['count']}}</li>
-              {% endfor %}
-        </ul></li>
-     </td>   
-    {% endfor %}
-</tr>
-</table>
 {% endif %}
 {% if results is defined %}
 
@@ -60,6 +60,9 @@
 	</ul></li>
     {% endfor %}
 </ul>
+    {% if count is defined %}
+    {% include 'NaturalheritageSearchBundle:Default:pagination.html.twig' %}
+    {% endif %}
 {% endif %}
 </div>
 <script language="javascript">

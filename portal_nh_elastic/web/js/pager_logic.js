@@ -144,7 +144,7 @@ $(document).ready(
 				    }
 				}
 
-				/*alert($("#elastic_search_who_author").select2("val"));*/
+				
 				$( ".elastic_search_finesearch" ).each(function() {
 					if($(this).length)
 					{	
@@ -158,15 +158,14 @@ $(document).ready(
                         				var criteria={};                    
 							criteria["value"]=$(this).select2("val").join("|");
                         				criteria["sub_category"]=sub_category;
+							criteria['boolean']='OR';
 							if($("#"+id_ctrl+'_and').is(':checked'))
 							{
-								alert("AND");
 								criteria['boolean']='AND';
 							
 							}
                         				returned["subcriteria_"+meaning_ctrl]=criteria;
-							alert(meaning_ctrl);
-							alert(criteria["value"]);			
+										
 						}				
 					}
 				});
@@ -176,7 +175,7 @@ $(document).ready(
 
 			
 			
-			$(".nh_submit").click(
+			$("#elastic_search").click(
 			
 				function()
 				{
@@ -193,7 +192,15 @@ $(document).ready(
 						}
 					}
 					)
-				});			
+				});	
+
+            $("#search_clear").click(
+			
+				function()
+				{
+                  $('.select2').val(null).trigger('change');  			
+				});	
+                            
 
 
 

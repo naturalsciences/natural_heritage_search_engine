@@ -1,4 +1,7 @@
 <form>
+{% if map == "on" %}
+    {% include 'NaturalheritageSearchBundle:Default:map.html.twig' %}
+{% endif %}
 <input type="hidden" id="base_url" value="{{url('homepage')}}"></input>
 <table>
 <tr>
@@ -37,10 +40,10 @@ Free text:
 	What:
 </td>
 <td>
-	<select id="elastic_search_what" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>
+	<select id="elastic_search_what" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select> And: <input id="elastic_search_what_and" type="checkbox" value="AND"/> <input type="button" id="enable_details_what" name="enable_details_what" class="enable_details" value="details"/>
 	<div id="elastic_search_what_history"></div>
+	<div id="enable_details_what_div"></div>
 </td>
-</tr>
 </tr>
 <tr class="detailed_search" style="display:none">
 <td>
@@ -57,8 +60,9 @@ Free text:
 	Where:
 </td>
 <td>
-	<select id="elastic_search_where" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select> And: <input id="elastic_search_where_and" type="checkbox" value="AND"/>
+	<select id="elastic_search_where" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select> And: <input id="elastic_search_where_and" type="checkbox" value="AND"/> <input type="button" id="enable_details_where" name="enable_details_where" class="enable_details" value="details"/>
 	<div id="elastic_search_where_history"></div>
+	<div id="enable_details_where_div"></div>
    
 </td>
 </tr>
@@ -81,12 +85,8 @@ Free text:
 <br/>
 <div class="detailed_search" style="display:none">
 </div>
-{% if map == "on" %}
-    {% include 'NaturalheritageSearchBundle:Default:map.html.twig' %}
-{% endif %}
-
 <br/>
- <button type="button" id="solr_search" class="nh_submit">Search</button> 
+ <button type="button" id="elastic_search" class="nh_submit">Search</button>  <button type="button" id="search_clear" class="nh_submit">Clear</button> 
 </form>
 
 <div id="result_search">
@@ -267,6 +267,10 @@ $(document).ready(
 			else if($(this).attr("id")=="enable_details_where")
 			{
 				keywordfield="where";
+			}
+            else if($(this).attr("id")=="enable_details_what")
+			{
+				keywordfield="what";
 			}
 
 			
