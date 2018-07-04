@@ -8,6 +8,7 @@ require_once("Encoding.php");
 use \ForceUTF8\Encoding;
 
 require_once("ParseGBIF.php");
+require_once("GNNameParser.php");
 
 class CSVParser
 {
@@ -57,35 +58,17 @@ class CSVParser
 			return $returned;
 		}
         
-		public function parseFile()
+		public function parseRow($p_i, $p_line_array, $p_worms_client, $p_mode_write=false, $p_output_file=null)
 		{
-			if(in_array("worms",$this->sources))
-            {
-                $worms_client = new SoapClient($this->url_webservice_worms);
-
-            }
-			if($handler = fopen($this->srcFile, "r"))
-			{
-				$i=0;
-				while(!feof($handler)) 
-                {
-					$line_array = fgetcsv($handler,0, $this->delimiter);
-					//$line = Encoding::toUTF8($line);
-					//print($line);
-                    $MyEncoding=new Encoding();
-                    if(is_array($line_array))
-                    {
-                        $line_array=array_map(array($MyEncoding, 'toUTF8'), $line_array);
-					}
-					if($i==0 && $this->hasHeader)
+					if($p_i==0 && $this->hasHeader)
 					{
-                        $this->headers=$line_array;
-						$i++;
-						continue;						
+                        $this->headers=$p_line_array;
+						//$p_i++;
+						//continue;						
 					}
-					elseif($i==0 && !$this->hasHeader)
+					elseif($p_i==0 && !$this->hasHeader)
 					{
-						$nb_fields=count($line_array);
+						$nb_fields=count($p_line_array);
 						
 						$this->headers=Array();
 						for($j=0;$j<$nb_fields;$j++)
@@ -104,7 +87,7 @@ class CSVParser
 						
 					}
 					
-					$sc_name=Encoding::toUTF8($line_array[$this->idxDataField]);
+					$sc_name=Encoding::toUTF8($p_line_array[$this->idxDataField]);
 					$url_gbif=$this->url_webservice_gbif.urlencode($sc_name);
                         if(isset($this->idxKingdomField))
                         {
@@ -112,7 +95,7 @@ class CSVParser
                             {
                                 if((int)$this->idxKingdomField>0)
                                 {
-                                    $kingdom=Encoding::toUTF8($line_array[$this->idxKingdomField]);
+                                    $kingdom=Encoding::toUTF8($p_line_array[$this->idxKingdomField]);
                                     $url_gbif=$url_gbif.$this->kingdom_suffix.urlencode($kingdom);
                                 }
                                 //print_r($tmp);
@@ -183,7 +166,7 @@ class CSVParser
                                                                     {
                                                                         if((int)$this->idxKingdomField>0)
                                                                         {
-                                                                            $kingdom=Encoding::toUTF8($line_array[$this->idxKingdomField]);
+                                                                            $kingdom=Encoding::toUTF8($p_line_array[$this->idxKingdomField]);
                                                                             $url_gbif=$url_gbif.$this->kingdom_suffix.urlencode($kingdom);
                                                                         }
                                                                         //print_r($tmp);
@@ -241,140 +224,156 @@ class CSVParser
 									{
 										ParseGBIF::initGBIFEmpty($results_worms);										
 									}*/
-                                    $AphiaID=$worms_client->getAphiaID($sc_name);
-                                    $results_worms["worms_id"]="";
-                                    $results_worms["worms_scientific_name"]="";
-                                    $results_worms["worms_author"]="";
-									$results_worms["worms_status"]="";
-									
-                                    $results_worms["worms_accepted_name"]="";
-                                    $results_worms["worms_accepted_author"]="";
-                                    $results_worms["worms_phylum"]="";
-                                    $results_worms["worms_class"]="";
-                                    $results_worms["worms_order"]="";
-                                    $results_worms["worms_family"]="";
-                                    $results_worms["worms_genus"]="";
-                                    $results_worms["worms_species"]="";
-                                    $results_worms["worms_subspecies"]="";
-									$results_worms["worms_is_marine"]="";
-									$results_worms["worms_is_brackish"]="";
-									$results_worms["worms_is_freshwater"]="";
-									$results_worms["worms_is_terrestrial"]="";										
-									$results_worms["worms_lsid"]="";
-                                    $results_worms["worms_url"]="";
-                                    if(is_numeric($AphiaID))
-                                    {
-										
-                                        $results_worms["worms_id"]=$AphiaID;
-                                        $taxon=$worms_client->getAphiaRecordByID($AphiaID);
-										if(is_object($taxon))
+									$parserName = new GNNameParser($sc_name);
+									$sc_name=$parserName->getCanonicalName();
+                                    $AphiaID=$p_worms_client->getAphiaID($sc_name);
+									/*$matches = $worms_client->matchAphiaRecordsByNames($sc_name);
+									if(count($matches)>0)
+									{
+										print_r($matches);
+										continue;
+										$tmp=$matches[0];
+										if(count($tmp)>0)
 										{
-											if(property_exists($taxon,"scientificname"))
+											$tmp2=$tmp[0];
+											$AphiaID=$tmp2->AphiaID;*/
+											$results_worms["worms_id"]="";
+											$results_worms["worms_scientific_name"]="";
+											$results_worms["worms_author"]="";
+											$results_worms["worms_status"]="";
+											
+											$results_worms["worms_accepted_name"]="";
+											$results_worms["worms_accepted_author"]="";
+											$results_worms["worms_phylum"]="";
+											$results_worms["worms_class"]="";
+											$results_worms["worms_order"]="";
+											$results_worms["worms_family"]="";
+											$results_worms["worms_genus"]="";
+											$results_worms["worms_species"]="";
+											$results_worms["worms_subspecies"]="";
+											$results_worms["worms_is_marine"]="";
+											$results_worms["worms_is_brackish"]="";
+											$results_worms["worms_is_freshwater"]="";
+											$results_worms["worms_is_terrestrial"]="";										
+											$results_worms["worms_lsid"]="";
+											$results_worms["worms_url"]="";
+											if(is_numeric($AphiaID))
 											{
-												$results_worms["worms_scientific_name"]=$taxon->scientificname;
-											}
-											if(property_exists($taxon,"authority"))
-											{											
-												$results_worms["worms_author"]=$taxon->authority;
-											}
-											if(property_exists($taxon,"status"))
-											{											
-												$results_worms["worms_status"]=$taxon->authority;
 												
-											}
-											
-											
-											if(property_exists($taxon,"valid_name"))
-											{
-												$results_worms["worms_accepted_name"]=$taxon->valid_name;
-											}
-											if(property_exists($taxon,"valid_authority"))
-											{
-												$results_worms["worms_accepted_author"]=$taxon->valid_authority;
-											}
-											
-											$classification=$worms_client->getAphiaClassificationByID($AphiaID);
-											if(is_object($classification))
-											{
-												$limit=40;
-												$i=0;
-												while($i<=$limit)
-												{   
-													if(property_exists($classification,"rank"))
+												$results_worms["worms_id"]=$AphiaID;
+												$taxon=$p_worms_client->getAphiaRecordByID($AphiaID);
+												if(is_object($taxon))
+												{
+													if(property_exists($taxon,"scientificname"))
 													{
-														switch(strtolower($classification->rank))
-														{
-															case "phylum":
-																$results_worms["worms_phylum"]=$classification->scientificname;
-																break;
-															 case "class":
-																$results_worms["worms_class"]=$classification->scientificname;
-																break;
-															 case "order":
-																$results_worms["worms_order"]=$classification->scientificname;
-																break;
-															 case "family":
-																$results_worms["worms_family"]=$classification->scientificname;
-																break;
-															 case "genus":
-																$results_worms["worms_genus"]=$classification->scientificname;
-																break;
-															 case "species":
-																$results_worms["worms_species"]=$classification->scientificname;
-																break;
-															 case "subspecies":
-																$results_worms["worms_subspecies"]=$classification->scientificname;
-																break;
-														}
+														$results_worms["worms_scientific_name"]=$taxon->scientificname;
 													}
-													if(property_exists($classification,"child"))
-													{
+													if(property_exists($taxon,"authority"))
+													{											
+														$results_worms["worms_author"]=$taxon->authority;
+													}
+													if(property_exists($taxon,"status"))
+													{											
+														$results_worms["worms_status"]=$taxon->authority;
 														
-														$classification=$classification->child;
-													}
-													else
-													{
-														break;
 													}
 													
-													$i++;
+													
+													if(property_exists($taxon,"valid_name"))
+													{
+														$results_worms["worms_accepted_name"]=$taxon->valid_name;
+													}
+													if(property_exists($taxon,"valid_authority"))
+													{
+														$results_worms["worms_accepted_author"]=$taxon->valid_authority;
+													}
+													
+													$classification=$p_worms_client->getAphiaClassificationByID($AphiaID);
+													if(is_object($classification))
+													{
+														$limit=40;
+														$i=0;
+														while($i<=$limit)
+														{   
+															if(property_exists($classification,"rank"))
+															{
+																switch(strtolower($classification->rank))
+																{
+																	case "phylum":
+																		$results_worms["worms_phylum"]=$classification->scientificname;
+																		break;
+																	 case "class":
+																		$results_worms["worms_class"]=$classification->scientificname;
+																		break;
+																	 case "order":
+																		$results_worms["worms_order"]=$classification->scientificname;
+																		break;
+																	 case "family":
+																		$results_worms["worms_family"]=$classification->scientificname;
+																		break;
+																	 case "genus":
+																		$results_worms["worms_genus"]=$classification->scientificname;
+																		break;
+																	 case "species":
+																		$results_worms["worms_species"]=$classification->scientificname;
+																		break;
+																	 case "subspecies":
+																		$results_worms["worms_subspecies"]=$classification->scientificname;
+																		break;
+																}
+															}
+															if(property_exists($classification,"child"))
+															{
+																
+																$classification=$classification->child;
+															}
+															else
+															{
+																break;
+															}
+															
+															$i++;
+														}
+														//$results_worms["worms_phylum"]= print_r(get_class_methods($classification));
+													}
+													if(property_exists($taxon,"isMarine"))
+													{
+														$results_worms["worms_is_marine"]=$this->mapBooleanString($taxon->isMarine);
+													}
+													if(property_exists($taxon,"isBrackish"))
+													{
+														$results_worms["worms_is_brackish"]=$this->mapBooleanString($taxon->isBrackish);
+													}
+													if(property_exists($taxon,"isFreshwater"))
+													{
+														$results_worms["worms_is_freshwater"]=$this->mapBooleanString($taxon->isFreshwater);
+													}
+													if(property_exists($taxon,"isTerrestrial"))
+													{
+														$results_worms["worms_is_terrestrial"]=$this->mapBooleanString($taxon->isTerrestrial);
+													}
+													if(property_exists($taxon,"lsid"))
+													{
+														$results_worms["worms_lsid"]=$taxon->lsid;
+													}
+													$results_worms["worms_url"]=$taxon->url;
 												}
-												//$results_worms["worms_phylum"]= print_r(get_class_methods($classification));
+													if(array_key_exists('background_style', $result)===FALSE&&array_key_exists('rgb_match_type', $result)===FALSE)
+													{
+														$results_worms["rgb_match_type"]="#00ff00";
+														$results_worms["background_style"]="";
+														
+													}
 											}
-											if(property_exists($taxon,"isMarine"))
-											{
-												$results_worms["worms_is_marine"]=$this->mapBooleanString($taxon->isMarine);
-											}
-											if(property_exists($taxon,"isBrackish"))
-											{
-												$results_worms["worms_is_brackish"]=$this->mapBooleanString($taxon->isBrackish);
-											}
-											if(property_exists($taxon,"isFreshwater"))
-											{
-												$results_worms["worms_is_freshwater"]=$this->mapBooleanString($taxon->isFreshwater);
-											}
-											if(property_exists($taxon,"isTerrestrial"))
-											{
-												$results_worms["worms_is_terrestrial"]=$this->mapBooleanString($taxon->isTerrestrial);
-											}
-											if(property_exists($taxon,"lsid"))
-											{
-												$results_worms["worms_lsid"]=$taxon->lsid;
-											}
-											$results_worms["worms_url"]=$taxon->url;
+											
+										$result=array_merge($result, $results_worms);
 										}
-											if(array_key_exists('background_style', $result)===FALSE&&array_key_exists('rgb_match_type', $result)===FALSE)
-											{
-												$results_worms["rgb_match_type"]="#00ff00";
-												$results_worms["background_style"]="";
-												
-											}
-                                    }
-                                    
-                                    $result=array_merge($result, $results_worms);
+									/*}
+                                }*/
+                                if(!$p_mode_write)
+								{
+									$this->holder[$sc_name]=$result;
                                 }
-                                $this->holder[$sc_name]=$result;
-                                
                             }
                             else
                             {
@@ -387,12 +386,72 @@ class CSVParser
 							$tmp=Array();
                             $tmp["parsed_data"]=$result;
 							//$tmp["parsed_data"]["url"]=$url_gbif;
-                            $tmp["src_data"]=$line_array;
-                            $this->completeResult[]=$tmp;
+                            $tmp["src_data"]=$p_line_array;
+							if(!$p_mode_write)
+							{
+								$this->completeResult[]=$tmp;
+							}
 						}
 					}
-							
+					if($p_mode_write)
+					{
+						if($p_i==0)
+						{
+							$header_file=array_keys($result);
+							array_unshift($header_file, "taxon");
+							fwrite($p_output_file, implode("\t",$header_file ));
+							fwrite($p_output_file, "\r\n");
+						}
+						array_unshift($result, $p_line_array[$this->idxDataField] );
+						fwrite($p_output_file, implode("\t",$result ));
+						fwrite($p_output_file, "\r\n");
+					}
 					//print($sc_name);
+					//$i++;
+		}
+		
+		public function parseExternalArray(&$p_array, $p_key, $p_output_file)
+		{
+			print("GO");
+			$this->idxDataField=$p_key;
+			$this->idxKingdomField=null;
+			$worms_client=null;
+			if(in_array("worms",$this->sources))
+            {
+                $worms_client = new SoapClient($this->url_webservice_worms);
+			}
+			$i=0;
+			foreach($p_array as $row)
+			{
+				
+				$this->parseRow($i, $row, $worms_client,true, $p_output_file);
+				$i++;
+			}
+              
+            $_SESSION["headers"] = $this->headers; 
+            $_SESSION["results"] = $this->completeResult; //$this->holder; 
+			$_SESSION["match_statistics"]=$this->getMatchingStatistics();				
+            //$this->pager(1);
+			
+
+            
+		}
+		
+		public function parseFile()
+		{
+			if(in_array("worms",$this->sources))
+            {
+                $worms_client = new SoapClient($this->url_webservice_worms);
+
+            }
+			if($handler = fopen($this->srcFile, "r"))
+			{
+				$i=0;
+				while(!feof($handler)) 
+                {
+					$line_array = fgetcsv($handler,0, $this->delimiter);
+					$this->parseRow($i, $line_array, $worms_client);
+					
 					$i++;
 					
 				}
