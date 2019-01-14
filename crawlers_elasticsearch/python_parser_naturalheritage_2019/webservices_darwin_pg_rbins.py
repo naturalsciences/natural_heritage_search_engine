@@ -1,4 +1,4 @@
-#python 3.4
+#python 3
 import urllib
 import json
 from elasticsearch import Elasticsearch
@@ -143,7 +143,8 @@ class DarwinParser(PostgresParser):
             parent_collection.code as parent_collection_code,
             parent_collection.name as parent_collection_name,
             (SELECT modification_date_time FROM users_tracking where referenced_relation='specimens' and record_id= max(specimens.id)     GROUP BY modification_date_time ,users_tracking.id having users_tracking.id=max(users_tracking.id) limit 1) as last_modification, code_display, string_agg(DISTINCT taxon_path::varchar, '|') as taxon_paths, string_agg(DISTINCT taxon_ref::varchar, '|') as taxon_ref,
-                    string_agg(DISTINCT taxon_name, '|') as taxon_name,
+                     taxon_name,
+                     fct_rmca_sort_taxon_path_alphabetically_not_indexed(taxon_path) as parent_taxa,
                     string_agg(DISTINCT     history, '|') as history_identification
                     ,
                      string_agg(DISTINCT gtu_country_tag_value, '|') as country,  string_agg(DISTINCT gtu_others_tag_value, '|') as geographical,           
@@ -243,7 +244,10 @@ c_gtu.comment as gtu_comments
                     longitude, latitude
                      ,
                      collector_ids
-                      , donator_ids ;"""
+                      , donator_ids,
+                      taxon_path ,
+                      taxon_name                      
+                      ;"""
             cur = self.m_conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cur.execute(query, (self.m_prefix_json,  p_id))
             for item in cur:
@@ -278,6 +282,7 @@ c_gtu.comment as gtu_comments
             parent_collection_name = item["parent_collection_name"]
             parent_collection_code = item["parent_collection_code"]
             taxon_names = empty_if_null(item["taxon_name"]).split("|")
+            taxon_parents = empty_if_null(item["parent_taxa"]).split("/")
             history_identification = empty_if_null(item["history_identification"]).split("|")
             collectors = empty_if_null(item['collectors']).split("|")
             donators = empty_if_null(item['collectors']).split("|")
@@ -333,12 +338,21 @@ c_gtu.comment as gtu_comments
             main_format_json = {"main_category": "what", "sub_category": "format_of_document" , "value" : format, "sub_category_weight": 9 }
             search_criterias.append(main_format_json)
            
-                
+            identifiers=[]    
             what = []
             for taxon_name in taxon_names:
                 taxon_json = {"main_category": "what", "sub_category": "biological_scientific_name" , "value" : taxon_name , "sub_category_weight": 8}
                 search_criterias.append(taxon_json)
                 what.append(taxon_name)
+                #2019 01 14
+                identifiers.append({"identifier": taxon_name, "identifier_type": "biological scientific name" })
+            #2019 01 14
+            for taxon_name in taxon_parents:
+                taxon_json = {"main_category": "what", "sub_category": "biological_scientific_name" , "value" : taxon_name , "sub_category_weight": 8}
+                search_criterias.append(taxon_json)
+                what.append(taxon_name)
+                
+                
             for history_identification_elem in history_identification:
                 history_json = {"main_category": "what", "sub_category": "history_of_object" , "value" : history_identification_elem, "sub_category_weight": 4 }
                 search_criterias.append(history_json)
@@ -347,6 +361,7 @@ c_gtu.comment as gtu_comments
                 type_json = {"main_category": "what", "sub_category": "zoological_type_status" , "value" : coll_type, "sub_category_weight": 6 }
                 search_criterias.append(type_json)
                 what.append(coll_type)
+                identifiers.append({"identifier": coll_type, "identifier_type": "biological type status" })
                          
             keywords=[]
             keywords.append({"keyword_value" : coll_type , "keyword_type" : "Zoological type"})
@@ -363,8 +378,9 @@ c_gtu.comment as gtu_comments
                 
             
             url_json=self.m_prefix_json_metadata+id_tech
-            identifiers=[]
-            identifiers =  [{"identifier": specimen_code, "identifier_type": "specimen number" },  {"identifier":  coll_type, "identifier_type": "Zoological type status"} ]
+            
+            identifiers.append({"identifier": specimen_code, "identifier_type": "specimen number" })
+            identifiers.append({"identifier":  coll_type, "identifier_type": "Zoological type status"})
             identifier_json= {"main_category": "what", "sub_category": "object_number" , "value" : specimen_code, "sub_category_weight": 7 }
             search_criterias.append(identifier_json)
             
@@ -465,7 +481,7 @@ c_gtu.comment as gtu_comments
             
             #.replace("/","\/").replace(":","\:")
             #print(query_url)
-            r= requests.post(query_url, params={'id':  (elastic_json['id']), 'op_type': 'index'}, json=elastic_json, auth=('USER', 'PASSWORD'), headers={'Content-Type': 'application/json'})
+            r= requests.post(query_url, params={'id':  (elastic_json['id']), 'op_type': 'index'}, json=elastic_json, auth=('USER_HTTP', 'PWD_HTTP'), headers={'Content-Type': 'application/json'})
             #print(r.status_code)
             #print(r.text)
             if r.status_code >= 400:
@@ -564,11 +580,10 @@ es_server = 'http://193.190.223.60:80/'
 indexname="naturalheritage"
 es_server= es_server + indexname
 
-#elasticInstance = requests.get(es_server, auth=HTTPBasicAuth('USER', 'PASSWORD'), headers={'Content-Type': 'application/json'})
 
 
 darwin_parser =     DarwinParser(es_server, indexname, url, params, request_headers, institution, "Collections Management",parent_collection, collection_name, logfile )
-darwin_parser.set_pg_connection("host='localhost' dbname='darwin2' user='user' password='password'")
+darwin_parser.set_pg_connection("host='localhost' dbname='DB' user='user' password='pwd'")
 darwin_parser.run()
 
 
