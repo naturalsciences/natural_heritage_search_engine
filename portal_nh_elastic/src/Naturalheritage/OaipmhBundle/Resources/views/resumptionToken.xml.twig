@@ -1,0 +1,11 @@
+{% if not (resumption.isFirst and resumption.isLast) %}
+  <resumptionToken
+    {% if resumption.next %}expirationDate="{{ resumption.expiresOn|date('Y-m-d\\TH:i:sP') }}"{% endif %}
+    completeListSize="{{ resumption.totalCount }}"  
+    {% if resumption.current_page  > 1 %}    
+        cursor="{{ ((resumption.current_page - 1 ) * resumption.page_size) - 1  }}"
+    {% else %}
+       cursor="0"
+    {% endif %}    
+  >{% if resumption.next %}{{ resumption.token }}{% endif %}</resumptionToken>
+{% endif %}

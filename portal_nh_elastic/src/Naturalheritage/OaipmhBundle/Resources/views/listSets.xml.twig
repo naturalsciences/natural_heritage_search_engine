@@ -1,0 +1,14 @@
+{% extends 'NaturalheritageOaipmhBundle::template.xml.twig' %}
+
+{% block content %}
+  <ListSets>
+    {% for position in resumption.starts..resumption.ends %}
+      {% set oaiSet = resumption.items[position] %}
+      <set>
+        <setSpec>{{ oaiSet.identifier }}</setSpec>
+        <setName>{{ oaiSet.name }}</setName>
+      </set>
+    {% endfor %}
+    {% include 'NaturalheritageOaipmhBundle::resumptionToken.xml.twig' %}
+  </ListSets>
+{% endblock %}

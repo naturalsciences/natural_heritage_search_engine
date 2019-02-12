@@ -1,0 +1,7 @@
+{% if not (resumption.isFirst and resumption.isLast) %}
+  <resumptionToken
+    {% if resumption.next %}expirationDate="{{ resumption.expiresOn|date('Y-m-d\\TH:i:sP') }}"{% endif %}
+    completeListSize="{{ resumption.totalCount }}"
+    cursor="{{ resumption.starts }}" lulu="test"
+  >{% if resumption.next %}{{ resumption.token }}{% endif %}</resumptionToken>
+{% endif %}

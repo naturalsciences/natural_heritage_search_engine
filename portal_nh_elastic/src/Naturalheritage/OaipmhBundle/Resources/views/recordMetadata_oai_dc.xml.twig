@@ -1,0 +1,41 @@
+{% macro dc_value(dc, key) %}
+  {% if (dc['dc_'~key] is defined and dc['dc_'~key]) %}
+    {% if dc['dc_'~key] is iterable %}
+      {% for value in dc['dc_'~key] %}
+        <dc:{{ key }}>{{ value|striptags }}</dc:{{ key }}>
+      {% endfor %}
+    {% else %}
+      <dc:{{ key }}>{{ dc['dc_'~key]|striptags }}</dc:{{ key }}>
+    {% endif %}
+  {% endif %}
+{% endmacro %}
+
+{% import _self as forms %}
+
+{% set dc = dublinize_record(record) %}
+<oai_dc:dc
+   xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/
+   http://www.openarchives.org/OAI/2.0/oai_dc.xsd"
+>
+  {{ forms.dc_value(dc, 'title') }}
+  {{ forms.dc_value(dc, 'creator') }}
+  {{ forms.dc_value(dc, 'subject') }}
+  {{ forms.dc_value(dc, 'description') }}
+  {{ forms.dc_value(dc, 'date') }}
+  {{ forms.dc_value(dc, 'coverage') }}
+  {{ forms.dc_value(dc, 'type') }}
+  {{ forms.dc_value(dc, 'relation') }}
+  {% set thumb = get_thumb(record) %}
+  {% if (thumb) %}
+      <dc:relation>{% trans %}vignette{% endtrans %} : {{ thumb }}</dc:relation>
+  {% endif %}
+  {{ forms.dc_value(dc, 'source') }}
+  {{ forms.dc_value(dc, 'rights') }}
+  {{ forms.dc_value(dc, 'format') }}
+  {{ forms.dc_value(dc, 'identifier') }}
+  {{ forms.dc_value(dc, 'language') }}
+  {{ forms.dc_value(dc, 'publisher') }}
+</oai_dc:dc>

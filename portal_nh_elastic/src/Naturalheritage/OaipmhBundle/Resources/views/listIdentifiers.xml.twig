@@ -1,0 +1,10 @@
+{% extends 'NaturalheritageOaipmhBundle::template.xml.twig' %}
+
+{% block content %}
+<ListIdentifiers>
+    {% for position in resumption.starts..resumption.ends %}
+        {% include 'NaturalheritageOaipmhBundle::recordHeader.xml.twig' with {record: resumption.items[position]}  %}
+    {% endfor %}
+    {% include 'NaturalheritageOaipmhBundle::resumptionToken.xml.twig' %}
+</ListIdentifiers>
+{% endblock %}

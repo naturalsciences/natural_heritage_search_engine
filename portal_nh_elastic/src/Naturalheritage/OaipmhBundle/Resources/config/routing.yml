@@ -1,0 +1,8 @@
+oai_pmh_server_override:
+    defaults: {_controller: NaturalheritageOaipmhBundle:Default:index, _format: xml }
+    path:   /    
+
+    
+naoned_oai_pmh_server:
+    resource: "@NaonedOaiPmhServerBundle/Resources/config/routing.yml"
+    prefix:   /    

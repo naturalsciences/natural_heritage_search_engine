@@ -1,0 +1,13 @@
+services:
+#    naturalheritage_oaipmh.example:
+#        class: Naturalheritage\OaipmhBundle\Example
+#        arguments: ["@service_id", "plain_value", "%parameter%"]
+    naoned.oaipmh.data_provider:
+        class:  Naturalheritage\OaipmhBundle\NaturalheritageOaipmhBundle
+        calls:
+            - [ setContainer, ["@service_container"] ]
+            
+    naoned.oaipmh.ruler:
+        class: Naturalheritage\OaipmhBundle\OaiPmh\OaiPmhRulerNh
+        calls:
+            - [ setCountPerLoad, [ '%naoned.oaipmh_server.count_per_load%' ] ]
