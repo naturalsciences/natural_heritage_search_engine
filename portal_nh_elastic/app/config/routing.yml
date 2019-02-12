@@ -1,7 +1,11 @@
+naturalheritage_oaipmh:
+    resource: "@NaturalheritageOaipmhBundle/Resources/config/routing.yml"
+    prefix:   /oaipmh/
+
 naturalheritage_search:
     resource: "@NaturalheritageSearchBundle/Resources/config/routing.yml"
     prefix:   /
 
 app:
-    resource: "@AppBundle/Controller/"
-    type:     annotation
+    resource: '@AppBundle/Controller/'
+    type: annotation

@@ -45,7 +45,13 @@
 	<li>{{ result.institution }}</li>
 	<li>{{ result.main_collection }}</li>
     <li>{{ result.sub_collection }}</li>
-	<li>{{ result.object_type }}</li>
+	{% if result.object_type is iterable %}
+		{% for obj in result.object_type %}
+		<li>{{ obj }}</li>
+		{% endfor %}
+	{% else %}
+		<li>{{ result.object_type }}</li>
+	{% endif %}
         {% for identifier in result.object_identifiers %}
      		<li>{{ identifier.identifier_type }} : {{ identifier.identifier }}</li>
      	{% endfor %}
