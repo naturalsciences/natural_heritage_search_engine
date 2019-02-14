@@ -231,8 +231,9 @@ class NaturalheritageOaipmhBundle  extends Bundle implements DataProviderInterfa
 		$this->instantiateClient();
 		if(array_key_exists("resumptionToken", $_REQUEST))
 		{
+            $flag_scroll_es = $oaiPmhRuler->mapToElasticSearchToken($_REQUEST["resumptionToken"], $this->container->get('naoned.oaipmh.cache'));           
 			$results = $this->elastic_client->scroll([
-            "scroll_id" =>$_REQUEST["resumptionToken"], 
+            "scroll_id" =>$flag_scroll_es, 
             "scroll" => "120s"           
 				]
 			);

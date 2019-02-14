@@ -18,6 +18,7 @@ class OaiPmhRulerNh extends BaseRuler
     {
         return self::CACHE_PREFIX.$token;
     }
+    
 
 	
     private static $availableMetadata = array(
@@ -43,12 +44,33 @@ class OaiPmhRulerNh extends BaseRuler
         $this->elastic_resumption = $value;
     }
     
+    
+     public function mapToElasticSearchToken($token, $cache)
+     {
+        $returned=null;
+        $cachedValues=$cache->fetch($this->getcacheKey($token));
+        if(is_array($cachedValues))
+        {
+            if(array_key_exists("es_scroll_id",$cachedValues))
+            {
+                $returned= $cachedValues["es_scroll_id"];
+            }
+        }
+        return $returned;
+     }
+    
+    /* public function mapToElasticSearchToken($resumptionToken, $esScrollId)
+    {
+    
+    }*/
+    
      public function getSearchParams($queryParams, $cache)
     {
         $searchParams=parent::getSearchParams($queryParams, $cache);
         if (array_key_exists('resumptionToken', $queryParams)  ) 
         {
             //$searchParams['previous_token'] = $queryParams["resumptionToken"];
+            // $this->cacheTokenExists("lulu");
         }
         else
         {
@@ -63,6 +85,7 @@ class OaiPmhRulerNh extends BaseRuler
     {
 
          $resumption = array();
+        
          $resumption['next'] = false;
          $nbPages=floor($this->total / $this->countPerLoad)+1;
          $currentStartRecord=$searchParams['record_starts'];
@@ -72,7 +95,8 @@ class OaiPmhRulerNh extends BaseRuler
  
             $currentStartRecord = $currentStartRecord + count($items);
             $resumption['next']       = true;
-            $resumption['token']      = $this->elastic_resumption;
+            $resumption['token']      = $this->generateResumptionToken();
+            $resumption["esScrollId"]=$this->elastic_resumption;
             $resumption['expiresOn']  = time() + 604800;
             $resumption['totalCount'] = $this->total;
             $cache->save(
@@ -86,9 +110,11 @@ class OaiPmhRulerNh extends BaseRuler
                         'nb_pages' => $nbPages,
                         'current_page' =>  $currentPage,
                         'previous_token' =>  $resumption['token'],
+                        'es_scroll_id' => $resumption["esScrollId"]
                     )
                 )
             );
+            
          }
 
         $resumption['starts'] = 0; 
