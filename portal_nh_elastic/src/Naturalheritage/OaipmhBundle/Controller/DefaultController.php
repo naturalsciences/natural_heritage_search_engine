@@ -151,6 +151,11 @@ private $availableVerbs = array(
             $from,
             $until
         );
+        //for idempotence
+        if(array_key_exists("resumptionToken", $this->queryParams))
+        {            
+            $records=$oaiPmhRuler->getDataOfOldToken($this->queryParams["resumptionToken"],  $this->get('naoned.oaipmh.cache'), $records);
+        }
         if (!(is_array($records) || $records instanceof \ArrayObject)) {
             throw new \Exception('Implementation error: Records must be an array or an arrayObject');
         }
@@ -163,6 +168,11 @@ private $availableVerbs = array(
             $this->get('naoned.oaipmh.cache')
         );
 
+        //cache records associated to this resumption ID (for idempotence)
+        if (array_key_exists('resumptionToken', $this->queryParams)) {
+              $oaiPmhRuler->serializeDataOfCurrentToken($this->queryParams["resumptionToken"],  $this->get('naoned.oaipmh.cache'), $records);
+        }
+        
         return array(
             'resumption'     => $resumption,
             'metadataPrefix' => $searchParams['metadataPrefix'],

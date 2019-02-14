@@ -59,20 +59,32 @@ class OaiPmhRulerNh extends BaseRuler
         return $returned;
      }
     
-    /* public function mapToElasticSearchToken($resumptionToken, $esScrollId)
-    {
     
-    }*/
+    
+     public function getDataOfOldToken($token, $cache, $items)
+     {
+        $returned=$items;
+        $cachedValues=$cache->fetch("serialized_".$this->getcacheKey($token));
+        if($cachedValues)
+        {
+            if(is_array($cachedValues))
+            {
+               $returned=$cachedValues;                
+            }
+        }       
+        return $returned;
+     }
+     
+     public function serializeDataOfCurrentToken($token, $cache, $items)
+     {
+        $cache->save("serialized_".$this->getcacheKey($token), $items);
+     }
+
     
      public function getSearchParams($queryParams, $cache)
     {
         $searchParams=parent::getSearchParams($queryParams, $cache);
-        if (array_key_exists('resumptionToken', $queryParams)  ) 
-        {
-            //$searchParams['previous_token'] = $queryParams["resumptionToken"];
-            // $this->cacheTokenExists("lulu");
-        }
-        else
+        if (!array_key_exists('resumptionToken', $queryParams)  ) 
         {
             $searchParams['record_starts'] = self::DEFAULT_STARTS;
             $searchParams['previous_token'] = "";
@@ -85,20 +97,20 @@ class OaiPmhRulerNh extends BaseRuler
     {
 
          $resumption = array();
-        
+         
          $resumption['next'] = false;
          $nbPages=floor($this->total / $this->countPerLoad)+1;
          $currentStartRecord=$searchParams['record_starts'];
          $currentPage=floor($currentStartRecord / $this->countPerLoad)+1;
          if($currentPage<$nbPages  )
-         {   
- 
+         {    
             $currentStartRecord = $currentStartRecord + count($items);
             $resumption['next']       = true;
             $resumption['token']      = $this->generateResumptionToken();
             $resumption["esScrollId"]=$this->elastic_resumption;
             $resumption['expiresOn']  = time() + 604800;
             $resumption['totalCount'] = $this->total;
+            
             $cache->save(
                 $this->getcacheKey($resumption['token']),
                 array_merge(
@@ -110,13 +122,12 @@ class OaiPmhRulerNh extends BaseRuler
                         'nb_pages' => $nbPages,
                         'current_page' =>  $currentPage,
                         'previous_token' =>  $resumption['token'],
-                        'es_scroll_id' => $resumption["esScrollId"]
+                        'es_scroll_id' => $resumption["esScrollId"],
+                        //'serialized_items'=>$items
                     )
                 )
-            );
-            
+            );            
          }
-
         $resumption['starts'] = 0; 
         $resumption['record_starts'] = $currentStartRecord;         
         $resumption['ends'] = min($this->countPerLoad -1, count($items)-1);
