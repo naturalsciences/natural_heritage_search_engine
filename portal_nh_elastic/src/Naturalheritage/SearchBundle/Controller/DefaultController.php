@@ -300,7 +300,7 @@ class DefaultController extends Controller
 
         foreach($query_params as $main_key=>$query_detail)
         {
-
+            
             if($main_key=="fulltext")
             {
                 $value=$query_detail["fulltext"];
@@ -335,6 +335,7 @@ class DefaultController extends Controller
                 $collections=explode("|",$value);
                 $bool = new BoolQuery();
                 $fields=Array("department", "main_collection", "sub_collection");
+                
                 foreach($collections as $value)
                 {
                     foreach($fields as $field)
@@ -347,7 +348,12 @@ class DefaultController extends Controller
             }
             elseif(($main_key=="who"||$main_key=="where"||$main_key=="what")&&!$flagHasNumber)
             {
-                $this->parseSearchCriteria($search, $query_detail, "search_criteria", $main_key, Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_key, "search_criteria.sub_category"=>$query_detail["sub_category"] ),"phrase", 'gte', $query_detail["boolean"]);
+                $boolean="OR";
+                if(array_key_exists("boolean", $query_detail))
+                {
+                    $boolean=$query_detail["boolean"];
+                }
+                $this->parseSearchCriteria($search, $query_detail, "search_criteria", $main_key, Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_key, "search_criteria.sub_category"=>$query_detail["sub_category"] ),"phrase", 'gte',  $boolean);
             }
             /*elseif($main_key=="what")
             {
@@ -391,8 +397,12 @@ class DefaultController extends Controller
                        
                     }   
                     
-                   
-                    $this->parseSearchCriteria($search, $query_detail, "search_criteria", "value", Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_criteria, "search_criteria.sub_category"=>str_replace("_BLANK_", " ",$query_detail["sub_category"]) ), $type, 'gte', $query_detail["boolean"],BoolQuery::SHOULD);
+                   $boolean="OR";
+                    if(array_key_exists("boolean", $query_detail))
+                    {
+                        $boolean=$query_detail["boolean"];
+                    }
+                    $this->parseSearchCriteria($search, $query_detail, "search_criteria", "value", Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), Array("search_criteria.main_category"=> $main_criteria, "search_criteria.sub_category"=>str_replace("_BLANK_", " ",$query_detail["sub_category"]) ), $type, 'gte',  $boolean,BoolQuery::SHOULD);
                 }
              }
 				

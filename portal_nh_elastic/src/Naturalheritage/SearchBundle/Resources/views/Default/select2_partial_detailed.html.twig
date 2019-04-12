@@ -3,7 +3,7 @@
 	<table>
 		{% for criteria in subcriterias %}
         		<tr>
-			<td>{{ criteria.text|replace(("_BLANK_")," ") }}: </td>
+			<td>{{ criteria.text|replace({"_BLANK_":" "}) }}: </td>
 			<td> <select id="elastic_search_{{ keywordfield }}_{{ criteria.text }}" class="select2 memoryforfacet elastic_search_finesearch" multiple="multiple" style='width:300px' ></select>  And: <input id="elastic_search_{{ keywordfield }}_{{ criteria.text }}_and" type="checkbox" value="AND"/>
 				<div id="elastic_search_{{ keywordfield }}_{{ criteria.text }}_history"></div></td>
 			</tr>
