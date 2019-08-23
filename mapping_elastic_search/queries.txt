@@ -1,0 +1,141 @@
+Copy RMCA=>RBINS
+------------------
+
+curl -X POST "127.0.0.1:9200/_reindex" -H 'Content-Type: application/json' -d'
+{
+  "source": {
+    "remote": {
+      "host": "http://193.190.223.60:80",
+      "username": "USER",
+      "password" : "PASSWORD",
+      "socket_timeout": "1m",
+      "connect_timeout": "10s"
+    },
+    "index": "naturalheritage"
+  },
+  "dest": {
+    "index": "naturalheritage"
+  }
+}
+
+
+List and count unique object type
+-----------------------------------
+
+
+curl -X GET "127.0.0.1:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "aggs" : {
+        "object_type_agg" : {
+            "terms" : { "field" : "object_type" } 
+        }
+    }
+}
+'
+
+List and count unique search_criteria (nested)
+-----------------------------------------------------
+
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "size":0,
+    "aggs" : {
+        "main_agg" : {
+            "nested" : {
+                "path" : "search_criteria"
+            },
+            "aggs" : {
+                "main_criteria_agg" : {
+                    "terms" : { "field" :  "search_criteria.main_category"  }
+                }
+            }
+        }
+    }
+}
+'
+List and count unique search_criteria  for "where" question (nested)
+------------------------------------------------------------
+BAD ! :
+======
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "size":0,
+    "query" : {
+        "nested" : {
+            "path" : "search_criteria",
+            "query" : {
+                
+"term" :
+                    {
+                        "search_criteria.main_category" :
+                            {"value" : "where"}
+                    }
+            }
+        }
+    }
+    ,
+    "aggs" : {
+        "main_agg" : {
+            "nested" : {
+                "path" : "search_criteria"
+            },
+            "aggs" : {
+                "main_criteria_agg" : {
+                    "terms" : { "field" :  "search_criteria.sub_category"  }
+                }
+            }
+        }
+    }
+}
+'
+
+
+GOOD VERSION (FILTER with 3 aggs)  !
+--------------------------------------------------
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "size":0,
+
+    "aggs" : {
+        "main_agg" : {
+            "nested" : {
+                "path" : "search_criteria"
+            },
+            "aggs" : {
+                "main_criteria_agg" : {
+                    "filter" : { "term" : {  "search_criteria.main_category" :  "where"  } },
+                    "aggs" : {
+                        "agg_result" : { "terms" : { "field" :  "search_criteria.sub_category"  }}
+                    }
+                }
+            }
+        }
+    }
+}
+'
+
+REINDEX + FLATTEN for KIBANA IN 2nd INDEX :
+------------------------------------------
+
+curl -X DELETE "localhost:9200/naturalheritage_flat?pretty"
+
+curl -X PUT "localhost:9200/naturalheritage_flat?pretty"
+
+---B : CREATE FLATTENED COPY WITH "painless"
+---------------------------------------------
+
+curl -X POST "localhost:9200/_reindex?pretty" -H 'Content-Type: application/json' -d'
+{
+  "source": {
+    "index": "naturalheritage"
+  },
+  "dest": {
+    "index": "naturalheritage_flat"
+  },
+  "script" :
+  {
+    "inline" :  "def field1= ctx._source.search_criteria ;   for (int i = 0; i < field1.size(); i++) {HashMap hT=field1.get(i); String mainCat=hT.get(\"main_category\");String subCat=hT.get(\"sub_category\");  ctx._source[\"subcat_\"+mainCat +\"_\"+ subCat] = hT.get(\"value\");  } if(ctx._source['\''coordinates'\'']!=null){def coord=ctx._source['\''coordinates'\'']; for (int i2 = 0; i2 < coord.size(); i2++){ HashMap hT2=coord.get(i2); ctx._source[\"geo_shape\"]=['\''lon'\'':hT2.get(\"geo_ref_point\").get(\"lon\"), '\''lat'\'':hT2.get(\"geo_ref_point\").get(\"lat\")]; }} ",
+    "lang":"painless" 
+  }
+}
+'
