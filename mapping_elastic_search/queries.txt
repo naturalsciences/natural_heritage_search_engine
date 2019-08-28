@@ -130,34 +130,10 @@ curl -X PUT "localhost:9200/naturalheritage_flat?pretty" -H 'Content-Type: appli
 curl -X PUT "localhost:9200/naturalheritage_flat/_mapping/document" -H 'Content-Type: application/json' -d'
 {
         "properties": {          
-          "coordinates": {
-            "properties": {
-              "geo_ref_point": {
-                "properties": {
-                  "lat": {
-                    "type": "text",
-                    "fields": {
-                      "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                      }
-                    }
-                  },
-                  "lon": {
-                    "type": "text",
-                    "fields": {
-                      "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          "geo_shape": {
+                 "type": "geo_point"
         }
-      
+    }  
 }
 '
 
