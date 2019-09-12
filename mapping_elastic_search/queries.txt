@@ -18,6 +18,40 @@ curl -X POST "127.0.0.1:9200/_reindex" -H 'Content-Type: application/json' -d'
   }
 }
 
+COPY + Drop field
+------
+curl -X PUT "127.0.0.1:9200/_ingest/pipeline/remove_search_all" -H 'Content-Type: application/json' -d'
+{
+  "description" : "Remove search_all pipeline",
+  "processors" : [
+    {
+      "remove" : {
+        "field": "search_all",
+        "ignore_failure" : true
+      }
+    }
+  ]
+}'
+
+curl -X POST "127.0.0.1:9200/_reindex" -H 'Content-Type: application/json' -d'
+{
+  "source": {
+    "remote": {
+      "host": "http://193.190.223.60:80",
+      "username": "AUTH_NH_ES",
+      "password" : "Nh_201$?",
+      "socket_timeout": "1m",
+      "connect_timeout": "10s"
+    },
+    "index": "naturalheritage"
+  },
+  "dest": {
+    "index": "naturalheritage",
+    "pipeline": "remove_search_all"
+  }
+}'
+
+
 
 List and count unique object type
 -----------------------------------
