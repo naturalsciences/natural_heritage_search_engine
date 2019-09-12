@@ -1,34 +1,23 @@
 curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application/json' -d'
 {
-  {
   "naturalheritage": {
     "aliases": {},
     "mappings": {
       "document": {
         "properties": {
-          "BE-RMCA-sub_collection": {
-            "type": "text",
-            "fields": {
-              "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
-              }
-            }
-          },
           "content_text": {
             "type": "text",
+            "store": true,
             "fields": {
               "content_text_ngrams": {
                 "type": "text",
+                "store": true,
                 "term_vector": "yes",
                 "analyzer": "edge_ngram_analyzer",
                 "search_analyzer": "standard",
                 "fielddata": true
               }
             },
-            "copy_to": [
-              "search_all"
-            ],
             "fielddata": true
           },
           "coordinates": {
@@ -69,7 +58,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           "department": {
             "type": "keyword",
             "copy_to": [
-              "search_all"
+              "content_text"
             ]
           },
           "id": {
@@ -84,13 +73,13 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           "institution": {
             "type": "keyword",
             "copy_to": [
-              "search_all"
+              "content_text"
             ]
           },
           "main_collection": {
             "type": "keyword",
             "copy_to": [
-              "search_all"
+              "content_text"
             ]
           },
           "multimedia_object": {
@@ -111,7 +100,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
                   }
                 },
                 "copy_to": [
-                  "search_all"
+                  "content_text"
                 ],
                 "fielddata": true
               },
@@ -164,7 +153,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           "object_type": {
             "type": "keyword",
             "copy_to": [
-              "search_all"
+              "content_text"
             ]
           },
           "other_keywords": {
@@ -185,11 +174,6 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
               "parent_document": "child_document"
             }
           },
-          "search_all": {
-            "type": "text",
-            "analyzer": "edge_ngram_analyzer",
-            "search_analyzer": "standard"
-          },
           "search_criteria": {
             "type": "nested",
             "properties": {
@@ -202,8 +186,20 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
                   }
                 }
               },
+              "hide_in_facets": {
+                "type": "boolean"
+              },
               "main_category": {
                 "type": "keyword"
+              },
+              "rank": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
               },
               "sub_category": {
                 "type": "keyword"
@@ -226,7 +222,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
                   }
                 },
                 "copy_to": [
-                  "search_all"
+                  "content_text"
                 ],
                 "fielddata": true
               }
@@ -235,7 +231,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           "sub_collection": {
             "type": "keyword",
             "copy_to": [
-              "search_all"
+              "content_text"
             ]
           },
           "url": {
@@ -260,7 +256,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
       "index": {
         "number_of_shards": "5",
         "provided_name": "naturalheritage",
-        "creation_date": "1517828443373",
+        "creation_date": "1568220208098",
         "analysis": {
           "filter": {
             "edge_ngram": {
@@ -296,12 +292,11 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
           }
         },
         "number_of_replicas": "1",
-        "uuid": "ck4nKUsiQaOAcQaVh_-UVA",
+        "uuid": "j7HBKmNfQSOUnEhWM8TGkQ",
         "version": {
-          "created": "6000199"
+          "created": "6070199"
         }
       }
     }
   }
-}
 }'
