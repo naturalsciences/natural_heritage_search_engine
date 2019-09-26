@@ -1,0 +1,92 @@
+<input type="button" id="toggle_details" class="toggle_details " value="Toggle details"></input>
+<div class="row detailed_search" style="display : none;">
+<div class="col-md-12 col-sm-12 detailed_search">
+	<div class="col-md-6 col-sm-4"><label>Institution:</label></div>
+
+	<div class="col-md-6 col-sm-4"><select id="elastic_search_institution" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>
+	</div>
+</div>
+<div class="col-md-12 col-sm-12 detailed_search">
+
+	<div class="col-md-6 col-sm-4"><label>Collection:</label></div>
+
+	<div class="col-md-6 col-sm-4"><select id="elastic_search_collection" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>
+	</div>
+
+</div>
+<div class="col-md-12 col-sm-12 detailed_search">
+	<div class="col-md-6 col-sm-4"><label>What:</label></div>
+
+	<div class="col-md-6 col-sm-4"><select id="elastic_search_what" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>And: <input id="elastic_search_what_and" type="checkbox" value="AND"/> <input type="button" id="enable_details_what" name="enable_details_what" class="enable_details" value="details"/></div>
+    <div id="enable_details_what_div"></div>
+</div>
+<div class="col-md-12 col-sm-12 detailed_search">
+	<div class="col-md-6 col-sm-4"><label>Where:</label></div>
+
+	<div class="col-md-6 col-sm-4"><select id="elastic_search_where" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>And: <input id="elastic_search_where_and" type="checkbox" value="AND"/> <input type="button" id="enable_details_where" name="enable_details_where" class="enable_details" value="details"/></div>
+    <div id="enable_details_where_div"></div>
+</div>
+<div class="col-md-12 col-sm-12 detailed_search">
+	<div class="col-md-6 col-sm-4"><label>Who:</label></div>
+
+	<div class="col-md-6 col-sm-4"><select id="elastic_search_who" class="select2 memoryforfacet" multiple="multiple" style='width:300px' ></select>And: <input id="elastic_search_who_and" type="checkbox" value="AND"/> <input type="button" id="enable_details_who" name="enable_details_who" class="enable_details" value="details"/></div>
+    <div id="enable_details_who_div"></div>
+</div>
+<div class="col-md-12 col-sm-12 detailed_search">
+	<div class="col-md-6 col-sm-4"><label>When (begin date):</label></div>
+
+	<div class="col-md-6 col-sm-4"><input id="elastic_search_when_end" class="date_picker_nh memoryforfacet" data-provide="datepicker"></div>
+</div>
+<div class="col-md-12 col-sm-12 detailed_search">
+	<div class="col-md-6 col-sm-4"><label>When (end date):</label></div>
+
+	<div class="col-md-6 col-sm-4"><input id="elastic_search_when_start" class="date_picker_nh memoryforfacet" data-provide="datepicker"></div>
+</div> 
+</div>
+<script language="javascript">
+
+{% if details =="off" %}
+
+var show_details=false;
+{% else %}
+var show_details=true;
+{% endif %}
+
+        var toggleDetails = function()
+        {    
+				if(show_details)
+				{                
+					$(".detailed_search").show();
+					$("#toggle_details").attr("value", "Hide details");					
+				}
+				else
+				{
+               
+					$(".detailed_search").hide();
+					$("#toggle_details").attr("value", "View details");					
+				}
+		}
+        
+$(document).ready(
+
+		function()
+		{	
+
+          $("#toggle_details").click(
+                function()
+                {
+                    show_details=!show_details;
+                    toggleDetails();
+                }
+            );
+           
+            toggleDetails();
+      
+            
+        } 
+        
+
+ );
+</script>       
+	    
+	

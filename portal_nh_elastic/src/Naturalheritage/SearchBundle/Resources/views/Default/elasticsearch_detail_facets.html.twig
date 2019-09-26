@@ -1,0 +1,165 @@
+<head>
+
+	<link href="{{asset('assets/vendor/jquery-fancytree/dist/skin-win8-nh/ui.fancytree.css')}}" rel="stylesheet" />
+</head>
+
+<style>
+.wrap_text{
+    -ms-word-break: break-all;
+    word-break: break-all;
+
+ /* Non standard for webkit */
+     word-break: break-word;
+
+    -webkit-hyphens: auto;
+       -moz-hyphens: auto;
+        -ms-hyphens: auto;
+            hyphens: auto;
+}
+</style>
+
+<script src="{{asset('assets/vendor/jquery-fancytree/dist/jquery.fancytree-all-deps.min.js')}}"></script>
+
+
+<h5>Facets</h5>
+<div id="facet" name="facet" class="wrap_text">
+<p>
+    <a href="#" id="btnSelectAll" class="btnSelectAll">Select all</a> -
+    <a href="#" id="btnDeselectAll" class="btnDeselectAll">Deselect all</a>
+</p>
+  <div id="tree" ></div>
+
+</div>
+
+
+<script language="JavaScript">
+var route;
+route=$("#base_url").val();
+var facet_url=route.concat("fs_wrapper_all");
+
+var buildJsonSearch=function(array_terms, array_concepts)
+{
+
+    var returned="";
+    if(array_terms.length==array_concepts.length)
+    {
+        jsonArray=Array();
+        for(var i=0; i<array_terms.length; i++)
+        {
+            var term=array_terms[i];
+            var concept=array_concepts[i];
+            jsonArray.push({field:concept, term:term});
+        }
+		///console.log(jsonArray);
+        returned= JSON.stringify(jsonArray);
+    }
+
+    return returned;
+}
+
+var updateSelected=function()
+{
+
+	$("#tree").fancytree("getTree").visit(
+		function(node)
+		{	
+			if("selected_on_load" in node.data)
+			{
+			
+				if(node.data["selected_on_load"])
+				{
+					 node.setExpanded(true);
+					node.setSelected(true);
+				}
+			}
+		}
+	);
+}
+
+
+$(function(){
+
+ $(".btnDeselectAll").click(function(){
+      $("#tree").fancytree("getTree").visit(function(node){
+        node.setSelected(false);
+      });
+      return false;
+    });
+    $(".btnSelectAll").click(function(){
+      $("#tree").fancytree("getTree").visit(function(node){
+        node.setSelected(true);
+      });
+      return false;
+    });
+    $("#tree").fancytree({
+      checkbox: true,
+      selectMode: 3,
+      source:$.ajax({
+			url: detect_https(facet_url),
+			dataType: "json"
+		  }),
+      init: function(event, data) {
+        // Set key from first part of title (just for this demo output)
+			updateSelected();
+      },
+      lazyLoad: function(event, ctx) {
+        ctx.result = {url: "ajax-sub2.json", debugDelay: 1000};
+      },
+      loadChildren: function(event, ctx) {
+        ctx.node.fixSelection3AfterClick();
+      },
+      select: function(event, data) {
+        // Get a list of all selected nodes, and convert to a key array:
+       
+		var root=data.tree.getSelectedNodes()[0];
+		var parents=Array();
+        var selKeys = Array();
+		var parentsAnnex=Array();
+        var selKeysAnnex = Array();
+		$.map(data.tree.getSelectedNodes(), function(node){
+          
+		  if(node.getParentList().length>0)
+		  {
+			root=node.getParentList()[0];
+		  }
+
+          if(root.key.toLowerCase()=="what"||root.key.toLowerCase()=="where"||root.key.toLowerCase()=="who")
+          {
+            parents.push(node.parent.key);
+            selKeys.push(node.key);
+          }
+		  else
+		  {
+			 if(!("unselect"  in node["data"]))
+			 {
+				parentsAnnex.push(node.parent.key);
+				selKeysAnnex.push(node.key);
+			}
+		 }
+		
+        });
+       
+
+        // Get a list of all selected TOP nodes
+        var selRootNodes = data.tree.getSelectedNodes(true);
+        // ... and convert to a key array:
+        var selRootKeys = $.map(selRootNodes, function(node){
+          return node.key;
+        });
+       
+
+        var jsonTmp= buildJsonSearch(selKeys,parents);
+        $("#facet_criteria").val(jsonTmp);
+		
+		var jsonTmpAnnex= buildJsonSearch(selKeysAnnex,parentsAnnex);
+        $("#facet_criteria_annex").val(jsonTmpAnnex);
+      },
+      // The following options are only required, if we have more than one tree on one page:
+      cookieId: "fancytree-Cb3",
+      idPrefix: "fancytree-Cb3-"
+    });
+
+  });
+
+
+</script>

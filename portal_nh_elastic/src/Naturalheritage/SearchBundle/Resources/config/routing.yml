@@ -76,4 +76,33 @@ naturalheritage_cetaf_xml:
     defaults: 
         _controller: NaturalheritageSearchBundle:Default:cetafRDFRoute
 
-    
+#2019 08 26
+naturalheritage_indexfacets:
+    path:      /index_facets
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:indexFacets
+
+naturalheritage_resultfacets:
+    path:      /result_facets
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:resultFacets        
+
+naturalheritage_es_facets:
+    path:      /detail_facets
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:detailFacets        
+        
+naturalheritage_es_wrapper:
+    path:      /es_wrapper
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:esWrapper
+
+naturalheritage_es_fancytreewrapper:
+    path:      /fs_wrapper
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:fancyTreeWrapper
+
+naturalheritage_es_fancytreewrapper_all:
+    path:      /fs_wrapper_all
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:fancyTreeWrapperAll          

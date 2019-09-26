@@ -1,0 +1,56 @@
+{% if data is defined %}
+   <div class="top">
+   <input type="button" id="full_screen" name="full_screen" class="full_screen" value="full_screen"></input>
+   <div>Results  :{{ data['total']}}</div>
+<div  class="row" style=" overflow-wrap: break-word;">
+
+
+    {% for record in data['hits'] %}
+           <div class="col-md-12 col-sm6">
+           <div  class="row" style=" overflow-wrap: break-word;">
+           <div class="col-md-12 col-sm6">
+           <div class="thumbnail">
+           <div class="caption">
+            {{ record["_source"]["institution"] |default('')  }}<br/>
+			{% if "RBINS" in record["_source"]["institution"] |default('')  %}
+				<div><img class="instilink" src="{{asset('assets/img/institutions/rbins.png')}}"/></div>
+			{% elseif "Meise" in record["_source"]["institution"] |default('')  %}
+				<div><img class="instilink" src="{{asset('assets/img/institutions/apm.png')}}"/></div>
+			{% elseif "RMCA" in record["_source"]["institution"] |default('')  %}
+				<div><img class="instilink" src="{{asset('assets/img/institutions/rmca.png')}}"/></div>
+			{% endif %}
+            {{ record["_source"]["main_collection"]|default('') }}<br/>
+            {% if record["_source"]["sub_collection"]|default('')|length > 0 %}{{ record["_source"]["sub_collection"]|default('') }}<br/>{% endif %}
+            {% if record["_source"]["object_type"]|default('') is iterable %}
+                {% for obj in record["_source"]["object_type"] %}
+                    {{ obj|default('') }}<br/>
+               {% endfor %}
+            {% else %}
+                {{ record["_source"]["object_type"]|default('') }}<br/>
+            {% endif %}
+            {% for identifier in record["_source"]["object_identifiers"]|default('') %}
+                {{ identifier.identifier_type }} : {{ identifier.identifier }}<br/>
+            {% endfor %}
+            <a href={{ record["_source"]["id"] }} class="link" target="_blank">Link</a><br/>
+           </div>
+		   <div class="col-md-4 col-sm6">    
+          Map
+          </div>
+          </div>
+		  
+          </div>
+          
+          </div>
+          </div>
+    {% endfor %}
+    </div>
+  {% endif %}
+</div>
+<script language="javascript">
+    $(".full_screen").click(
+        function()
+        {
+            $("#div_search").toggle();
+        }
+    );
+</script>

@@ -1,0 +1,234 @@
+<style >
+
+
+      p.collapse{
+         display:none;
+      }     
+
+       .map_container_nh{
+         display:inline;
+      }     
+      
+      
+      
+</style>
+
+<input type="button" id="show_map" class="show_map" value="Hide map"></input>
+ <div id="map_container_nh" class="map_container_nh" style="display : none;" >
+	  <div  style="width:650px;height:750px;" id="map" class="map"></div>
+	  <div id="mouse-position"></div>
+ 
+<input type="button" style='margin-bottom: 10px' id="modeMap" name="modeMap" value="To selection mode"></input>
+<div class="col-md-4 col-sm-4">
+<div class="row">
+
+<div class="col-md-4"></div><div class="col-md-4">North : <input type="text" name="tmpN" id="tmpN" class="memoryforfacet"  /></div><div class="col-md-4"></div>
+<div class="col-md-4">West : <input type="text" name="tmpW" id="tmpW" class="memoryforfacet" /></div><div class="col-md-4"></div><div class="col-md-4"> East : <input type="text" name="tmpE" id="tmpE" class="memoryforfacet" /></div>
+<div class="col-md-4"></div><div class="col-md-4">South :<input type="text" name="tmpS" id="tmpS" class="memoryforfacet" /></div>
+</div>
+</div>
+<br/>
+ <script type="text/javascript">
+var map;
+var bingBackground;
+var view;
+{% if map =="off" %}
+var map_visible=false;
+{% else %}
+var map_visible=true;
+{% endif %}
+var moveDraw=true;
+var autoDraw=false;
+var boxIsLoaded=false;
+var interactionMove;
+var mousePositionControl;
+var scaleLineControl;
+var selectionBox;
+
+var clusters;
+var modeRemovePage=false;
+var layerLoaded=false;
+
+
+
+bingBackground= new ol.layer.Tile(
+		    {
+		        preload: Infinity,
+		        source: new ol.source.BingMaps({key: 'Ap9VNKmWsntrnteCapydhid0fZxzbV_9pBTjok2rQZS4pi15zfBbIkJkvrZSuVnJ', imagerySet:'AerialWithLabels' })
+		    }
+		);
+
+
+view= new ol.View({
+            center: [-4,15],
+            zoom: 5
+        });
+
+mousePositionControl= new ol.control.MousePosition(
+            {
+                coordinateFormat: ol.coordinate.createStringXY(4),
+                projection:'EPSG:4326',
+                className: 'custom-mouse-position',
+                target: document.getElementById('mouse-position'),
+                undefinedHTML: '&nbsp;'
+                
+            }
+        );
+        
+scaleLineControl = new ol.control.ScaleLine();
+        
+
+//////SELECTION MODE
+
+ interactionMove = new ol.interaction.DragBox({
+        condition: ol.events.condition.noModifierKeys,
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: [0, 0, 255, 1]
+            })
+        })
+    });
+
+    interactionMove.on('boxend', function(evt){
+        if(moveDraw===true)
+        {
+           var sourceSelection = new ol.source.Vector();
+            var geom = evt.target.getGeometry();
+            //console.log(geom);
+            //clone prevent layer to loose progresively transparency
+            var feat = new ol.Feature({geometry: geom.clone()});
+            //ource.clear();
+            sourceSelection.addFeature(feat);
+            getSelectionZone(geom);
+            if(boxIsLoaded)
+            {
+                  map.removeLayer(selectionBox);
+            }
+            selectionBox=new ol.layer.Vector({
+            source: sourceSelection
+            });
+           
+            map.addLayer(selectionBox);
+           autoDraw=true;
+           boxIsLoaded=true;
+           
+       }
+    });
+    
+    
+    var getSelectionZone=function(mapGeom)
+    {
+        var geomTmp=mapGeom.clone();
+        var geomWGS=geomTmp.transform('EPSG:3857', 'EPSG:4326');
+      
+        var topLeft=ol.extent.getTopLeft(geomWGS.getExtent());
+        var bottomRight=ol.extent.getBottomRight(geomWGS.getExtent());
+        var north=topLeft[1];
+        var west=topLeft[0];
+        var south=bottomRight[1];
+        var east=bottomRight[0];
+      
+         $("#tmpN").val(north);
+         $("#tmpW").val(west);
+         $("#tmpE").val(east);
+         $("#tmpS").val(south);
+       
+    };
+
+///////// 	
+
+////////CLUSTER
+
+     
+
+
+
+
+		  
+
+
+
+
+////////////////////////////
+	       
+map=new ol.Map({
+    layers:[bingBackground],
+    target: 'map',
+    view: view,
+    controls: ol.control.defaults({
+       attributionOptions: ({collapsible: false})
+    }).extend([mousePositionControl, scaleLineControl ])
+}); 
+
+/////////
+//send map to other scripts
+
+MAP={map:map};
+
+/////////
+
+$(document).ready(
+	function()
+	{
+		modeRemovePage=true;
+		var test_map_visibility=function(is_visible)
+			{				
+				if(is_visible)
+				{
+                    
+					$("#map_container_nh").show();
+                    MAP.map.updateSize();
+					$("#show_map").prop("value","Hide map");		
+				}
+				else
+				{
+					$("#map_container_nh").hide();	
+					$("#show_map").prop("value","Show map");	
+				}
+			}
+        
+		$("#show_map").click(
+            function()
+            {
+                map_visible=!map_visible;
+                test_map_visibility(map_visible);
+            }
+        );
+
+        var control_mode_map=function()
+        {
+            if(moveDraw===true)
+		            {
+		                jQuery("#modeMap").val("To navigation mode");
+		                map.addInteraction(interactionMove);
+                        boxIsLoaded=true;
+		            }
+		            else
+		            {
+		                 jQuery("#modeMap").val("To selection mode");
+		                 map.removeInteraction(interactionMove);
+		                 boxIsLoaded=false;
+		            }
+        }
+        
+        
+		jQuery("#modeMap").click(
+		        function()
+		        {
+		            
+		            moveDraw=!moveDraw;
+                    control_mode_map();
+		            
+		        }
+            );
+            
+            test_map_visibility(map_visible);
+            control_mode_map();
+           
+	    	 
+	}
+);
+
+
+</script>
+</div>

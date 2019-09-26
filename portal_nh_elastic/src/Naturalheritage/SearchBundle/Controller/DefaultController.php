@@ -33,10 +33,18 @@ use Symfony\Component\HttpFoundation\Session\Session;
 class DefaultController extends Controller
 {
     
-    protected $max_results = 10;
+	
+    protected $max_results = 12;
+    protected $size_agg = 10;
     protected $client_created = false;
     protected $elastic_client = NULL;
     protected $template_index = 'NaturalheritageSearchBundle:Default:elasticsearch.html.twig';
+    #2019 08 26
+    protected $template_index_facets = 'NaturalheritageSearchBundle:Default:elasticsearch_facets.html.twig';
+    protected $template_result_facets = 'NaturalheritageSearchBundle:Default:elasticsearch_result_facets.html.twig';
+    protected $template_detail_facets = 'NaturalheritageSearchBundle:Default:elasticsearch_detail_facets.html.twig';
+
+    
     protected $template_iframe = 'NaturalheritageSearchBundle:Default:elasticsearch_stripped.html.twig';
     protected $template_results= 'NaturalheritageSearchBundle:Default:elasticsearch_partial_result.html.twig';
     protected $template_iframe_search = 'NaturalheritageSearchBundle:Frames:elasticsearch_frame_search.html.twig';
@@ -47,6 +55,7 @@ class DefaultController extends Controller
     protected $session=null;
     protected $search_map="on";
     protected static $levenshtein_pattern="";
+    protected $expanded="false";
    
     protected function recursiveFind(array $array, $needle)
     {
@@ -84,7 +93,8 @@ class DefaultController extends Controller
     }
 
     public function indexAction()
-    {        
+    {    
+    
         return	 $this->render($this->template_index, array('map'=>$this->search_map));	
     }
     
@@ -939,18 +949,7 @@ class DefaultController extends Controller
 		return new JsonResponse($returned);
 	}
 
-	public function getSearchCriteriaDetailsAction($keywordfield)
-        {
-		$extra_filter= ["term"=> ["search_criteria.main_category"=>$keywordfield]];
-        $second_agg=NULL;
-        if($keywordfield=="what")
-        {
-            $second_agg=["sorting_weight" => ["terms" =>[ "field" => "search_criteria.sub_category_weight"] ]];
-		}
-        $subCriterias= $this->autocompletefieldall_nested("search_criteria", "search_criteria.sub_category", $extra_filter, $second_agg );
-        
-		return	 $this->render($this->template_details, array("keywordfield"=> $keywordfield, "subcriterias"=> $subCriterias));
-	}
+	
     
     public function cetafRDFRouteAction($institution, $collection_string, $object_id, $sub_criteria="object_number", $format_field="format_of_document", $format_value="Web page", $object_type_field="main_object_category", $object_type_value="Zoological specimen" )
     {
@@ -980,12 +979,680 @@ class DefaultController extends Controller
             Array("search_criteria.main_category"=> "what", "search_criteria.sub_category"=>"object_number" ), 
            
             "term", 'gte', "AND",BoolQuery::MUST);
-        print_r($search->toArray());
-        
+
         $results = $finder->findDocuments($search);
-        print($object_id);
-        print_r($results->count());
+ 
+  
         //print_r(foreech $results as $doc);
 
     }
+	
+	// FACET DEV 2019 (keep autocomplte from above)
+    
+    public function indexFacetsAction(Request $request)
+    {
+        $map=$request->get("map",'off');
+        $details=$request->get("details",'off');
+        $session = $request->getSession(); 
+		$session->remove('es_result');		
+		$session->remove('expanded');
+	    $session->remove('extra_params');
+		$session->remove('extra_params2');			
+        return	 $this->render($this->template_index_facets, array("map"=> $map, "details"=>$details));
+            
+    }
+    
+     public function resultFacetsAction(Request $request)
+    {        
+          $session = $request->getSession();
+          $data=$session->get("es_result",false);
+          if($data!==false)
+          { 
+            return	 $this->render($this->template_result_facets, array("data"=> $data["hits"]));
+          }
+    }
+	
+	public function detailFacetsAction(Request $request)
+    {
+		
+		$session = $request->getSession();
+          $data=$session->get("es_result",false);
+          $agg=$request->get("agg", "what");
+          if($data!==false)
+          { 
+            return	 $this->render($this->template_detail_facets, array("data"=> $data["aggregations"]));
+          }
+	}
+	/*
+    protected function countFieldOccurences($params)
+	{
+		$returned=Array();
+		foreach($params as $item)
+		{
+			$field=$item["field"];
+			if(array_key_exists($term),$returned)
+			{
+				$returned[$term]+=1;
+			}
+			else
+			{
+				$returned[$term]=0;
+			}
+		}
+		return $returned;
+	}
+	*/
+    public function esWrapperAction(Request $request)
+    {
+
+        $session = $request->getSession();
+        if($request->query->has('term')||$request->query->has('extra_params')||$request->query->has('extra_params2')||$request->query->has('coordinates'))
+		{
+		    $expanded= $request->get("expanded","false");
+			if(strtolower($expanded=="true"))
+			{
+
+				$session->set("expanded","true");
+			}
+			else
+			{
+				$session->set("expanded","false");
+			}
+            $term = $request->query->get('term',"");
+            $page = $request->query->get('page',1);
+            $this->instantiateClient();
+			$client = $this->elastic_client;
+			$from= ($page -1 ) * $this->max_results; 
+            if($request->query->has('extra_params')||$request->query->has('extra_params_generic')||$request->query->has('coordinates'))
+            {
+                $extra_params=Array();
+				$extra_params2=Array();
+                $coordinates=Array();
+                if($request->query->has('extra_params'))
+                {
+                    $extra_params = json_decode($request->query->get('extra_params'),true);
+					
+					$session->set("extra_params", $extra_params);
+                }
+				if($request->query->has('extra_params_generic'))
+                {				
+                    $extra_params_generic = json_decode($request->query->get('extra_params_generic'),true);
+					
+					$session->set("extra_params_generic", $extra_params_generic);
+                }
+				 if($request->query->has('extra_params2'))
+                {
+                    $extra_params2 = json_decode($request->query->get('extra_params2'),true);
+					$session->set("extra_params2", $extra_params2);
+                }
+                if($request->query->has('coordinates'))
+                {
+                    $coordinates = explode(";",urldecode($request->query->get('coordinates',"")));
+                }
+                //$criterias=Array();
+				
+				//FULL TEXT
+                $criteriasDirect=Array();
+				$criteriasMain=Array();
+				if(strlen($term)>1)
+				{
+					$criteriasMain=[
+								'match' => [
+									'content_text' => $term
+								]
+							];
+				}
+				//FACETS
+                $clauses=Array();
+                $clausesNested=Array();
+                $criteriaBuildNested=Array();
+			    $criteriaBuild2=Array();
+				//$counterNested=$this->countFieldOccurences($extra_params);
+              
+				foreach($extra_params as $criteria )
+                {
+                    
+	
+					   $clausesNested[$criteria["field"]][]=[
+										"bool" =>
+											[
+												"must" => [
+													["term" => [ "search_criteria.value.value_full" => $criteria["term"]]],
+													 ["term" => [ "search_criteria.sub_category" => $criteria["field"]]]
+											],
+										   
+								]];
+                }
+				foreach($extra_params_generic as $criteria )
+                {
+                    
+	
+					   $clausesNested[$criteria["field"]][]=[
+										"bool" =>
+											[
+												"must" => [
+														["bool"=>
+														[
+															"should"=>
+															[
+																["term" => [ "search_criteria.value.value_full" => $criteria["term"]]],
+																["term" => [ "search_criteria.value" => $criteria["term"]]]
+															]
+														]],
+													 ["term" => [ "search_criteria.main_category" => $criteria["field"]]]
+											],
+										   
+								]];
+                }				
+				if(count($clausesNested)>0)
+				{
+					foreach($clausesNested as $concept => $sub_query)
+					{
+						$criteriaBuildNested[$concept] =[ 
+							"nested" => [
+								"path" => "search_criteria",
+								"query" => [
+									"bool" =>
+										[
+											"should" => [
+												$sub_query
+											]
+										]
+									]
+							   ]
+						];
+					}
+				}
+				
+				
+				foreach($extra_params2 as $criteria )
+                {
+                    
+					$clauses[$criteria["field"]][]=["term"=> [$criteria["field"] => $criteria["term"]] ];
+                      
+                       
+                }				
+				if(count($clauses)>0)
+				{
+					foreach($clauses as $concept => $sub_query)
+					{
+						 $criteriaBuild2[$concept]= ["bool"=> ["should" => [$clauses] ] ];
+					}
+				}
+
+                
+				
+				//COORD
+				$clausesCoordinates=Array();
+				$criteriaGeo=Array();
+				$has_geo = false;
+                /*foreach($coordinates as $coord )
+                {
+					
+					$has_geo=true;
+                }*/
+				if(count($coordinates)==4)
+				{
+					$west=$coordinates[0];
+					$east=$coordinates[1];
+					$south=$coordinates[2];
+					$north=$coordinates[3];
+					$has_geo=true;
+				}
+                if($has_geo===true)
+				{
+				
+					$clausesCoordinates[]=[
+											
+													"geo_bounding_box"=>
+														[
+															"coordinates.geo_ref_point" =>
+																[
+																	"top_left"=> 
+																		[
+																			"lat"=> $north,
+																			"lon"=> $west
+																		],
+																	"bottom_right"=> 
+																		[
+																			"lat"=> $south,
+																			"lon"=> $east
+																		]	
+																]
+														]
+												
+										];
+					$criteriaGeo =[ 
+                        "nested" => [
+                            "path" => "coordinates",
+                            "query" => [
+                                "bool" =>
+                                    [
+                                        "should" => [
+                                            $clausesCoordinates
+                                        ]
+                                    ]
+                                ]
+                           ]
+                    ];
+				}
+				
+				$allCriterias=Array();
+                
+                $array_criteria= Array();
+				/*if(count($criteriaBuildNested)>0)
+				{
+          
+					 $array_criteria["must"][]=$criteriaBuildNested;
+				}
+				if(count($criteriaBuildNestedUnique)>0)
+				{
+          
+					 $array_criteria["must"][]=$criteriaBuildNestedUnique;
+				}*/
+				if(count($criteriaBuildNested)>0)
+				{
+					foreach($criteriaBuildNested as $sub_criteria=>$sub_query)
+					{
+						$array_criteria["must"][]=$sub_query;
+					}
+				}
+	
+				if(count($clauses)>0)
+				{
+					foreach($clauses as $sub_criteria=>$sub_query)
+					{
+						$array_criteria["must"][]=$sub_query;
+					}
+				}
+                
+				if(count($criteriaGeo)>0)
+				{
+					 $array_criteria["must"][]=$criteriaGeo;
+				}
+				if(count($criteriasMain)>0)
+				{
+					 $array_criteria["must"][]=$criteriasMain;
+				}
+
+                
+                  $queryParam=[
+                        "bool"=>
+                            $array_criteria
+                       
+                    ];
+               
+               
+                
+            }
+            elseif(strlen($term)>1)
+            {
+                $queryParam= [
+                            'match' => [
+                                'content_text' => $term
+                            ]
+                        ];            
+			}
+			
+            $params = [
+			    'index' => $this->getParameter('elastic_index'),
+			    'type' => $this->getParameter('elastic_type'),
+                'from' => $from,
+			    'size' => $this->max_results,
+			    'body' => [
+                     'query' => $queryParam,
+                         "aggs" =>[
+                            "institution" => [
+                                             "terms" => [ 
+                                                        "field" =>  "institution"  
+                                                         , "size"=> $this->size_agg
+                                                        ]
+                                              ,"aggs"=> [
+                                                "department"=>
+                                                    [
+                                                    "terms"=>[
+                                                           "field"=>"department"
+                                                           , "size"=> $this->size_agg
+                                                           ],
+                                                           "aggs" => 
+                                                           [
+                                                            "collection"=> [
+                                                                "terms"=> 
+                                                                    [
+                                                                        "field"=>"main_collection"
+                                                                            , "size"=> $this->size_agg
+                                                                    ],
+                                                                    "aggs" => 
+                                                                       [
+                                                                        "sub_collection"=> [
+                                                                            "terms"=> 
+                                                                                [
+                                                                                    "field"=>"sub_collection"
+                                                                                        , "size"=> $this->size_agg
+                                                                                ]
+                                                                                 
+                                                                            ]
+                                                                            
+                                                                       ]
+                                                                     
+                                                                ]
+                                                                
+                                                           ]
+                                                    ]
+                                              ]                      
+                                            ],
+                            "main_agg" => [
+                                "nested" => [
+                                    "path" => "search_criteria"
+                                ],
+                                "aggs" => [
+                                    "where" => [
+                                       
+                                        "filter" => [ "term" => [  "search_criteria.main_category" => "where"  ] ],
+                                        "aggs" => [
+                                            "agg_result" => [ 
+                                                "terms" => [ 
+                                                        "field" =>  "search_criteria.sub_category"  
+                                                         , "size"=> $this->size_agg
+                                                        ] 
+                                                   ,
+                                                   "aggs"=> [
+												  
+                                                        "agg_value"=> [
+                                                            "terms" => [ 
+                                                                "field" =>  "search_criteria.value.value_full"  
+                                                                 , "size"=> $this->size_agg
+                                                                ] 
+                                                        ]
+                                                   ]
+                                                ]
+                                        ]
+                                    ],
+                                    "what" => [
+                                       
+                                        "filter" => [ "term" => [  "search_criteria.main_category" => "what"  ] ],
+                                        "aggs" => [
+                                            "agg_result" => [ 
+                                                "terms" => [ 
+                                                        "field" =>  "search_criteria.sub_category"  
+                                                         , "size"=> $this->size_agg
+                                                        ] 
+                                                   ,
+                                                   "aggs"=> [
+												  
+                                                        "agg_value"=> [
+                                                            "terms" => [ 
+                                                                "field" =>  "search_criteria.value.value_full"  
+                                                                 , "size"=> $this->size_agg
+                                                                ] 
+                                                        ]
+                                                   ]
+                                                ]
+                                        ]
+                                    ],
+                                    "who" => [
+                                       
+                                        "filter" => [ "term" => [  "search_criteria.main_category" => "who"  ] ],
+                                        "aggs" => [
+                                            "agg_result" => [ 
+                                                "terms" => [ 
+                                                        "field" =>  "search_criteria.sub_category"  
+                                                         , "size"=> $this->size_agg
+                                                        ] 
+                                                   ,
+                                                   "aggs"=> [
+												  
+                                                        "agg_value"=> [
+                                                            "terms" => [ 
+                                                                "field" =>  "search_criteria.value.value_full"  
+                                                                 , "size"=> $this->size_agg
+                                                                ] 
+                                                        ]
+                                                   ]
+                                                ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+			    ]
+			];
+		
+			$results = $client->search($params);
+            $session->set("es_result", $results);
+            return new JsonResponse($results);
+           
+        }
+    }
+	
+	public function fancyTreeWrapperAction(Request $request)
+    {
+		return $this->fancyTreeWrapperActionLogic($request,$request->get('agg', 'what') );
+	}
+    
+    
+	protected function multiKeyExists(array $arr, $key) 
+	{
+		
+		// is in base array?
+		if (array_key_exists($key, $arr)) {
+			return $arr[$key];
+		}
+
+		// check arrays contained in this array
+		foreach ($arr as $element) {
+			if (is_array($element)) {
+				if ($this->multiKeyExists($element, $key)) {
+					return $element[$key];
+				}
+			}
+
+		}
+
+		return false;
+	}
+	
+     protected function fancyTreeWrapperActionLogicRawCollection($data, $path_title=Array(), $path_value=Array(), $extra_params=Array())
+    {          
+          if($data!==false)
+          { 
+             
+			 $source2Tmp=Array();
+			 			 
+            if(count($path_title)==0)
+            {
+                $children="\"children\" :[]";
+				 
+            }
+            elseif(count($path_title)>0)
+            {
+                $dataRecurs=true;
+                $current_title=array_shift($path_title);
+                $current_value=array_shift($path_value);
+                $buckets= $data[$current_title]["buckets"];
+                $nestedJsonTmp=Array();
+                $count=count($buckets);
+                foreach($buckets as $item)
+                {   
+					$found=false;
+                    $title=$item["key"]. " (".$item["doc_count"].")";
+                    $key=htmlspecialchars(str_replace(array("\n", "\t", "\r")," ",$item["key"]));
+					
+					 foreach($extra_params as $item3)
+					 {
+
+							if($item3["field"]==$current_value&&$item3["term"]==$item["key"])
+							{								
+								$found=true;
+												
+							}
+					}
+					if($found)
+					{
+						$keep_state=",\"selected_on_load\":true";
+					}
+					else
+					{
+						$keep_state="";
+					}
+                    if(count($path_title)>0)
+                    {
+                        //recursive
+                        $recurs=$this->fancyTreeWrapperActionLogicRawCollection($item,  $path_title, $path_value, $extra_params);
+                        $recursStr="[".implode(",",$recurs)."]";
+                        if(count($recurs)>0)
+                        {
+                            $nestedJsonTmp[]="{\"key\":\"".$key."\"".$keep_state.",\"title\" : \"".htmlspecialchars(str_replace(   array("\n", "\t", "\r"), " ",$title))."\", \"expanded\": ".$this->expanded.", \"children\" : [{\"key\":\"".$path_value[0]."\",\"title\" : \"".
+							htmlspecialchars(str_replace(   array("\n", "\t", "\r"), " ", $path_title[0]))." (".count($recurs).")\", \"unselect\":true,\"checkbox\" :true,\"expanded\": ".$this->expanded.", \"children\" :".$recursStr."}]}";
+                         }
+                         else
+                         {
+                            $nestedJsonTmp[]="{\"key\":\"".$key."\",\"title\" : \"".htmlspecialchars(str_replace(   array("\n", "\t", "\r"), " ",$title))."\", \"expanded\": ".$this->expanded.$keep_state."}";
+                         }
+                    }
+                    else
+                    {
+                        $nestedJsonTmp[]="{\"key\":\"".$key."\",\"title\" : \"".htmlspecialchars(str_replace(   array("\n", "\t", "\r"), " ",$title))."\", \"expanded\": ".$this->expanded.$keep_state."}";
+                    }
+                         
+                }
+         
+                   
+             }
+              if(count( $nestedJsonTmp)>0) 
+              {
+                $buildString=$nestedJsonTmp;//"[".implode(",", $nestedJsonTmp)."]";
+              }
+              else
+              {
+                $buildString=Array();
+              }
+              return $buildString;
+          }
+         
+    }
+    
+    public function fancyTreeWrapperActionLogicRaw( $name_agg, $data, $extra_params)
+    {         
+          if($data!==false)
+          { 
+             $buckets=$data["aggregations"]["main_agg"][$name_agg]["agg_result"]["buckets"];
+			 $source2Tmp=Array();
+			 foreach($buckets as $item)
+			 {
+				 $title=$item["key"]. " (".$item["doc_count"].")";
+                 $key=htmlspecialchars(str_replace(array("\n", "\t", "\r")," ",$item["key"]));
+				 $buckets2= $item["agg_value"]["buckets"];
+				 $nestedJson3Tmp=Array();
+				 foreach($buckets2 as $item2)
+				 {
+				      $found=false;
+					  $title2=$item2["key"]. " (".$item2["doc_count"].")";
+                      $key2=htmlspecialchars(str_replace(array("\n", "\t", "\r")," ",$item2["key"]));
+					 
+					  $parent_exists=array_search($key, array_column($extra_params, "field"));
+					  
+				      $value_exists= false;
+					  if($parent_exists!==false)
+					  {
+						
+						//$parent=$extra_params[$key];
+						//
+						//$value_exists=array_search($key2, $parent_exists);
+                        foreach($extra_params as $item3)
+					    {
+						
+							if($item3["field"]==$key&&$item3["term"]==$key2)
+							{								
+								$found=true;
+							}
+						}
+					  }
+					  if($found)
+					  {
+						$nestedJson3Tmp[]="{\"key\":\"".$key2."\",\"title\" : \"".htmlspecialchars(str_replace(array("\n", "\t", "\r"), " ",$title2))."\", \"expanded\": ".$this->expanded.", \"selected_on_load\":true}";
+					  }
+					  else
+					  {
+						$nestedJson3Tmp[]="{\"key\":\"".$key2."\",\"title\" : \"".htmlspecialchars(str_replace(array("\n", "\t", "\r"), " ",$title2))."\", \"expanded\": ".$this->expanded."}";
+					   }
+				 }
+				 $nestedJson3=implode(",", $nestedJson3Tmp);
+				 $children2="\"children\" : [".$nestedJson3."]";
+				 $source2Tmp[] = "{ \"key\":\"".$key."\",\"title\" :\"".htmlspecialchars(str_replace(array("\n", "\t", "\r"), " ",$title))."\", \"expanded\": ".$this->expanded.", ".$children2." }";
+			 }
+			  $buildString="[".implode(",", $source2Tmp)."]";
+              return $buildString;
+          }
+          return "";
+    }
+    
+    public function fancyTreeWrapperActionLogic(Request $request, $name_agg)
+    {
+         $buildString = $this->fancyTreeWrapperActionLogicRaw( $request, $name_agg);
+         $response = new JsonResponse();
+		 $response = JsonResponse::fromJsonString($buildString);
+         return $response;	        
+    }
+    
+    public function fancyTreeWrapperAllAction(Request $request)
+    {
+        $buildString="";
+        $buildArray=Array();
+        $session = $request->getSession(); 
+		$extra_params=$session->get("extra_params", Array());
+		$extra_params2=$session->get("extra_params2", Array());
+		
+        $data=$session->get("es_result",false);
+		$this->expanded = $session->get("expanded","false");
+
+        $institutionArray=$this->fancyTreeWrapperActionLogicRawCollection($data["aggregations"], array("institution", "department", "collection", "sub_collection"), array("institution", "department", "main_collection", "sub_collection"),$extra_params2);        
+         if(count($institutionArray)>0)
+        {
+            $institution="[".implode(",",$institutionArray )."]";
+            $buildArray[]="{ \"key\":\"institution\",\"checkbox\" :true,\"title\" :\"Institution (".count($institutionArray).")\", \"expanded\": ".$this->expanded.",\"unselect\":true, \"children\" :".$institution." }";        
+            
+        }
+        
+        $what=$this->fancyTreeWrapperActionLogicRaw( "what", $data, $extra_params);
+       
+        if(strlen($what)>0)
+        {
+            $buildArray[]="{ \"key\":\"what\",\"title\" :\"what\", \"expanded\": ".$this->expanded.", \"children\" :".$what." }";        
+            
+        }
+        $where=$this->fancyTreeWrapperActionLogicRaw( "where", $data, $extra_params);
+        if(strlen($where)>0)
+        {
+           $buildArray[]="{ \"key\":\"where\",\"title\" :\"where\", \"expanded\": ".$this->expanded.", \"children\" :".$where." }";       
+        } 
+       $who=$this->fancyTreeWrapperActionLogicRaw( "who", $data, $extra_params);
+        if(strlen($who)>0)
+        {
+           $buildArray[]="{ \"key\":\"who\",\"title\" :\"who\", \"expanded\": ".$this->expanded.", \"children\" :".$who." }";       
+        }
+
+       if(count($buildArray)>0)
+       {
+  
+            $buildString="[".implode(",",$buildArray)."]";            
+       }       
+       $response = new JsonResponse();
+	   $response=JsonResponse::fromJsonString($buildString);
+       return $response;
+
+	}
+	
+	public function getSearchCriteriaDetailsAction($keywordfield)
+        {
+		$extra_filter= ["term"=> ["search_criteria.main_category"=>$keywordfield]];
+        $second_agg=NULL;
+        if($keywordfield=="what")
+        {
+            $second_agg=["sorting_weight" => ["terms" =>[ "field" => "search_criteria.sub_category_weight"] ]];
+		}
+        $subCriterias= $this->autocompletefieldall_nested("search_criteria", "search_criteria.sub_category", $extra_filter, $second_agg );
+        
+		return	 $this->render($this->template_details, array("keywordfield"=> $keywordfield, "subcriterias"=> $subCriterias));
+	}
 }
