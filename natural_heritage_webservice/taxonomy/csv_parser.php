@@ -14,6 +14,7 @@ require_once("ParseGBIFVernacular.php");
 require_once("GNNameParser.php");
 require_once("MyDB.php");
 
+ 
 class CSVParser 
 {
 	
@@ -25,7 +26,7 @@ class CSVParser
 		protected $idxKingdomField;
         protected $url_webservice_gbif= "http://api.gbif.org/v1/species/match?verbose=true&name=";
         protected $url_webservice_worms= "http://www.marinespecies.org/aphia.php?p=soap&wsdl=1";
-		protected $iucn_token= "9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
+		protected $iucn_token= "26558265ea2819cf63f860415f1e8d7829f427ddf7e505d19934278e77a6f72b";
 		protected $kingdom_suffix= "";
         protected $holder=Array();
         protected $complete_result=Array();
@@ -34,17 +35,22 @@ class CSVParser
 		protected $languages = Array();
         protected $runFlag=true;
 		protected $deleted=FALSE;
+		protected $gbif_filter= "";
+		protected $gbif_filter_value= "";
+		protected  $EXCEPTION_FILE="/var/www/html/natural_heritage_webservice/taxonomy/debug/exception.log";
+		
        
         public $mail;
        
         //protected $gearman_client;
 	   
 		
-		public function __construct($p_file, $p_mail, $p_index_data, $p_has_headers, $p_delimiter, $p_index_kingdom, $p_sources, $p_languages=null)
+		public function __construct($p_file, $p_mail, $p_index_data, $p_has_headers, $p_delimiter, $p_index_kingdom, $p_sources, $p_languages=null, $p_gbif_filter="", $p_gbif_filter_value="")
 		{
+            
             try
             {
-                print("load");
+               
                 
   
                 //$this->gearman_client = new GearmanClient();
@@ -58,6 +64,9 @@ class CSVParser
                 $this->idxDataField=$p_index_data-1;
                 $this->hasHeader = $p_has_headers;
                 $this->delimiter = $p_delimiter;
+				
+				$this->gbif_filter = $p_gbif_filter;
+				$this->gbif_filter_value = $p_gbif_filter_value;
                 if(is_numeric($p_index_kingdom))
                 {
                     $this->idxKingdomField = $p_index_kingdom-1;
@@ -67,7 +76,9 @@ class CSVParser
             }            
             catch(Exeption $e)
             {
-                print($e->getMessage());
+               $myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+                fwrite($myfile, $e->getMessage());
+                fclose($myfile);
             }
             print("DONE");
 
@@ -93,6 +104,8 @@ class CSVParser
         
 		public function parseRow($p_i, $p_line_array, $p_worms_client, $p_mode_write=false, $p_output_file=null)
 		{
+			
+			
 			$canonical_set=false;
             $result=Array();
 			$result_gbif=null;
@@ -130,31 +143,56 @@ class CSVParser
 					$complete_name=$sc_name;
 					
 					
+					
                     if(strlen(trim($sc_name))>0)
                     {
-                        if(array_key_exists($sc_name, $this->holder)===FALSE||$p_mode_write)
-                        { 
+						
+						$sc_name = Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC')->transliterate($sc_name);
+						
+						
+                        //if(array_key_exists($sc_name, $this->holder)===FALSE||$p_mode_write)
+                        //{ 
                             if(in_array("gbif", $this->sources))
                             {
+                                $parserName = new GNNameParser($sc_name);
+                                $sc_name=$parserName->getCanonicalName();
                                 $url_gbif=$this->url_webservice_gbif.urlencode($sc_name);
-                                if(isset($this->idxKingdomField))
-                                {
-                                    if(is_numeric($this->idxKingdomField))
-                                    {
-                                        if((int)$this->idxKingdomField>0)
-                                        {
-                                            $kingdom=Encoding::toUTF8($p_line_array[$this->idxKingdomField]);
-                                            $url_gbif=$url_gbif."&kingdom=".$this->kingdom_suffix.urlencode($kingdom);                                            
-                                        }                                        
-                                    }                                   
-                                }
-                               
-                                
+								$filter_gbif=false;
+								
+								if(isset($this->gbif_filter)&&isset($this->gbif_filter_value))
+								{
+
+									if(strlen($this->gbif_filter)>0&&is_numeric($this->gbif_filter_value))
+									{
+										$gbif_higher_taxa=Encoding::toUTF8($p_line_array[$this->gbif_filter_value-1]);
+										$url_gbif=$url_gbif."&".$this->gbif_filter."=".$this->kingdom_suffix.urlencode($gbif_higher_taxa);
+										$filter_gbif=true;
+									}
+									
+								}
+								
+								if(!$filter_gbif)
+								{
+									if(isset($this->idxKingdomField))
+									{
+										if(is_numeric($this->idxKingdomField))
+										{
+											if((int)$this->idxKingdomField>0)
+											{
+												$kingdom=Encoding::toUTF8($p_line_array[$this->idxKingdomField]);
+												$url_gbif=$url_gbif."&kingdom=".$this->kingdom_suffix.urlencode($kingdom);                                            
+											}                                        
+										}                                   
+									}
+								}  
+                             
                                 $tmp=file_get_contents($url_gbif);
                                                            
                                 $result=Array();
-                                
-                                $gbif_parser = new ParseGBIFJSON($tmp, $sc_name);
+								
+                                $gbif_higher_taxa=Encoding::toUTF8($p_line_array[$this->gbif_filter_value-1]);
+								
+                                $gbif_parser = new ParseGBIFJSON($tmp, $sc_name,$this->gbif_filter, $gbif_higher_taxa);
                                 $result_gbif= $gbif_parser->returnResult();
                                 $result_gbif["gbif_url"] =$url_gbif;
                                 $result=array_merge($result, $result_gbif);
@@ -193,12 +231,15 @@ class CSVParser
                             }
 							if(in_array("darwin", $this->sources))
                             {
+								
 								$results_darwin=Array();
 								if($canonical_set===false)
-								{
+								{   
+                                
 									$parserName = new GNNameParser($sc_name);
 									$sc_name=$parserName->getCanonicalName();
 									$canonical_set=true;
+                                     
 								}
 								if(in_array("gbif", $this->sources))
 								{
@@ -209,7 +250,10 @@ class CSVParser
 									$darwin_client = new ParseDarwinJSON($sc_name, $complete_name);
 								}
 								$results_darwin=$darwin_client->returnResult();
+								
+								
 								$result=array_merge($result, $results_darwin);
+								
 							}
 							if(in_array("iucn", $this->sources))
                             {
@@ -243,7 +287,9 @@ class CSVParser
 									$sc_name=$parserName->getCanonicalName();
 									$canonical_set=true;
 								}
+                                print("name to test --$sc_name-- ");
                                 $AphiaID=$p_worms_client->getAphiaID($sc_name);
+                                
                                 
                                 $results_worms["worms_id"]="";
                                 $results_worms["worms_scientific_name"]="";
@@ -267,6 +313,7 @@ class CSVParser
                                 $results_worms["worms_url"]="";
                                 if(is_numeric($AphiaID))
                                 {
+                                    
 									if((integer)$AphiaID>0)
 									{	
                                     
@@ -385,12 +432,21 @@ class CSVParser
                             {
                                 $result["gbif_match_type"]=str_replace("FUZZY", "MISSPELLING", $result["gbif_match_type"]);
                             }
-                            $this->holder[$sc_name]=$result;
-                        }
-                        elseif(array_key_exists($sc_name, $this->holder)&&!$p_mode_write)
-                        {
-                            $result= $this->holder[$sc_name];
-                        }
+                            ///$this->holder[$sc_name]=$result;
+                        //}
+                        //elseif(array_key_exists($sc_name, $this->holder)&&!$p_mode_write)
+                        //{
+                            //$result= $this->holder[$sc_name];
+							/*if(is_array($result))
+							{
+								$result= array_merge($result,$this->holder[$sc_name]);
+							}
+							else
+							{
+								$result= $this->holder[$sc_name];
+							}*/
+							//$result= $this->holder[$sc_name];
+                        //}
                             
                         $tmp=Array();
                         $tmp["parsed_data"]=$result;
@@ -401,7 +457,7 @@ class CSVParser
                         {
                            $this->completeResult[]=$tmp;
                         }
-                        if($p_mode_write)
+                        /*if($p_mode_write)
                         {
                             if($p_i==0)
                             {
@@ -415,18 +471,28 @@ class CSVParser
 							$result=Encoding::toUTF8($result);
                             fwrite($p_output_file, implode("\t",$result ));
                             fwrite($p_output_file, "\r\n");
-                        }
+                        }*/
                              
                             
                    }//end if sc name
              }
              catch (SoapFault $e)
              {
+            
                    echo 'Caught SOAP exception: ',  $e->getMessage(), "\n";
+                   $myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+                    fwrite($myfile, $e->getMessage());
+                    fclose($myfile);
              }
              catch (Exception $e)
              {
                     echo 'Caught exception: ',  $e->getMessage(), "\n";
+
+                   $myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+                    fwrite($myfile, $e->getMessage());
+                    fclose($myfile);
+                   
+                    
              }
 		}
         
@@ -434,14 +500,21 @@ class CSVParser
         {
             try
             {
+				
                 $db_driver=MyDB::instance();
                 if($this->hasHeader)
 				{
                         $src_data=array_combine($this->headers, $src_data);
                    
 				}
+	
                 $tmp_row=array_merge($src_data, $result);
-                $json_row = json_encode($tmp_row);
+                foreach($tmp_row as $key=>$value)
+				{
+					$tmp_row[$key]=Encoding::toUTF8($value);
+				}
+				$json_row = json_encode($tmp_row);
+				
 				if(!$this->deleted)
 				{
 					$sql= "DELETE FROM  public.taxon_checker WHERE date_data < (NOW() - INTERVAL '1 DAY')";
@@ -450,14 +523,30 @@ class CSVParser
 					$this->deleted=TRUE;
                 }
 				$sql= "INSERT INTO  public.taxon_checker (session, data, date_data, mail) VALUES (?, ?, NOW(), ?); ";
+				$db_driver->getPdo()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+				$db_driver->getPdo()->beginTransaction();
                 $stmt = $db_driver->getPdo()->prepare($sql);
                 $session_tmp= session_id();
                 
                 $stmt->execute([$session_tmp, $json_row, $this->mail]);
+				 $db_driver->getPdo()->commit();
+				
              }
-             catch(PDOExeption $e)
+             catch(PDOException $e)
+            {
+				 $db_driver->getPdo()->rollBack();
+                print($e->getMessage());
+				$myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+                    fwrite($myfile, $e->getMessage());
+                    fclose($myfile);
+            }
+			 catch(Exception $e)
             {
                 print($e->getMessage());
+				$myfile = fopen("/var/www/html/natural_heritage_webservice/taxonomy/debug/exception.log", "a+") ;
+                    fwrite($myfile, $e->getMessage());
+                   fclose($myfile);
             }
         }
 		
@@ -479,22 +568,13 @@ class CSVParser
 				$i++;
 			}
               
-            //$_SESSION[session_id()]["headers"] = $this->headers; 
-            //$_SESSION[session_id()]["results"] = $this->completeResult; //$this->holder; 
-			//$_SESSION[session_id()]["match_statistics"]=$this->getMatchingStatistics();				
-            //$this->pager(1);
+           
 			
 
             
 		}
         
-        /*public function startClient()
-        {
-                    $this->gearman_client->doBackground('parseFile', session_id());
-                    print("done start");
 
-       }*/        
-        
 		
 		public function parseFile()
 		{
@@ -514,7 +594,9 @@ class CSVParser
                         $this->parseRow($i, $line_array, $worms_client);
 					} 
                     catch (Exception $e) {
-                        echo 'Caught exception: ',  $e->getMessage(), "\n";
+                        $myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+						fwrite($myfile, $e->getMessage());
+						fclose($myfile);
                     }
 					$i++;
 					
@@ -522,18 +604,12 @@ class CSVParser
                 //ksort($this->holder);
                 $_SESSION[session_id()]["headers"] = $this->headers; 
                 $_SESSION[session_id()]["results"] = $this->completeResult; //$this->holder; 
-				//$_SESSION[session_id()]["match_statistics"]=$this->getMatchingStatistics();				
-                //$this->pager(1);
+				
 				fclose($handler);
 			}
 			
 			
 		}
-		
- 
-	
-		
-		
 	
 }
 ?>

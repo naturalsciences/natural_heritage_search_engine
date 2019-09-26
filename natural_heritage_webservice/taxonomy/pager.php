@@ -108,6 +108,7 @@ error_reporting(E_ALL);
 			$returned="";            
             $returned.="<table>";
             $returned.="<th>Match type</th><th>Count</th>";
+			ksort($p_statistics_html);
             foreach($p_statistics_html as $key=>$row)
 			{
 				$count=$row["count"];

@@ -85,6 +85,14 @@ function handleCSV($file, $mail, $field, $kingdomfield)
     {
         $has_headers = true;
     }
+	if(array_key_exists("rank_field", $_REQUEST))
+    {
+        $rank_field = $_REQUEST['rank_field'];
+    }
+	if(array_key_exists("rank_position_field", $_REQUEST))
+    {
+        $rank_position_field = $_REQUEST['rank_position_field'];
+    }
 	
 	$languages = Array();
 	$languages[] = "nld";
@@ -95,7 +103,7 @@ function handleCSV($file, $mail, $field, $kingdomfield)
     try
    {   
 
-        $myParser= new CSVParser($file, $mail, $field, $has_headers, "\t", $kingdomfield, $sources, $languages);
+        $myParser= new CSVParser($file, $mail, $field, $has_headers, "\t", $kingdomfield, $sources, $languages, $rank_field, $rank_position_field );
 		//$myParser->startClient();
         $_SESSION[session_id()]["csv_parser"]= $myParser;
 

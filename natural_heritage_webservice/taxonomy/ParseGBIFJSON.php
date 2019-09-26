@@ -2,6 +2,7 @@
 //ini_set('display_errors', 1);
 //ini_set('display_startup_errors', 1);
 //error_reporting(E_ERROR);
+
 ini_set('default_socket_timeout', 5);
 
 	class ParseGBIFJSON
@@ -10,11 +11,17 @@ ini_set('default_socket_timeout', 5);
 		protected $sc_name;
         protected $url_key="http://api.gbif.org/v1/species/";
         protected $searched_taxa;
+	    protected $gbif_filter= "";
+		protected $gbif_filter_value= "";
+		protected $EXCEPTION_FILE="/var/www/html/natural_heritage_webservice/taxonomy/debug/exception.log";
 		
-		public function  __construct($p_json_doc,$p_searched_taxa)
+		public function  __construct($p_json_doc,$p_searched_taxa, $p_gbif_filter="", $p_gbif_filter_value="")
 		{
+
             $this->json_doc = json_decode($p_json_doc);
-            $this->searched_taxa = str_replace('&', '&amp;', $p_searched_taxa);            
+            $this->searched_taxa = str_replace('&', '&amp;', $p_searched_taxa); 
+			$this->gbif_filter = $p_gbif_filter;
+			$this->gbif_filter_value = $p_gbif_filter_value;			
 		}
         
         
@@ -42,17 +49,19 @@ ini_set('default_socket_timeout', 5);
             $backgroundstyle="";
             switch($p_matching_type)
             {
-                case "EXACT":
-                    $rgb="#00cc00";
-                    break;
-                case "EXACT_OTHER_AUTHOR":
-                    $rgb="#22ff22";
-                    break;
                 case "HIGHERRANK":
                     $rgb="#ffbf00";
                     break;
             }
-            if(strpos($p_matching_type, "NOT_FOUND")!==FALSE)
+			if(strpos($p_matching_type, "EXACT_OTHER_AUTHOR")!==FALSE)
+            {
+                $rgb="#22ff22";;
+            }
+			elseif(strpos($p_matching_type, "EXACT")!==FALSE)
+            {
+                $rgb="#00cc00";
+            }
+            elseif(strpos($p_matching_type, "NOT_FOUND")!==FALSE)
             {
                 $rgb="#ff0000";
             }
@@ -106,95 +115,133 @@ ini_set('default_socket_timeout', 5);
 		}
         public function returnResult()
 		{
-			$returned = Array();
-            //print_r($this->json_doc);
-			ParseGBIFJSON::initGBIFEmpty($returned);
-            $returned["gbif_match_type"] = $this->get_info("matchType");
-            
-            
-            if(strtolower($returned["gbif_match_type"])=="none")
+			try
             {
-                if(property_exists( $this->json_doc, "alternatives"))
-                {
-                    $alt=$this->json_doc->alternatives;
-                    if(is_array($alt))
-                    {                        
-                        
-                        $this->json_doc=$this->json_doc->alternatives[0];
-                        $returned["gbif_match_type"] = $this->get_info("matchType")." (ALTERNATIVE)";
-                    }
-                }
-            }
-			
-            $returned["gbif_name_status"] = strtolower($this->get_info("status"));
-            $returned["gbif_rank"] = strtolower($this->get_info("rank"));
-            $returned["gbif_id"] = $this->get_info("usageKey");            
-			
-			$returned["gbif_matched"] = $this->get_info("scientificName");
-			
-            if(is_numeric($returned["gbif_id"]))
-            {
-              
-                            //Kingdom
-                $returned["gbif_kingdom"] = $this->get_info("kingdom");
-                //Phylum
-                $returned["gbif_phylum"] = $this->get_info("phylum");
-                //Phylum
-                $returned["gbif_class"] = $this->get_info("class");
-                //Order
-                $returned["gbif_order"] = $this->get_info("order");
-                //Family
-                $returned["gbif_family"] = $this->get_info("family");
-                //Genus
-                $returned["gbif_genus"] = $this->get_info("genus");
-                //Species
-                $returned["gbif_species"] = $this->get_info("species");
-                //Subspecies
-                if($returned["gbif_rank"]=="subspecies")
-                {
-                    $returned["gbif_subspecies"] = $this->get_info("scientificName");
-                }
-                //full name	
+				$returned = Array();
+				//print_r($this->json_doc);
+				ParseGBIFJSON::initGBIFEmpty($returned);
+
+				$returned["gbif_match_type"] = $this->get_info("matchType");
+				$match_type_set=false;
 				
-				$url_details="";
-                if(property_exists( $this->json_doc, "acceptedUsageKey"))
-                {
-                    $url_details=$this->url_key.$this->json_doc->acceptedUsageKey;
-                }    
-				elseif(property_exists( $this->json_doc, "usageKey"))
+				if(strtolower($returned["gbif_match_type"])!="exact")
 				{
-					$url_details=$this->url_key.$this->json_doc->usageKey;
-				}
-				if(strlen($url_details)>0)
-				{
-					$tmp=file_get_contents($url_details);
-                    
-					if($tmp)
+					if(property_exists( $this->json_doc, "alternatives"))
 					{
-						$tmp=json_decode($tmp);
-						$returned["gbif_full_name"] = $this->get_info("canonicalName",$tmp);	
-						$returned["gbif_source"] = $this->get_info("original",$tmp);	
-						$returned["gbif_reference"] = $this->get_info("publishedIn", $tmp);	
-						$returned["gbif_author"] =  $this->get_info("authorship", $tmp);	
+						$alt=$this->json_doc->alternatives;
+						if(is_array($alt))
+						{                        
+							if(strlen($this->gbif_filter)>0&&strlen($this->gbif_filter_value)>0)
+							{
+
+										
+								foreach($this->json_doc->alternatives as $obj)
+								{							
+									if(property_exists( $obj, $this->gbif_filter))
+									{
+										$rank_for_filter=$this->gbif_filter;
+										$filter=$obj->$rank_for_filter;
+										$myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+
+										if(strtolower(trim($filter))==strtolower(trim($this->gbif_filter_value)))
+										{
+											$this->json_doc=$obj;
+											$returned["gbif_match_type"] = $this->get_info("matchType")." (ALTERNATIVE)";
+											
+											break;
+										}
+										
+									}
+								}
+								
+							}
+							else
+							{
+								$this->json_doc=$this->json_doc->alternatives[0];
+								$returned["gbif_match_type"] = $this->get_info("matchType")." (ALTERNATIVE)";
+							}
+							$match_type_set=true;
+						}
 					}
-                 }
-                 
-                
-                
-            }
-			if($returned["gbif_match_type"]=="EXACT"&&(strpos(strtolower($returned["gbif_name_status"]),"synonym")!==FALSE)&&($this->get_info("scientificName") != $this->searched_taxa ))
-			{
-				$returned["gbif_match_type"]="EXACT_OTHER_AUTHOR";
-			}
-			elseif($returned["gbif_match_type"]=="EXACT"&&(strpos(strtolower($returned["gbif_name_status"]),"synonym")!==FALSE)&&($this->get_info("scientificName") == $this->searched_taxa ))
-			{
-				$returned["gbif_match_type"]="EXACT";
-			}
-            elseif($returned["gbif_match_type"]=="EXACT"&& trim(str_replace($returned["gbif_author"] ,'', $returned["gbif_full_name"] ))." ".trim($returned["gbif_author"]) != $this->searched_taxa )
+				}
+				
+				$returned["gbif_name_status"] = strtolower($this->get_info("status"));
+				$returned["gbif_rank"] = strtolower($this->get_info("rank"));
+				$returned["gbif_id"] = $this->get_info("usageKey");            
+				
+				$returned["gbif_matched"] = $this->get_info("scientificName");
+				
+				if(is_numeric($returned["gbif_id"]))
+				{
+				  
+								//Kingdom
+					$returned["gbif_kingdom"] = $this->get_info("kingdom");
+					//Phylum
+					$returned["gbif_phylum"] = $this->get_info("phylum");
+					//Phylum
+					$returned["gbif_class"] = $this->get_info("class");
+					//Order
+					$returned["gbif_order"] = $this->get_info("order");
+					//Family
+					$returned["gbif_family"] = $this->get_info("family");
+					//Genus
+					$returned["gbif_genus"] = $this->get_info("genus");
+					//Species
+					$returned["gbif_species"] = $this->get_info("species");
+					//Subspecies
+					if($returned["gbif_rank"]=="subspecies")
+					{
+						$returned["gbif_subspecies"] = $this->get_info("scientificName");
+					}
+					//full name	
+					
+					$url_details="";
+					if(property_exists( $this->json_doc, "acceptedUsageKey"))
+					{
+						$url_details=$this->url_key.$this->json_doc->acceptedUsageKey;
+					}    
+					elseif(property_exists( $this->json_doc, "usageKey"))
+					{
+						$url_details=$this->url_key.$this->json_doc->usageKey;
+					}
+					if(strlen($url_details)>0)
+					{
+						$tmp=file_get_contents($url_details);
+						
+						if($tmp)
+						{
+							$tmp=json_decode($tmp);
+							$returned["gbif_full_name"] = $this->get_info("canonicalName",$tmp);	
+							$returned["gbif_source"] = $this->get_info("original",$tmp);	
+							$returned["gbif_reference"] = $this->get_info("publishedIn", $tmp);	
+							$returned["gbif_author"] =  $this->get_info("authorship", $tmp);	
+						}
+					 }
+					 
+					
+					
+				}
+
+				if(strpos($returned["gbif_match_type"], "EXACT")!==FALSE&&(strpos(strtolower($returned["gbif_name_status"]),"synonym")!==FALSE)&&($this->get_info("scientificName") != $this->searched_taxa ))
+				{
+					$returned["gbif_match_type"]=str_replace("EXACT", "EXACT_OTHER_AUTHOR",$returned["gbif_match_type"]);
+				}
+				elseif($returned["gbif_match_type"]=="EXACT"&&(strpos(strtolower($returned["gbif_name_status"]),"synonym")!==FALSE)&&($this->get_info("scientificName") == $this->searched_taxa ))
+				{
+					//$returned["gbif_match_type"]="EXACT";
+				}
+				elseif(strpos($returned["gbif_match_type"], "EXACT")!==FALSE&& trim(str_replace($returned["gbif_author"] ,'', $returned["gbif_full_name"] ))." ".trim($returned["gbif_author"]) != $this->searched_taxa )
+				{
+							$returned["gbif_match_type"]=str_replace("EXACT", "EXACT_OTHER_AUTHOR",$returned["gbif_match_type"]);
+				}
+				$this->setRGBCode($returned);
+			}            
+            catch(Exeption $e)
             {
-                        $returned["gbif_match_type"]="EXACT_OTHER_AUTHOR";
+                $myfile = fopen($this->EXCEPTION_FILE, "a+") ;
+                fwrite($myfile, $e->getMessage());
+                fclose($myfile);
             }
-            $this->setRGBCode($returned);
             return $returned;
            
         }

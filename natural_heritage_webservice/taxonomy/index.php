@@ -59,9 +59,20 @@
 <input type="text" name="pos_kingdom_field" id="pos_kingdom_field"></input>
 </td>
 </tr>
+<tr>
+<td>   
+	<br>Other filter column for GBIF[optional] :
+</td>
+<td>
+Rank :
+<input type="text" name="rank_field" id="rank_field" value="order"></input>
+Position :
+<input type="text" name="rank_position_field" id="rank_position_field"></input>
+</td>
 </tr>
 	
 </table>
+<br/>
 <table>
 	  <tr><td>DARWIN (RBINS):</td><td> <input id="source_darwin" name="source_darwin" type="checkbox" ></td></tr>
       <tr><td>GBIF: </td><td><input id="source_gbif" name="source_gbif" type="checkbox"  checked></td></tr>

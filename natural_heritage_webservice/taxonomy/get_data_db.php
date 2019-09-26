@@ -1,16 +1,19 @@
 <?php
+require_once("MyDB.php");
 	class GetDataDB
 	{
 		
 		public function getData($p_id)
 		{
+
 			 try
             {
+        
 				$flag_db=TRUE;
 				
 				if($flag_db)
 				{
-					print("finished");
+		
 					$db_driver=MyDB::instance();
 					$sql= "SELECT * FROM  public.taxon_checker WHERE session = ? ORDER BY date_data; ";
 					//$db_driver->getPdo()->beginTransaction();
@@ -50,6 +53,7 @@
 				$_SESSION[$p_id]["results"]=$fullResult;
 				$_SESSION[$p_id]["headers"]=$header;
 				$_SESSION[$p_id]["match_statistics"]=$this->getMatchingStatistics($p_id);
+               
 				
              }
              catch(PDOExeption $e)

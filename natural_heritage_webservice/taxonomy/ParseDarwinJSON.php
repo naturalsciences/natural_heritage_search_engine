@@ -9,7 +9,7 @@ ini_set('default_socket_timeout', 5);
 		protected $json_doc;
 		protected $sc_name;
 		protected $complete_sc_name;
-        protected $url_key="http://darwin.naturalsciences.be/public.php/search/CheckTaxonHierarchy?canonical=true&taxon-name=";
+        protected $url_key="https://darwin.naturalsciences.be/public.php/search/CheckTaxonHierarchy?canonical=true&taxon-name=";
         protected $compare_gbif;
 		protected $gbif_array;
 		
@@ -53,14 +53,31 @@ ini_set('default_socket_timeout', 5);
 			$returned = Array();
             //print_r($this->json_doc);
 			ParseDarwinJSON::initDarwinEmpty($returned);
-			
+			$this->sc_name=trim(trim($this->sc_name, "'"),'"');
 			$url_darwin= $this->url_key . urlencode($this->sc_name);
-			 $tmp=file_get_contents($url_darwin);
+			
+			        
+             $ch = curl_init();
+            // Will return the response, if false it print the response
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            // Set the url
+            curl_setopt($ch, CURLOPT_URL,$url_darwin);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            // Execute
+            $tmp=curl_exec($ch);
+            // Closing
+            curl_close($ch);
 			if($tmp!==false)
 			{
+
 				$this->json_doc = json_decode($tmp);
 				if(!is_null($this->json_doc))
 				{
+					
+					$myfile = fopen("/var/www/html/natural_heritage_webservice/taxonomy/debug/exception.log", "a+") ;
+                    fwrite($myfile,$this->json_doc);
+                    fclose($myfile);
 					 $matches=$this->json_doc->matches;
 					 $names=Array();
 					 $matchType=Array();
@@ -139,9 +156,14 @@ ini_set('default_socket_timeout', 5);
 						  $returned["darwin_hierarchy_matches_gbif"]="false";
 					  }
 					  $returned["darwin_url"]=$url_darwin;
+                      print_r($returned);
 				}
 			}
-			
+            else
+            {
+                print("NO_GO");
+            }
+			print("\r\n");
             return $returned;
            
         }

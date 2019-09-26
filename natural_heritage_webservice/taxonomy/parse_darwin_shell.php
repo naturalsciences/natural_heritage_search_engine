@@ -7,11 +7,11 @@
 	require_once("csv_parser.php");
 	
 	
-	$server="localhost";
-	$database="darwin2_rbins_migration";
+	$server="salmoneus.rbins.be";
+	$database="darwin2";
 	$user="postgres";
-	$pwd='fv30714$A';
-	$table="darwin2.taxonomy_rbins_20180706";
+	$pwd='CeBmPadYC';
+	$table="darwin2.taxonomy";
     $field="name";
 	$output="/var/developments/output_darwin_worms/full_darwin_compare_worms_2.txt";
 	$sources=Array();

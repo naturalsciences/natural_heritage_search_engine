@@ -13,7 +13,9 @@ header("Pragma: no-cache");
 
 session_start();
 
+
 $myParser= unserialize(base64_decode($_REQUEST["obj"]));
+
 $myParser->parseFile();
 
 
