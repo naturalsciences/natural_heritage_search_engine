@@ -1,6 +1,6 @@
 naturalheritage_search_homepage:
     path:     /
-    defaults: { _controller: NaturalheritageSearchBundle:Default:index }
+    defaults: { _controller: NaturalheritageSearchBundle:Default:indexFacets }
 
 naturalheritage_search_homepage_iframe:
     path:     /iframe
@@ -105,4 +105,26 @@ naturalheritage_es_fancytreewrapper:
 naturalheritage_es_fancytreewrapper_all:
     path:      /fs_wrapper_all
     defaults:
-        _controller:  NaturalheritageSearchBundle:Default:fancyTreeWrapperAll          
+        _controller:  NaturalheritageSearchBundle:Default:fancyTreeWrapperAll
+
+naturalheritage_es_dates_type:
+    path:      /date_types
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:dateTypes
+
+        
+#standalone
+naturalheritage_indexfacets_standalone:
+    path:      /index
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:index
+
+naturalheritage_resultfacets_standalone:
+    path:      /result
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:result      
+
+naturalheritage_es_facets:
+    path:      /detail
+    defaults:
+        _controller:  NaturalheritageSearchBundle:Default:detail      

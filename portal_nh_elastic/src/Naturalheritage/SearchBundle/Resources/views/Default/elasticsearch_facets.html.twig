@@ -18,16 +18,20 @@
 <script src="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.js')}}"></script>
 <script src="{{asset('assets/js/logic_facets.js')}}"></script>
 
-
+<div class="clearfix position-fixed nh_spinner" >
+  <div class="spinner-border" role="status">
+    <span class="sr-only">Loading...</span>
+  </div>
+</div> 
 <div  id="wrap">
 <form id="test_facets" class="filter-sec">
-<div class="container-fluid">
+<div class="container-fluid padding-left">
 <div class="row" >
 <div class="col-md-4 col-sm-4">
-Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" style='width:300px'></select>
+<div>Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" style='width:300px'></select><img src="{{asset('assets/img/remove.png')}}" id="clear_freetext"/></div>
 </div>
 {% include 'NaturalheritageSearchBundle:Default:elasticsearch_facets_detailed_search.html.twig' with {'details' : details} %}</br>
-<input type="button" class="search_dem" id="search_dem" name="search_dem" value="search"></input><br/>
+
 <div class="col-md12 col-sm-12">
 {% include 'NaturalheritageSearchBundle:Default:search_map_bootstrap.html.twig' with {'map' : map} %}</br>
 
@@ -40,8 +44,10 @@ Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" s
 <input type="hidden" id="facet_criteria"></input>
 <input type="hidden" id="facet_criteria_generic"></input>
 <input type="hidden" id="facet_criteria_annex"></input>
+<input type="hidden" id="facet_criteria_facets"></input>
+<input type="hidden" id="facet_criteria_annex_facets"></input>
 
-
+<input type="button" class="search_dem" id="search_dem" name="search_dem" value="search"></input><br/>
 
 
 <div id="placeholder_facets" name="placeholder_facets"></div>
@@ -53,7 +59,7 @@ Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" s
 
 <div id="searchCont"  class="right-sec">
   
-  
+
 </div>
 </div>
 </div>
@@ -66,84 +72,20 @@ var full_screen=true;
 route=$("#base_url").val();
 
 
-var search_fct=function(term)
-{
-    
-  
-        var url=route.concat("es_wrapper");
-        var result_url=route.concat("result_facets");
-		var facet_url=route.concat("detail_facets");
 
-        
-         var criterias={};
-         criterias["term"]=term;
-		 criterias["expanded"]=false;
-         if($("#facet_criteria").val().length>0)
-         {
-
-                criterias["extra_params"]=$("#facet_criteria").val();
-				criterias["expanded"]=true;
-         }
-		 if($("#facet_criteria_generic").val().length>0)
-         {
-
-                criterias["extra_params_generic"]=$("#facet_criteria_generic").val();
-				criterias["expanded"]=true;
-         }
-		 if($("#facet_criteria_annex").val().length>0)
-         {
-                criterias["extra_params2"]=$("#facet_criteria_annex").val();
-				criterias["expanded"]=true;
-         }
-         if($("#tmpN").val().length>0 && $("#tmpW").val().length>0 && $("#tmpE").val().length>0 && $("#tmpS").val().length>0 )
-         {
-            criterias["coordinates"]=$("#tmpW").val()+";"+$("#tmpE").val()+";"+ $("#tmpS").val()+";"+$("#tmpN").val();
-         }
-         var dataTmp=criterias;
-         if(Object.keys(dataTmp).length>0)
-         {
-             $.ajax(
-                      {
-                        url: detect_https(url),
-                        data: dataTmp,
-                        dataType : "json",
-                        success: function( data ) 
-                                {      
-							      console.log(dataTmp);
-                                  $.ajax(
-                                            {
-                                            url: detect_https(result_url),
-                                            dataType: "html",
-                                            success: function (data) {												
-                                                $("#searchCont").html(data);
-                                                $("#facet_criteria").val("");
-												$("#facet_criteria_generic").val("");
-												$("#facet_criteria2").val("");
-                                                },
-                                            }
-                                     );
-                                 $.ajax(
-                                            {
-                                            url: detect_https(facet_url),
-                                            dataType: "html",
-                                            success: function (data) {
-                                                $("#placeholder_facets").html(data);
-                                                },
-                                            }
-                                     );
-                                },
-                        
-                      }
-                    
-                );
-    
-    }
- }
 
 
 $(document).ready(
     function()
     {
+       $("#clear_freetext").click(
+        function()
+        {
+ 
+            $("#elastic_search_freetext").val(null).trigger('change');
+        }
+       );
+       
    		$('#elastic_search_freetext').select2({
 				//width: "300px",
 				tags: true,
@@ -162,12 +104,21 @@ $(document).ready(
 					}
 				  }
 				});
-       
+                
+         $('#elastic_search_freetext').on('select2:select', function (e) {
+					    $("#facet_criteria").val("");
+						$("#facet_criteria_generic").val("");
+						$("#facet_criteria_annex").val("");
+						$("#facet_criteria_facets").val("");
+						$("#facet_criteria_annex_facets").val("");   
+        });
+        
        $(".search_dem").click(
         function()
         {
+			$(".nh_spinner").show(0).delay(5000).hide(0);
              var term=$("#elastic_search_freetext").val();
-            search_fct(term);
+            search_fct(1,true);
         }
        )
 	   

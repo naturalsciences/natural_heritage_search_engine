@@ -73,3 +73,77 @@ font-family: inherit;}
 	height: auto;
 	
 }
+
+.padding-left {
+  padding-left:30px;
+
+}
+
+.nh_spinner{
+	top:50%;
+	left:50%;
+	display:none;
+	
+}
+
+.current-page
+{
+	border-style:solid;
+	border-width: 3px;
+	font-weight : bold;
+	
+}
+
+.standalone-header
+{
+    margin-top: 2%;
+    margin-bottom: 2%;
+    
+}
+
+
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+.img_search {
+    display: block;
+    max-width: 20px;
+    max-height:  20px;
+    width: auto;
+    height: auto;
+}
+
+.div_search {
+    outline: none; 
+    text-decoration: none;
+    color: rgb(32, 92, 144);
+    font-family: trebuchet ms,helvetica,sans-serif;
+    
+    font-size:  14 px;
+    cursor: pointer;
+    display:inline-block;
+}
+
+.search_font
+{
+    outline: none; 
+    text-decoration: none;
+    color: rgb(32, 92, 144);
+    font-family: trebuchet ms,helvetica,sans-serif;
+    font-size:  14 px;
+}
+
+.img_institution {
+    display: block;
+    max-width: 100%;    
+    width: auto;
+    height: auto;
+    margin-top:15%;
+    margin-bottom:15%;
+}
+
