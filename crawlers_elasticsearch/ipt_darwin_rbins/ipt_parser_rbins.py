@@ -1,13 +1,17 @@
+#PYTHON 3 VERSION
 import ipt_parser_rbins_params as params
 
-import urllib2
+#import urllib2
 import urllib
 import requests
 import zipfile
 import json
 from elasticsearch import Elasticsearch
 import io
-import StringIO
+try:
+    from StringIO import StringIO ## for Python 2
+except ImportError:
+    from io import StringIO ## for Python 3
 
 import linecache
 import sys
@@ -21,9 +25,9 @@ import dateutil.parser as dateparser
 
 
 import sys
-# sys.setdefaultencoding() does not exist, here!
-reload(sys)  # Reload does the trick!
-sys.setdefaultencoding('UTF8')
+# sys.setdefaultencoding() does not exist in Python 3
+#reload(sys)  # Reload does the trick!
+#sys.setdefaultencoding('UTF8')
 
 
 csv.field_size_limit(5000000)
@@ -34,12 +38,13 @@ def conv_row(row):
     #return pickle.loads(row.decode('ascii', 'strict'))
 
     
-def parse_date_darwin_core_logic(date):
+def parse_date_darwin_core_logic(date, mode="begin"):
     returned = {}
     array_date = re.compile("-|/|\s").split(date)
     year=""
     month=""
     day=""
+   
     if len(array_date[0])==4:
         year=array_date[0]
         if len(array_date)>=2:
@@ -60,7 +65,12 @@ def parse_date_darwin_core_logic(date):
 def parse_date_darwin_core(date):
     returned = {}
     date=date.strip()
-    if len(date)>0:       
+    if len(date)>0:
+        if date.find("-")>=0:             
+            date_array_prep = date.split("-")
+            if len(date_array_prep) ==2 :
+                if len(date_array_prep[0].strip())==4 and len(date_array_prep[1].strip())==4 :         
+                    date = str.replace("-", "/")
         if date.find("-")>=0 and date.find("/")>=0:           
             date_array = date.split("/")
             if(len(date_array)) ==2:
@@ -68,12 +78,24 @@ def parse_date_darwin_core(date):
                 end_date = date_array[1]                
                 begin_date = parse_date_darwin_core_logic(begin_date)
                 end_date = parse_date_darwin_core_logic(end_date)
+        elif  date.find("/")>=0 and len(date.strip())==9 :           
+            date_array = date.split("/")
+            if(len(date_array)) ==2:
+                begin_date = {}
+                begin_date['year'] = date_array[0]
+                begin_date['month'] = '01'
+                begin_date['day'] = '01'
+                end_date = {}
+                end_date['year'] = date_array[1]
+                end_date['month'] = '12'
+                end_date['day'] = '31'      
         else:
             begin_date = parse_date_darwin_core_logic(date)
             end_date = ""
         returned['begin_date'] = begin_date
         returned['end_date'] = end_date      
     return returned
+    
 def PrintException():
     exc_type, exc_obj, tb = sys.exc_info()
     f = tb.tb_frame
@@ -82,7 +104,7 @@ def PrintException():
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
     print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
-	
+    
 def WriteException(p_log_file):
     exc_type, exc_obj, tb = sys.exc_info()
     f = tb.tb_frame
@@ -92,7 +114,7 @@ def WriteException(p_log_file):
     line = linecache.getline(filename, lineno, f.f_globals)
     p_log_file.write('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
     p_log_file.write("\n")
-	
+    
 def removeduplicate(array):
     return[json.loads(y) for y in list(set([json.dumps(x).encode('utf-8') for x in array]))]
 
@@ -117,7 +139,7 @@ def camelcase_to_phrase(param):
     return param
 
 def null_if_empty(var):
-    if isinstance(var, (int, long, float, complex)):
+    if isinstance(var, (int,  float, complex)):
         return var
     if var is None:
         return None
@@ -135,16 +157,15 @@ def empty_if_null(var):
     
 class IPTParser(object):
 
-    def __init__(self, p_elastic_instance, p_index_name, p_url, p_dataset_name, p_headers, p_institution, p_department,  p_collection_name, p_logfile ):
+    def __init__(self, p_elastic_instance, p_index_name, p_url, p_dataset_name, p_headers, p_logfile, p_mode_direct_zip=False, p_file_path=None ):
         self.m_url = p_url
         self.m_dataset_name = p_dataset_name
-        self.m_headers = p_headers
-        self.m_institution= p_institution 
-        self.m_department = p_department
-        self.m_collection_name = p_collection_name
+        self.m_headers = p_headers       
         self.m_elastic_instance =  p_elastic_instance
         self.m_index_name = p_index_name
         self.m_logfile = p_logfile
+        self.m_mode_direct_zip = p_mode_direct_zip
+        self.m_file_path = p_file_path
         
     def parse_and_insert_item(self, item, url_specimen):
         try:
@@ -161,8 +182,17 @@ class IPTParser(object):
             if "basisOfRecord" in item:
                 type_object.append(camelcase_to_phrase(item["basisOfRecord"]))
 
-            
-        
+           
+            if 'ownerInstitutionCode' in item:
+                var_institution = item["ownerInstitutionCode"]
+            if 'institutionCode' in item:
+                var_department = item["institutionCode"]
+            if 'collectionCode' in item:
+                var_main_collection = item["collectionCode"] 
+                var_dataset = item["datasetName"]
+            if 'datasetName' in item:
+                var_sub_collection = item["datasetName"] 
+                
             for type in type_object :
                 main_type_json = {"main_category": "what", "sub_category": "main_object_category" , "value": type, "sub_category_weight": 10 }
                 search_criterias.append(main_type_json)
@@ -170,7 +200,7 @@ class IPTParser(object):
             search_criterias.append(main_format_json)
             #id
             identifiers=[]
-            if 'catalogNumber' in item:	 
+            if 'catalogNumber' in item:  
                 identifier_json= {"main_category": "what", "sub_category": "object_number" , "value" : item["catalogNumber"], "sub_category_weight": 7 }
                 search_criterias.append(identifier_json)
                 identifiers.append({"identifier": item["catalogNumber"], "identifier_type": "specimen number" })
@@ -178,11 +208,11 @@ class IPTParser(object):
                 identifiers.append({"identifier": item["scientificName"], "identifier_type": "biological scientific name" })
             if 'typeStatus' in item:
                 if(len(empty_if_null(item['typeStatus']))>0):
-					identifiers.append({"identifier": item["typeStatus"], "identifier_type": "biological type status" })
+                    identifiers.append({"identifier": item["typeStatus"], "identifier_type": "biological type status" })
                     #zoological type
-					type_json= {"main_category": "what", "sub_category": "biological_type_status" , "value" : item['typeStatus'], "sub_category_weight": 6 }
-					search_criterias.append(type_json)
-			
+                    type_json= {"main_category": "what", "sub_category": "biological_type_status" , "value" : item['typeStatus'], "sub_category_weight": 6 }
+                    search_criterias.append(type_json)
+            
             
 
             
@@ -250,6 +280,8 @@ class IPTParser(object):
                         when.append({"date_type": "collecting_date" , "date_begin" : date_from, "date_end" : date_to})
                     elif date_from is not None and date_to is None:  
                         when.append({"date_type": "collecting_date" , "date_begin" : date_from, "date_end" : date_from})
+            
+            
             #identification date            
             date_from = None
             date_to = None            
@@ -353,13 +385,13 @@ class IPTParser(object):
             #    print(last_modification)
             #    last_modification=datetime.datetime.strptime(last_modification, '%m/%d/%y' ).strftime( '%Y-%m-%d')
             
-            elastic_json= { "id" : null_if_empty(url_specimen), "url" : null_if_empty(url_specimen),     "urls_metadata": [{"url_annex_type": "IPT webservice"}], "object_identifiers" : identifiers, "object_format" : format, "institution" : self.m_institution, "object_type": type_object    ,"department" : 'BE-'+self.m_institution+'-'+self.m_department, "main_collection" :  'BE-'+self.m_institution+'-'+self.m_collection_name, "content_text" : null_if_empty(removeduplicate(what)), "search_criteria" : null_if_empty(removeduplicate(search_criterias)), "dates": when, "data_creation_date": null_if_empty(last_modification), "data_modification_date": null_if_empty(last_modification)}
+            elastic_json= { "id" : null_if_empty(url_specimen), "url" : null_if_empty(url_specimen),     "urls_metadata": [{"url_annex_type": "IPT webservice"}], "object_identifiers" : identifiers, "object_format" : format, "institution" : var_institution, "object_type": type_object    ,"department" : var_department, "main_collection" : var_main_collection,  "sub_collection" : var_sub_collection, "content_text" : null_if_empty(removeduplicate(what)), "search_criteria" : null_if_empty(removeduplicate(search_criterias)), "dates": when, "data_creation_date": null_if_empty(last_modification), "data_modification_date": null_if_empty(last_modification)}
             if len(coordinates)>0: 
                 elastic_json["coordinates"] = coordinates
             #print(elastic_json)
             self.m_elastic_instance.index(index=self.m_index_name, doc_type='document', id=elastic_json['id'], body=elastic_json)
         except Exception as inst:
-            print "Error adding URL: "+url_specimen
+            print("Error adding URL: "+url_specimen)
             self.m_logfile.write( datetime.datetime.now().strftime("%I:%M:%S:%f%p on %B %d, %Y")+" Error adding URL: "+url_specimen + "\n")
             WriteException(self.m_logfile)
             if elastic_json is not None :
@@ -372,29 +404,29 @@ class IPTParser(object):
     def parse_occurrences(self, occ_file, name):
         try:
             
-            datastream = StringIO.StringIO(occ_file.read(name))
+            #datastream = StringIO.StringIO(occ_file.read(name))
+            datastream = io.StringIO(occ_file.read(name).decode('utf-8'))
             reader = csv.DictReader(datastream, delimiter='\t')
+            print(reader)
+            
             print(reader.fieldnames)
             #for row in reader:
             # 
             iExc = 0            
             for row in reader:
-                try:
-                    row_ori=row                    
-                    row=conv_row(row)
-                    row=next(row) 
+                try:                   
                     try:                                          
-                        self.parse_and_insert_item(row, row['id'])
+                        self.parse_and_insert_item(row, row['occurrenceID'])
                     except Exception:
                         iExc += 1 
-                        print("Exception "+str( iExc )+" for "+row['id'])
+                        print("Exception "+str( iExc )+" for "+row['occurrenceID'])
                         PrintException()
                 except:
                     iExc += 1 
                     print("Generator Exception "+str( iExc ))
-                    print(row_ori)
+                    print(row)
                     
-                    print(chardet.detect(json.dumps(row_ori)))
+                    #print(chardet.detect(json.dumps(row_ori)))
                     PrintException()
         except Exception:
             PrintException()
@@ -410,17 +442,29 @@ class IPTParser(object):
             zip_handler = zipfile.ZipFile(tmp, 'r')
             print(zip_handler.infolist())            
             print(zip_handler.namelist())          
-            return zip_handler
-            
+            return zip_handler            
         except Exception:
              PrintException()
-
+             
+    def handle_zip(self, p_zip_file):
+        try:      
+            zip_handler = zipfile.ZipFile(p_zip_file, 'r')
+            print(zip_handler.infolist())            
+            print(zip_handler.namelist())          
+            return zip_handler            
+        except Exception:
+             PrintException()
+             
     def run(self):
         try:
-            zip_handler = self.handle_ipt_service(self.m_url, self.m_dataset_name)
-            #print(files['occurrence.txt'])
-            #occ = files['occurrence.txt']
-            tmp =self.parse_occurrences(zip_handler, "occurrence.txt")
+            if self.m_mode_direct_zip == False :
+                zip_handler = self.handle_ipt_service(self.m_url, self.m_dataset_name)
+                #print(files['occurrence.txt'])
+                #occ = files['occurrence.txt']
+                tmp =self.parse_occurrences(zip_handler, "occurrence.txt")
+            else:
+                zip_handler = self.handle_zip(self.m_file_path)
+                tmp =self.parse_occurrences(zip_handler, zip_handler.namelist()[0])
         except Exception:
              PrintException()
 
@@ -441,7 +485,7 @@ elasticInstance = Elasticsearch(
 indexname=params.ES_INDEX
 logfile = open(params.LOG_FILE, 'w+')
 
-ipt_parser =  IPTParser(elasticInstance, indexname, url, dataset_name, None, params.SOURCE_INSTITUTION,  params.MAIN_COLLECTION, params.SUB_COLLECTION, logfile)
+ipt_parser =  IPTParser(elasticInstance, indexname, url, dataset_name, None, logfile, params.MODE_ZIP, params.FILE_PATH)
 ipt_parser.run()
 
 
