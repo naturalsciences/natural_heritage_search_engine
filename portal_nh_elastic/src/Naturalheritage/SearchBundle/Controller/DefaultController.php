@@ -297,67 +297,104 @@ class DefaultController extends Controller
 
     public function autocompletekeywordAction($textpattern, $filters_cond, $nested_path, $fields, $fields_highlight)
     {
-            $finder = $this->container->get('es.manager.default.document');
-            $search = $finder->createSearch();
            
-            $this->parseSearchCriteria($search, ["pattern"=> $textpattern], "search_criteria", "pattern", Array('search_criteria.value', 'search_criteria.value.value_ngrams', 'search_criteria.value.value_full' ), $filters_cond , "prefix");
-
-            $displayCriteria=  new TermsAggregation("search_criteria_base");
-            $displayCriteria->setField("search_criteria.value.value_full");
+           
+            $this->instantiateClient();
+            $client = $this->elastic_client; 
             
-            
-            $bool = new BoolQuery();
-            if(array_key_exists('search_criteria.sub_category', $filters_cond))
+            $tmp_criteria=Array();
+            foreach($fields as $field)
             {
-                $filterCriteria1= new TermQuery('search_criteria.sub_category', $filters_cond['search_criteria.sub_category']);
-                $bool->add($filterCriteria1, BoolQuery::MUST);
+                if(array_key_exists("search_criteria.sub_category", $filters_cond))
+                {
+                    $tmp_criteria[]=
+                            ["bool" =>
+                                ["must"=>
+                                    [
+                                        ["match_phrase_prefix" => [$field => ["query"=> $textpattern]]],
+                                        ["term"=>
+                                            ["search_criteria.sub_category" =>$filters_cond["search_criteria.sub_category"] ]
+                                        ]
+                                    ]
+                                ]
+                             ]
+                             ;
+                }
+                else
+                {
+                   
+                    $tmp_criteria[]=["match_phrase_prefix" => [$field => ["query"=> $textpattern]]];
+                }
             }
-            $filterCriteria2= new TermQuery('search_criteria.main_category', $filters_cond['search_criteria.main_category']);
-            $bool->add($filterCriteria2, BoolQuery::MUST);
-            $filterAggregationCriteria = new FilterAggregation('criteria', $bool);
-            $filterAggregationCriteria->addAggregation($displayCriteria);    
-            $nestedAggregationCriteria = new NestedAggregation('criteria', 'search_criteria');
-            $nestedAggregationCriteria->addAggregation($filterAggregationCriteria);
-            $search->addAggregation($nestedAggregationCriteria);
-            $search->setSize(1);
+            $query_tmp= [ 
+                   "nested" => [
+                           "path"=> "search_criteria",
+                           "query" =>
+                            [
+                                "bool" =>
+                                    ["should"=> $tmp_criteria]
+                            ]
+                        ]
+                ];
+            $params = [
+			    'index' => $this->getParameter('elastic_index'),
+			    'type' => $this->getParameter('elastic_type'),
+			    'size' => 0,
+			    'body' => [
+                        '_source'=> "search_criteria.value_full",
+                       
+                        "query"=> $query_tmp,
+                        "aggs" => ["keywords" => 
+                                        [
+                                            "nested"=>
+                                            [
+                                                "path"=> "search_criteria"
+                                            ],
+                                            "aggs" => [
+                                                "agg_result"=>
+                                                          ["filter" => ["bool" =>
+                                                                            ["should"=> $tmp_criteria]
+                                                                        ]
+                                                            ,
+                                                            "aggs" => [
+                                                                "agg_result2" => [ 
+                                                                    "terms" => [ 
+                                                                            "field" =>  "search_criteria.value.value_full"  
+                                                                             , "size"=> $this->size_agg 
+                                                                            ] 
+                                                                       
+                                                                       
+                                                                    ]
+                                                            ]
+                                                    ]
+                                            ]
+                                        ]
+                                    ]
+                        
+			    ]
+			];
+            //print_r($params);
+			$results = $client->search($params);
             
-            
-            $results = $finder->findDocuments($search);
-            
-            $choices = Array();
-            $choices[] = $this->returnBucket('criteria', $results->getAggregation('criteria'),"");
-            $returned=Array();
-            $json_array=Array();
-            foreach($choices as $choice);            
+            /*if(array_key_exists('search_criteria.sub_category', $filters_cond))
             {
-               
-                 foreach($choice['details'] as $tmp)
-                 {
-                    $returned[]=$tmp['value'];
-                    
-                 }
-            }
-            
-			$sort_data=Array();
-            foreach($returned as $key=>$value) 
-            {
-				$sort_data[$value]=$this->pos_and_levenshtein(strtolower($value), strtolower($textpattern));
-            }
-			
-			array_multisort($sort_data, SORT_ASC, $returned);
-			array_unshift($returned, $textpattern);
-            $returned=array_unique($returned);
-            foreach($returned as $value)
-            {
-                $row["id"]=$value;
-                $row["text"]=$value;
-                $json_array[]=$row;			
                 
-            }
-            return new JsonResponse($json_array);   
-
+            }*/
             
-        
+            
+            $json_array=Array();
+            foreach($results["aggregations"]["keywords"]["agg_result"]["agg_result2"]["buckets"] as $key=>$val)
+            {
+                $tmp["id"]=$val["key"];
+                $tmp["text"]=$val["key"];
+                $json_array[]=$tmp;
+            }
+            usort($json_array, function($a, $b) {
+            
+                return strlen($a["text"]) <=> strlen($b["text"]);
+            });
+            return new JsonResponse($json_array);             
+                    
     }
 	
 	public function pos_and_levenshtein($a, $b)
