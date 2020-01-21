@@ -829,7 +829,52 @@ class DefaultController extends Controller
     }	
     
 
-   
+    
+
+    protected function isJson($string) 
+    {
+     json_decode($string);
+     return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+
+    
+     protected function unset_if_empty($param)
+     {
+     
+        if(isset($param))
+        {
+            if(is_array($param))
+            {
+           
+                if(count($param)==0)
+                {
+               
+                   return null;
+                }
+            }
+            elseif(is_string($param))
+            {
+               
+                if($this->isJson($param))
+                {
+                   
+                    if(count(json_decode($param))==0)
+                    {
+                        return null;
+                    }
+                }
+                
+            }
+        }
+        else
+        {
+            return null;
+        }
+       
+        return $param;
+     }
+     
      protected function es_wrapper_logic($session, $p_term,$p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
     {
 
@@ -853,8 +898,17 @@ class DefaultController extends Controller
             $term=$p_term;
 			$from= ($page -1 ) * $this->max_results; 
           
-            if(isset($p_extra_params)||isset($p_extra_params_generic)||isset($p_coordinates)||isset($p_date_from)||isset($p_date_to))
+            if(null !==$this->unset_if_empty($p_extra_params)
+                ||null !==$this->unset_if_empty($p_extra_params_annex)
+                ||null !==$this->unset_if_empty($p_extra_params_generic)
+                ||null !==$this->unset_if_empty($p_coordinates)
+                ||null !==$this->unset_if_empty($p_date_from)
+                ||null !==$this->unset_if_empty($p_date_to)
+                ||null !==$this->unset_if_empty($p_extra_params_facets)
+                ||null !==$this->unset_if_empty($p_extra_params_annex_facets) )
             {
+
+            
                 $extra_params=Array();
 				$extra_params_facets=Array();
 				$extra_params2=Array();
@@ -885,6 +939,7 @@ class DefaultController extends Controller
                 }
 				 if(isset($p_extra_params_annex))
                 {
+               
                     $extra_params2 = json_decode($p_extra_params_annex,true);
 					$session->set("extra_params2", $extra_params2);
                 }
@@ -1099,6 +1154,7 @@ class DefaultController extends Controller
 				}
 				if(count($extra_params2)>0)
                 {
+                
                     $clausesTmp=Array();
                     foreach($extra_params2 as $criteria )
                     {
@@ -1143,9 +1199,10 @@ class DefaultController extends Controller
                                         ];
                     }
 				}
-                
+               
 				if(count($extra_params2_facets)>0)
                 {
+                
                     $clausesTmp=Array();
                     foreach($extra_params2_facets as $criteria )
                     {
@@ -1154,6 +1211,10 @@ class DefaultController extends Controller
                         
                     }
                     
+                    
+				}
+                if(count($clausesTmp)>0)
+                {
                     foreach($clausesTmp as $key=>$sub_array)
                     {
                             $clauses[]=[
@@ -1163,7 +1224,7 @@ class DefaultController extends Controller
                                             ]
                                         ];
                     }
-				}
+                }
                 
 				
 				//COORD
@@ -1399,7 +1460,7 @@ class DefaultController extends Controller
                $go_query=true; 
             }
             elseif(strlen($term)>1)
-            {     
+            {    
                     $array_term = preg_split("/(:| |;|,|\!|\?|<&)/", $term );
                     if(count($array_term)>1)
                     {
@@ -1429,8 +1490,12 @@ class DefaultController extends Controller
                    }                        
                   $go_query=true;                         
 			}
-			if($go_query)
+			if(!$go_query)
             {
+    
+                $queryParam=["match_all" => ["boost" => 1.0]];
+            }
+           
                 $params = [
                     'index' => $this->getParameter('elastic_index'),
                     'type' => $this->getParameter('elastic_type'),
@@ -1555,9 +1620,10 @@ class DefaultController extends Controller
                     ]
                 ];
             
-                $results = $client->search($params);
-                $session->set("es_result", $results);
-           }           
+           $results = $client->search($params);
+           $session->set("es_result", $results);
+           
+           
            return new JsonResponse($results);
        }
          
@@ -1589,7 +1655,7 @@ class DefaultController extends Controller
         {
             $newHistory["extra_params2"]=$request->query->get('extra_params2');            
         }
-        if($request->query->has('extra_params_facets'))
+        if($request->query->has('extra_params_facetsextra_params_facets'))
         {
             $newHistory["extra_params_facets"]=$request->query->get('extra_params_facets');            
         }
