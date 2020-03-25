@@ -188,3 +188,68 @@ curl -X POST "localhost:9200/_reindex?pretty" -H 'Content-Type: application/json
   }
 }
 '
+---GIS queries
+
+curl -X POST "localhost:9200/_reindex?pretty" -H 'Content-Type: application/json' -d'
+{
+  "source": {
+    "index": "naturalheritage"
+  },
+  "dest": {
+    "index": "naturalheritage_2020"
+  }
+}
+'
+
+curl -X PUT "localhost:9200/naturalheritage/_mapping?pretty" -H 'Content-Type: application/json' -d'
+{
+    
+        "properties": {
+            "gis_point": {
+                "type": "geo_shape"
+            }
+        }
+}
+'
+
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?pretty" -H 'Content-Type: application/json' -d'
+{
+	"query": {
+	 "nested" : {
+            "path" : "coordinates",
+			"query": {
+				"exists": {
+					"field": "coordinates.geo_ref_point"
+				}
+			}
+		}
+	},
+
+    "script": {
+         "source": "def tmp=ctx._source.coordinates; def lat=tmp.get(0).get(\"geo_ref_point\").get(\"lat\"); def longi=tmp.get(0).get(\"geo_ref_point\").get(\"lon\"); ctx._source.gis_point=\"POINT(\"+longi+\" \"+lat+\")\";",
+        "lang": "painless"
+        
+    }
+}
+'
+
+
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "query":{
+        "bool": {
+            "must": {
+                "match_all": {}
+            },
+            "filter": {
+                "geo_shape": {
+                    "gis_point": {
+                        "shape": "POLYGON((2 49,6 49,6 52,2 52,2 49))",
+                        "relation": "within"
+                    }
+                }
+            }
+        }
+    }
+}
+'
