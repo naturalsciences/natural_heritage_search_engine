@@ -33,6 +33,11 @@ var globalListBooleanGeneric = new Object();
 var globalListCtrlsAnnex = new Object();
 var globalListBooleanAnnex = new Object();
 
+var GLOBAL_WFS_GEOM='';
+var GLOBAL_WFS_ARRAY=Array();
+var GLOBAL_LAYER_ARRAY=Array();
+
+
 var detect_https = function(url) {
     if (location.protocol == "https:") {
         url = url.replace("http://", "https://");
@@ -55,36 +60,27 @@ var toggleDetails = function() {
 var test_map_visibility = function(is_visible) {
     if (is_visible) {
 
-        $("#map_container_nh").show();
+        $("#main_map_container_nh").show();
         MAP.map.updateSize();
         $("#show_map").prop("value", "Hide map");
     } else {
-        $("#map_container_nh").hide();
+        $("#main_map_container_nh").hide();
         $("#show_map").prop("value", "Show map");
+		$(".wkt_search").val('');
+		$("#tmpN").val('');
+		$("#tmpW").val('');
+		$("#tmpS").val('');
+		$("#tmpE").val('');
+		GLOBAL_WFS_GEOM='';
+        GLOBAL_WFS_ARRAY=Array();
+		GLOBAL_LAYER_ARRAY=Array();
+		$("#wkt_search").val('');
+		$("#wfs_search").val('');
+		$("#chosen_layer").val('');
     }
 }
 
-var control_mode_map = function() {
-    if (moveDraw === true) {
-        jQuery("#modeMap").val("To navigation mode");
-        map.addInteraction(interactionMove);
-        boxIsLoaded = true;
-    } else {
-        jQuery("#modeMap").val("To selection mode");
-        map.removeInteraction(interactionMove);
-        boxIsLoaded = false;
-    }
-}
 
-
-jQuery("#modeMap").click(
-    function() {
-
-        moveDraw = !moveDraw;
-        control_mode_map();
-
-    }
-);
 
 
 var buildJsonParamArray = function(ctrl, concept, values, operator) {
@@ -562,6 +558,16 @@ var search_fct = function(page, load_facets) {
 
         }
     }
+	
+	if ($("#wkt_search").val().length) {
+        if ($("#wkt_search").val().length > 0) {
+            criterias["wkt_search"] = $("#wkt_search").val();
+        }
+    }
+	if(GLOBAL_WFS_GEOM.length>0)
+	{
+		criterias["wfs_search"] = GLOBAL_WFS_GEOM;
+	}
 
     var dataTmp = criterias;
 
@@ -572,14 +578,17 @@ var search_fct = function(page, load_facets) {
     if (Object.keys(dataTmp).length > 0) {
         $.ajax({
                 url: detect_https(url),
+				 method: "POST",
                 data: dataTmp,
                 dataType: "json",
                 success: function(data) {
-                    //console.log(dataTmp);
+                    
                     $.ajax({
                         url: detect_https(result_url),
+						
                         data: dataTmp2,
                         dataType: "html",
+						 method: "POST",
                         success: function(data) {
                             $("#searchCont").html(data);
                             $("#facet_criteria").val("");
@@ -644,7 +653,7 @@ $(document).ready(
                         url: detect_https(back_url),
                         dataType: "html",
                         success: function(data) {
-                            console.log(data);
+                            //console.log(data);
                             $("#elastic_search_freetext").val("");
                             $("#facet_criteria").val("");
                             $("#facet_criteria_generic").val("");
@@ -653,7 +662,7 @@ $(document).ready(
                             $("#facet_criteria_annex_facets").val("");
                             var data_obj = JSON.parse(data);
                             if ("term" in data_obj) {
-                                console.log(data_obj["term"]);
+                                //console.log(data_obj["term"]);
                                 var option = new Option(data_obj["term"], data_obj["term"], true, true);
                                 $("#elastic_search_freetext").append(option).trigger('change');
 
@@ -694,6 +703,19 @@ $(document).ready(
                 $(".memoryforfacet").not("#elastic_search_freetext").val(null).trigger('change');
             }
         );
+        
+        
+
+        
+
+        $(document).keypress(function(e) 
+        { 
+            if (e.which === 13) {
+                 e.preventDefault();               
+                 $("#search_dem").click();
+            }
+        });
+
 
 
     }

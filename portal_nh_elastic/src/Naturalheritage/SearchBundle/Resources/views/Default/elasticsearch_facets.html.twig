@@ -1,5 +1,6 @@
 <html>
 <head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="{{asset('assets/vendor/bootstrap-4.3.1-dist/css/bootstrap.min.css')}}" rel="stylesheet" />
 	<link href="{{asset('assets/vendor/bootstrap-4.3.1-dist/css/bootstrap-grid.min.css')}}" rel="stylesheet" />
     <link href="{{asset('assets/vendor/bootstrap-datepicker-1.6.4-dist/css/bootstrap-datepicker.min.css')}}" rel="stylesheet" />
@@ -9,6 +10,11 @@
 	<link href="{{asset('assets/styles/naturalheritage.css')}}" rel="stylesheet" />   
 </head>
 <body>
+<script language="javascript">
+
+
+</script>
+
 <script src="{{asset('assets/vendor/jquery/dist/jquery.min.js')}}"></script>
 <script src="{{asset('assets/vendor/jquery-facets/jquery.deserialize.js')}}"></script>
 <script src="{{asset('assets/vendor/jquery-facets/jquery.facets.js')}}"></script>
@@ -18,54 +24,141 @@
 <script src="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.js')}}"></script>
 <script src="{{asset('assets/js/logic_facets.js')}}"></script>
 
+<div class="row hide_frame">
+<div class="standalone-header col-md-9 col-sm-12 col-xs-12 col-12" >
+<a id="portal-logo" title="NaturalHeritage" accesskey="1" href="http://www.darwin.naturalsciences.be/portal">
+   <img alt="" class="center" src="{{asset('assets/img/logo_nh.png')}}"/>
+</a>
+<div class="dropdown col-md-9">
+            <a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+                Collecting data &#9658;</a>
+           <ul class="dropdown-menu col-md-6">              
+              <li class="dropdown-submenu">
+                <a class="menu_link_nh" tabindex="-1" href="#">Nagoya reference documents  &#9658;<span class="caret"></span></a>
+                <ul class="dropdown-menu col-md-6">                  
+                  
+                      <li><a  tabindex="-1" target="_blank" href="https://www.cbd.int/abs/nagoya-protocol/signatories/">Nagoya Protocol & ABS</a></li>
+                      <li><a  tabindex="-1" target="_blank" href="https://cetaf.org/sites/default/files/final_cetaf_abs_coc.pdf">CETAF code of conduct</a></li>                      
+                      <li><a   tabindex="-1" target="_blank" href="https://absch.cbd.int/">Clearinghouse document</a></li>
+                      <li><a  tabindex="-1" target="_blank" href="https://darwin.naturalsciences.be/help/nagoya.html">Help for field and collection work</a></li>
+                   
+                </ul>
+              </li>
+            </ul>
+        </div>
+</div>
+</div> 
+
+  
 <div class="clearfix position-fixed nh_spinner" >
   <div class="spinner-border" role="status">
     <span class="sr-only">Loading...</span>
   </div>
 </div> 
-<div  id="wrap">
-<form id="test_facets" class="filter-sec">
-<div class="container-fluid padding-left">
-<div class="row" >
-<div class="col-md-4 col-sm-4">
-<div>Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" style='width:300px'></select><img src="{{asset('assets/img/remove.png')}}" id="clear_freetext"/></div>
+
+<div class="row">
+	 <div class="col-md-9 col-sm-12 col-xs-12 col-12">	
+		<div class="row standalone-header hide_frame" >
+			<div class="col-md-4 col-sm-4 col-xs-2 col-4">
+				<div class="center">
+					<img alt="Simple search" class="img_search" style="display:inline-block" src="{{asset('assets/img/search.png')}}"/>
+					<span class="div_search simple_search" >Simple search</span>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 col-xs-2 col-4">
+				<div class="center">
+					<img alt="Simple search" class="img_search" style="display:inline-block" src="{{asset('assets/img/search_detail.png')}}"/>
+					<span class="div_search toggle_details" style="display:inline-block">Advanced search</span>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 col-xs-2 col-4">
+				<div class="center">
+					<img alt="Geo search" class="img_search" style="display:inline-block" src="{{asset('assets/img/image_geo.png')}}"/>
+					<span class="div_search show_map" style="display:inline-block" >Geographic search</span>
+				</div>
+			</div>
+		</div>
+	
+
+		<div  id="wrap">
+			<form id="form_nh" class="filter-sec">
+			<div class="container-fluid padding-left">
+			<div class="row" >
+			<div class="col-md-8 col-sm-8">
+			<div>Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" style='width:300px'></select><img src="{{asset('assets/img/remove.png')}}" id="clear_freetext"/><input type="button" id="toggle_details" class="toggle_details " value="Toggle details"></input></div>
+			</div>
+            </div>
+            <div class="row" >
+            <div class="col-md-4 col-sm-4">
+			{% include 'NaturalheritageSearchBundle:Default:elasticsearch_facets_detailed_search.html.twig' with {'details' : details} %}</br>
+            </div>
+			<div class="col-md12 col-sm-12">
+			{% include 'NaturalheritageSearchBundle:Default:search_map_bootstrap.html.twig' with {'map' : map} %}</br>
+
+			</div>
+			<div name="div_search" id="div_search" class="col-md3 col-sm-4">
+			<div class="lefta-sec">
+			<div class="lefta-cont">
+
+			<input type="hidden" id="base_url" value="{{url('naturalheritage_search_homepage')}}"></input>
+			<input type="hidden" id="facet_criteria"></input>
+			<input type="hidden" id="facet_criteria_generic"></input>
+			<input type="hidden" id="facet_criteria_annex"></input>
+			<input type="hidden" id="facet_criteria_facets"></input>
+			<input type="hidden" id="facet_criteria_annex_facets"></input>
+
+			<input type="button" class="search_dem" id="search_dem" name="search_dem" value="search"></input><br/>
+
+
+			<div id="placeholder_facets" name="placeholder_facets"></div>
+
+			</div>
+			</div>
+			</div>
+			<div name="div_results" id="div_results" class="col-md9 col-sm-8">
+
+			<div id="searchCont"  class="right-sec">
+			  
+
+			</div>
+			</div>
+			</div>
+			</div>
+			</form>
+		</div>
+	</div>
+	
+	    <div class="col-md-2 col-sm-12 col-xs-12 col-12 hide_frame">
+            <div class="row standalone-header">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    
+                        <a href="http://www.naturalsciences.be" target="_blank"><img alt="RBINS" class="img_institution"  src="{{asset('assets/img/institutions/rbins.png')}}"/></a>            
+                    </div>
+            </div>
+            <div class="row standalone-header">
+                <div class="col-md-12 col-sm-12 col-xs-12">        
+                   
+                        <a href="https://www.africamuseum.be" target="_blank"><img alt="RMCA"  class="img_institution standalone-header"  src="{{asset('assets/img/institutions/rmca.png')}}"/></a>           
+                    </div>         
+            </div>
+             <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">        
+                    
+                        <a href="https://www.plantentuinmeise.be" target="_blank"><img alt="BGM"  class="img_institution"  src="{{asset('assets/img/institutions/apm.png')}}"/></a>           
+                    </div>           
+            </div>
+             <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12">               
+                        <a href="https://www.cetaf.org/" target="_blank"><img alt="CETAF"  class="img_institution"  src="{{asset('assets/img/institutions/cetaf.png')}}"/></a>          
+              </div>           
+            </div>
+             <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12">               
+                        <a href="https://www.belspo.be/" target="_blank"><img alt="BGM"  class="img_institution"  src="{{asset('assets/img/institutions/belspo.jpg')}}"/></a>          
+              </div>           
+            </div>
+    </div>
 </div>
-{% include 'NaturalheritageSearchBundle:Default:elasticsearch_facets_detailed_search.html.twig' with {'details' : details} %}</br>
-
-<div class="col-md12 col-sm-12">
-{% include 'NaturalheritageSearchBundle:Default:search_map_bootstrap.html.twig' with {'map' : map} %}</br>
-
-</div>
-<div name="div_search" id="div_search" class="col-md3 col-sm-4">
-<div class="lefta-sec">
-<div class="lefta-cont">
-
-<input type="hidden" id="base_url" value="{{url('naturalheritage_search_homepage')}}"></input>
-<input type="hidden" id="facet_criteria"></input>
-<input type="hidden" id="facet_criteria_generic"></input>
-<input type="hidden" id="facet_criteria_annex"></input>
-<input type="hidden" id="facet_criteria_facets"></input>
-<input type="hidden" id="facet_criteria_annex_facets"></input>
-
-<input type="button" class="search_dem" id="search_dem" name="search_dem" value="search"></input><br/>
-
-
-<div id="placeholder_facets" name="placeholder_facets"></div>
-
-</div>
-</div>
-</div>
-<div name="div_results" id="div_results" class="col-md9 col-sm-8">
-
-<div id="searchCont"  class="right-sec">
-  
-
-</div>
-</div>
-</div>
-</form>
-</div>
-
 <script language="javascript">
 var route;
 var full_screen=true;
@@ -120,11 +213,50 @@ $(document).ready(
              var term=$("#elastic_search_freetext").val();
             search_fct(1,true);
         }
-       )
+       );
+       
+        $(".dropdown-submenu a.menu_link_nh").on("click",
+        function(e)
+        {
+            $(this).next('ul').toggle();
+            e.stopPropagation();
+            e.preventDefault();
+        }
+       );
 	   
+	 
 
     }
+	
+	
+		
+	
 );
+
+		
+		
+		function inIframe () {
+			try {
+				return window.self !== window.top;
+			} catch (e) {
+				return true;
+			}
+		}
+		window.onload = function()
+		{  
+			console.log("loading");
+			var in_frame=inIframe();
+		   console.log(in_frame);
+		   
+		   if(!in_frame)
+		   {
+				var hideArray = document.getElementsByClassName('hide_frame');
+
+				for (var i = 0; i < hideArray.length; i ++) {
+					hideArray[i].style.display = 'block';
+				}
+		   }
+		}
 
 </script>
 {% include 'NaturalheritageSearchBundle:Default:nav.html.twig' %}</br>

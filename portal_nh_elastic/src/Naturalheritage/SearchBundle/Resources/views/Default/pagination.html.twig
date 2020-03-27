@@ -11,8 +11,8 @@
 	    {% endfor %}
 	    {% if pagination.page<pagination.pages_count %}
 		<button type="button" value="{{ pagination.page + 1 }}" class="pager">></button>
-		{% if pagination.pages_count > 10000 %}
-		<button type="button" value="10 000" class="pager">>></button> 
+		{% if nb_results >= 10000 %}
+		<button type="button" value="{{ (10000/ page_size)|round(0, 'ceil') }}" class="pager">>></button> 
 		<br/> <div style="color:red">Only the top 10 000 records are shown. Please refine your search criteria. </div>
 		{% else %}
 		<button type="button" value="{{ pagination.pages_count }}" class="pager">>></button>

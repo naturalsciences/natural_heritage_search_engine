@@ -489,7 +489,7 @@ class DefaultController extends Controller
 	{
     
 		 
-		return $this->autocompletekeywordAction($key, $array_filters, "search_criteria", ['search_criteria.value','search_criteria.value.value_ngrams','search_criteria.value.value_full'], array('search_criteria.value' => new \stdClass(),'search_criteria.value.value_ngrams' => new \stdClass(),'search_criteria.value.value_full' => new \stdClass())); 
+		return $this->autocompletekeywordAction($key, $array_filters, "search_criteria", ['search_criteria.value','search_criteria.value.value_ngrams'], array('search_criteria.value' => new \stdClass(),'search_criteria.value.value_ngrams' => new \stdClass(),'search_criteria.value.value_full' => new \stdClass())); 
 	}
     
 	
@@ -750,8 +750,8 @@ class DefaultController extends Controller
     
     public function indexAction_logic(Request $request, $template)
     {
-        $map=$request->get("map",'off');
-        $details=$request->get("details",'off');
+        $map=$request->request->get("map",'off');
+        $details=$request->request->get("details",'off');
         $session = $request->getSession(); 
 		$session->remove('es_result');		
 		$session->remove('expanded');
@@ -761,6 +761,8 @@ class DefaultController extends Controller
 	    $session->remove('extra_params_facets');
 		$session->remove('extra_params2_facets');
         $session->remove("state_history");
+		$session->remove("wkt_search");
+		$session->remove("wfs_search");
         $session->set("state_history", Array());        
 	
         return	 $this->render($template, array("map"=> $map, "details"=>$details));
@@ -782,15 +784,16 @@ class DefaultController extends Controller
     {        
           $session = $request->getSession();
           $data=$session->get("es_result",false);
-		  $page =  $request->get("page",1);
+		  $page =  $request->request->get("page",1);
           if($data!==false)
           { 
+
 			$pagination = array(
             'page' => $page,
             'route' => 'naturalheritage_search_searchelasticsearchpartial',
-            'pages_count' => ceil($data["hits"]["total"] / $this->max_results)
+            'pages_count' => ceil($data["hits"]["total"]["value"] / $this->max_results)
 			);
-            return	 $this->render($template, array("data"=> $data["hits"], "pagination"=> $pagination, "page_size"=> $this->max_results));
+            return	 $this->render($template, array("data"=> $data["hits"], "pagination"=> $pagination, "page_size"=> $this->max_results, "nb_results"=> $data["hits"]["total"]["value"], "nb_results_all"=> ($data["aggregations"]["total_objects"]["sum_other_doc_count"])+1));
           }
     }
     
@@ -811,7 +814,7 @@ class DefaultController extends Controller
 		
 		$session = $request->getSession();
           $data=$session->get("es_result",false);
-          $agg=$request->get("agg", "what");
+          $agg=$request->request->get("agg", "what");
           if($data!==false)
           { 
             return	 $this->render($this->template_detail_facets, array("data"=> $data["aggregations"]));
@@ -875,7 +878,7 @@ class DefaultController extends Controller
         return $param;
      }
      
-     protected function es_wrapper_logic($session, $p_term,$p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
+     protected function es_wrapper_logic($session, $p_term,$p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_wkt_search, $p_wfs_search,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
     {
 
             $go_query=false;
@@ -902,6 +905,8 @@ class DefaultController extends Controller
                 ||null !==$this->unset_if_empty($p_extra_params_annex)
                 ||null !==$this->unset_if_empty($p_extra_params_generic)
                 ||null !==$this->unset_if_empty($p_coordinates)
+				||null !==$this->unset_if_empty($p_wkt_search)
+				||null !==$this->unset_if_empty($p_wfs_search)
                 ||null !==$this->unset_if_empty($p_date_from)
                 ||null !==$this->unset_if_empty($p_date_to)
                 ||null !==$this->unset_if_empty($p_extra_params_facets)
@@ -915,6 +920,8 @@ class DefaultController extends Controller
 				$extra_params2_facets=Array();
                 $extra_params_generic=Array();
                 $coordinates=Array();
+				$wkt_search="";
+				$wfs_search="";
 				$date_from="";
 				$date_from_types=Array();
 				$date_to="";
@@ -952,6 +959,16 @@ class DefaultController extends Controller
                 {
                     $coordinates = explode(";",urldecode($p_coordinates));
 					
+                }
+				if(isset($p_wkt_search))
+                {					
+                    $wkt_search = $p_wkt_search;				
+					$session->set("wkt_search", $wkt_search);
+                }
+				if(isset($p_wfs_search))
+                {					
+                    $wfs_search = $p_wfs_search;				
+					$session->set("wfs_search", $wfs_search);
                 }
 				if(isset($p_date_from))
                 {					
@@ -1152,6 +1169,7 @@ class DefaultController extends Controller
                         
                     }
 				}
+				$clausesTmp=Array();
 				if(count($extra_params2)>0)
                 {
                 
@@ -1231,7 +1249,8 @@ class DefaultController extends Controller
 				$clausesCoordinates=Array();
 				$criteriaGeo=Array();
 				$has_geo = false;
-                
+                $criteriaWKT=Array();
+				$criteriaWFS=Array();
 				if(count($coordinates)==4)
 				{
 					$west=$coordinates[0];
@@ -1276,6 +1295,39 @@ class DefaultController extends Controller
                                 ]
                            ]
                     ];
+				}
+				if(strlen($wkt_search)>0)
+				{
+					
+					$criteriaWKT=[
+							
+									"geo_shape"=>
+									[
+										"gis_point"=>
+										[
+											"shape"=> $wkt_search,
+											"relation"=> "intersects"
+										]
+									]
+								
+					];
+				}
+				
+				if(strlen($wfs_search)>0)
+				{
+					
+					$criteriaWFS=[
+							
+									"geo_shape"=>
+									[
+										"gis_point"=>
+										[
+											"shape"=> $wfs_search,
+											"relation"=> "intersects"
+										]
+									]
+								
+					];
 				}
 				
 				//DateFrom
@@ -1444,6 +1496,17 @@ class DefaultController extends Controller
 				{
 					 $array_criteria["must"][]=$criteriaGeo;
 				}
+				
+				if(count($criteriaWKT)>0)
+				{
+					 $array_criteria["must"][]=$criteriaWKT;
+				}
+				
+				if(count($criteriaWFS)>0)
+				{
+					 $array_criteria["must"][]=$criteriaWFS;
+				}
+				
 				if(count($criteriasMain)>0)
 				{
 					 $array_criteria["must"][]=$criteriasMain;
@@ -1504,6 +1567,14 @@ class DefaultController extends Controller
                     'body' => [
                          'query' => $queryParam,
                              "aggs" =>[
+							    "total_objects"=>[
+											"terms"=>
+												[
+													"field"=>"_id",
+													"size"=>"1"
+												]
+								]
+								,
                                 "institution" => [
                                                  "terms" => [ 
                                                             "field" =>  "institution"  
@@ -1631,61 +1702,69 @@ class DefaultController extends Controller
     {
         $history=$session->get("state_history", Array());
         $newHistory=Array();
-        if($request->query->has('term'))
+        if($request->request->has('term'))
         {
-            $newHistory["term"]=$request->query->get('term');            
+            $newHistory["term"]=$request->request->get('term');            
         }
-        if($request->query->has('extra_params'))
+        if($request->request->has('extra_params'))
         {
-            $newHistory["extra_params"]=$request->query->get('extra_params');            
+            $newHistory["extra_params"]=$request->request->get('extra_params');            
         }
-        if($request->query->has('extra_params_annex'))
+        if($request->request->has('extra_params_annex'))
         {
-            $newHistory["extra_params_annex"]=$request->query->get('extra_params_annex');            
+            $newHistory["extra_params_annex"]=$request->request->get('extra_params_annex');            
         }
-        if($request->query->has('coordinates'))
+        if($request->request->has('coordinates'))
         {
-            $newHistory["coordinates"]=$request->query->get('coordinates');            
+            $newHistory["coordinates"]=$request->request->get('coordinates');            
         }
-        if($request->query->has('extra_params_generic'))
+		if($request->request->has('wkt_search'))
         {
-            $newHistory["extra_params_generic"]=$request->query->get('extra_params_generic');            
+            $newHistory["wkt_search"]=$request->request->get('wkt_search');            
         }
-        if($request->query->has('extra_params2'))
+		if($request->request->has('wfs_search'))
         {
-            $newHistory["extra_params2"]=$request->query->get('extra_params2');            
+            $newHistory["wfs_search"]=$request->request->get('wfs_search');            
         }
-        if($request->query->has('extra_params_facetsextra_params_facets'))
+        if($request->request->has('extra_params_generic'))
         {
-            $newHistory["extra_params_facets"]=$request->query->get('extra_params_facets');            
+            $newHistory["extra_params_generic"]=$request->request->get('extra_params_generic');            
         }
-        if($request->query->has('extra_params_annex_facets'))
+        if($request->request->has('extra_params2'))
         {
-            $newHistory["extra_params_annex_facets"]=$request->query->get('extra_params_annex_facets');            
+            $newHistory["extra_params2"]=$request->request->get('extra_params2');            
         }
-        if($request->query->has('date_from'))
+        if($request->request->has('extra_params_facetsextra_params_facets'))
         {
-            $newHistory["date_from"]=$request->query->get('date_from');            
+            $newHistory["extra_params_facets"]=$request->request->get('extra_params_facets');            
         }
-         if($request->query->has('date_from_type'))
+        if($request->request->has('extra_params_annex_facets'))
         {
-            $newHistory["date_from_type"]=$request->query->get('date_from_type', "all");            
+            $newHistory["extra_params_annex_facets"]=$request->request->get('extra_params_annex_facets');            
         }
-         if($request->query->has('date_to'))
+        if($request->request->has('date_from'))
         {
-            $newHistory["date_to"]=$request->query->get('date_to');            
+            $newHistory["date_from"]=$request->request->get('date_from');            
         }
-        if($request->query->has('date_to_type'))
+         if($request->request->has('date_from_type'))
         {
-            $newHistory["date_to_type"]=$request->query->get('date_to_type',"all");            
+            $newHistory["date_from_type"]=$request->request->get('date_from_type', "all");            
         }
-        if($request->query->has('page'))
+         if($request->request->has('date_to'))
         {
-            $newHistory["page"]=$request->query->get('page',1);            
+            $newHistory["date_to"]=$request->request->get('date_to');            
         }
-        if($request->query->has('expanded'))
+        if($request->request->has('date_to_type'))
         {
-            $newHistory["expanded"]=$request->query->get('expanded',"false");            
+            $newHistory["date_to_type"]=$request->request->get('date_to_type',"all");            
+        }
+        if($request->request->has('page'))
+        {
+            $newHistory["page"]=$request->request->get('page',1);            
+        }
+        if($request->request->has('expanded'))
+        {
+            $newHistory["expanded"]=$request->request->get('expanded',"false");            
         }
          $history[]=$newHistory;
          $session->set("state_history", $history);
@@ -1718,31 +1797,33 @@ class DefaultController extends Controller
     public function esWrapperAction(Request $request)
     {
         $session = $request->getSession();
-        if($request->query->has('term')||$request->query->has('extra_params')||$request->query->has('extra_params_annex')||$request->query->has('coordinates')||$request->query->has('extra_params_generic')||$request->query->has('date_from')||$request->query->has('date_to'))
+        if($request->request->has('term')||$request->request->has('extra_params')||$request->request->has('extra_params_annex')||$request->request->has('coordinates')||$request->request->has('extra_params_generic')||$request->request->has('date_from')||$request->request->has('date_to')||$request->request->has("wkt_search")||$request->request->has("wfs_search"))
 		{
             $this->recordStateHistory($request, $session);
             return $this->es_wrapper_logic( 
                 $session,
-                $request->query->get('term',""), 
-                $request->query->get('extra_params'), 
-                $request->query->get('extra_params_annex'), 
-                $request->query->get('extra_params_generic'),
-                $request->query->get('extra_params_facets'), 
-                $request->query->get('extra_params_annex_facets'),
-                $request->query->get('coordinates'), 
-                $request->query->get('date_from'),                  
-                $request->query->get('date_from_type',"all"),
-                $request->query->get('date_to'),   
-                $request->query->get('date_to_type',"all"),
-                $request->query->get('page',1),
-                $request->get("expanded","false"));
+                $request->request->get('term',""), 
+                $request->request->get('extra_params'), 
+                $request->request->get('extra_params_annex'), 
+                $request->request->get('extra_params_generic'),
+                $request->request->get('extra_params_facets'), 
+                $request->request->get('extra_params_annex_facets'),
+                $request->request->get('coordinates'), 
+				$request->request->get('wkt_search'),
+				$request->request->get('wfs_search'),
+                $request->request->get('date_from'),                  
+                $request->request->get('date_from_type',"all"),
+                $request->request->get('date_to'),   
+                $request->request->get('date_to_type',"all"),
+                $request->request->get('page',1),
+                $request->request->get("expanded","false"));
         }
     }
            
 	
 	public function fancyTreeWrapperAction(Request $request)
     {
-		return $this->fancyTreeWrapperActionLogic($request,$request->get('agg', 'what') );
+		return $this->fancyTreeWrapperActionLogic($request,$request->request->get('agg', 'what') );
 	}
     
     

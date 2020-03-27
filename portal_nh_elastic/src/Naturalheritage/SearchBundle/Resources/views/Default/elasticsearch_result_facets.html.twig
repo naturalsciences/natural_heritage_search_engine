@@ -1,26 +1,27 @@
 {% if data is defined %}
    <div class="top">
    <input type="button" id="full_screen" name="full_screen" class="full_screen" value="full_screen"></input>
-   <div>Results  :{{ data['total']}}</div>
+   <div>Results  :{{ nb_results}} (on {{ nb_results_all }} matching data )</div>
    {% include 'NaturalheritageSearchBundle:Default:pagination.html.twig' %}
 <div  class="row" style=" overflow-wrap: break-word;">
 
     {% set initcount = (pagination.page  - 1) * page_size %}
     {% for record in data['hits'] %}
            {% set initcount = initcount + 1 %}
-           <div class="col-md-12 col-sm6">
+           <div class="col-md-12 col-sm12">
            <div  class="row" style=" overflow-wrap: break-word;">
-           <div class="col-md-12 col-sm6">
-           <div>{{ initcount }}</div>
-           <div class="thumbnail">
+             <div class="thumbnail">
            <div class="caption">
+           <div class="col-md-12 col-sm12">
+           <div>{{ initcount }}</div>
+         
             {{ record["_source"]["institution"] |default('')  }}<br/>
 			{% if "RBINS" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="{{asset('assets/img/institutions/rbins.png')}}"/></div>
+				<div><img class="instilink" src="http://www.naturalheritage.be/partners/rbins/logo1.png"/></div>
 			{% elseif "Meise" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="{{asset('assets/img/institutions/apm.png')}}"/></div>
+				<div><img class="instilink" src="http://www.naturalheritage.be/partners/mbg/logo1.png"/></div>
 			{% elseif "RMCA" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="{{asset('assets/img/institutions/rmca.png')}}"/></div>
+				<div><img class="instilink" src="http://www.naturalheritage.be/partners/rmca/logo1.png"/></div>
 			{% endif %}
             {{ record["_source"]["main_collection"]|default('') }}<br/>
             {% if record["_source"]["sub_collection"]|default('')|length > 0 %}{{ record["_source"]["sub_collection"]|default('') }}<br/>{% endif %}
@@ -37,7 +38,9 @@
             <a href={{ record["_source"]["id"] }} class="link" target="_blank">Link</a><br/>
            </div>
            
-		   <div class="col-md-4 col-sm6">
+		  
+          
+           <div class="col-md-4 col-sm6">
           {% set tmp_id = "" %}   
           {% if "coordinates" in record["_source"]|keys  %}
               {% for coordinate in record["_source"]["coordinates"] %}
@@ -68,4 +71,6 @@
             $("#div_search").toggle();
         }
     );
+	
+
 </script>

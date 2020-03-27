@@ -5,20 +5,76 @@
          display:none;
       }     
 
+	.main_map_container_nh{
+         display:inline;
+      }     
        .map_container_nh{
          display:inline;
       }     
+	  
+	 .draw-box {
+        top: 65px;
+        left: .5em;
+        width: 1.375em;
+        height: 1.375em; 
+        background-color: rgba(255,255,255,.4); 
+        text-align: center; 
+           
+      }
+      
+      .draw-polygon {
+        top: 100px;
+        left: .5em;
+        width: 1.375em;
+        height: 1.375em; 
+        background-color: rgba(255,255,255,.4); 
+        text-align: center; 
+           
+      }
+      
+      
+      .move-map {
+        top: 135px;
+        left: .5em;
+        width: 1.375em;
+        height: 1.375em; 
+        background-color: rgba(255,255,255,.4); 
+        text-align: center; 
+           
+      }
       
       
       
 </style>
 
 <input type="button" id="show_map" class="show_map" value="Hide map"></input>
- <div id="map_container_nh" class="map_container_nh" style="display : none;" >
-	  <div  style="width:650px;height:750px;" id="map" class="map"></div>
+ <div id="main_map_container_nh" class="main_map_container_nh" style="display : none;" >
+	<div style="width:650px;"> 
+		<select id="addwms" class="form-control">
+			  <option value="rbins_natural_earth_adm" >Natural Earth Administrative</option>
+			  <option value="rbins_natural_earth_physical" >Natural Earth Physical</option>
+        </select>
+        <input id="browse_wms" type="button" value="Browse layers"></input>		
+		<select id="addwmslayer" class="form-control">
+			
+        </select>
+		<input id="put_layer" type="button" value="Add layers"></input>
+		
+		<br/>
+		Selected layers :
+		<input type="text" id="chosen_layer" style="width:70%" readonly>
+		 <input id="remove_last" type="button" value="Remove last"></input>	<br/>
+		 Polygon on map : <input type="text" id="wkt_search" class="wkt_search" style="width:70%" readonly>
+		 </br>
+		 WFS on map : <input type="text" id="wfs_search" class="wfs_search" style="width:70%" readonly>
+	</div>
+	  <div  style="width:650px;height:750px;" id="main_map" class="map">
+	   
+	  
+	  </div>
 	  <div id="mouse-position"></div>
  
-<input type="button" style='margin-bottom: 10px' id="modeMap" name="modeMap" value="To selection mode"></input>
+
 <div class="col-md-4 col-sm-4">
 <div class="row">
 
@@ -28,6 +84,7 @@
 </div>
 </div>
 <br/>
+
  <script type="text/javascript">
 var map;
 var bingBackground;
@@ -40,7 +97,7 @@ var map_visible=true;
 var moveDraw=true;
 var autoDraw=false;
 var boxIsLoaded=false;
-var interactionMove;
+//var interactionMove;
 var mousePositionControl;
 var scaleLineControl;
 var selectionBox;
@@ -48,6 +105,17 @@ var selectionBox;
 var clusters;
 var modeRemovePage=false;
 var layerLoaded=false;
+var wfs_url="{{ wfs_url }}";
+var globalLayers=Array();
+var current_wms;
+var current_layer_name;
+	
+
+var iLayer=0;
+var vectorLoaded =false;
+var draw;
+var type_draw="";
+var source_draw = new ol.source.Vector({wrapX: false});
 
 
 
@@ -80,40 +148,7 @@ scaleLineControl = new ol.control.ScaleLine();
 
 //////SELECTION MODE
 
- interactionMove = new ol.interaction.DragBox({
-        condition: ol.events.condition.noModifierKeys,
-        style: new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: [0, 0, 255, 1]
-            })
-        })
-    });
 
-    interactionMove.on('boxend', function(evt){
-        if(moveDraw===true)
-        {
-           var sourceSelection = new ol.source.Vector();
-            var geom = evt.target.getGeometry();
-            //console.log(geom);
-            //clone prevent layer to loose progresively transparency
-            var feat = new ol.Feature({geometry: geom.clone()});
-            //ource.clear();
-            sourceSelection.addFeature(feat);
-            getSelectionZone(geom);
-            if(boxIsLoaded)
-            {
-                  map.removeLayer(selectionBox);
-            }
-            selectionBox=new ol.layer.Vector({
-            source: sourceSelection
-            });
-           
-            map.addLayer(selectionBox);
-           autoDraw=true;
-           boxIsLoaded=true;
-           
-       }
-    });
     
     
     var getSelectionZone=function(mapGeom)
@@ -149,16 +184,302 @@ scaleLineControl = new ol.control.ScaleLine();
 
 
 
-////////////////////////////
-	       
+////////////////////////////MAP
+
+/*function CSVToArray( strData, strDelimiter ){
+        // Check to see if the delimiter is defined. If not,
+        // then default to comma.
+        strDelimiter = (strDelimiter || ",");
+
+        // Create a regular expression to parse the CSV values.
+        var objPattern = new RegExp(
+            (
+                // Delimiters.
+                "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+                // Quoted fields.
+                "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+                // Standard fields.
+                "([^\"\\" + strDelimiter + "\\r\\n]*))"
+            ),
+            "gi"
+            );
+
+
+        // Create an array to hold our data. Give the array
+        // a default empty first row.
+        var arrData = [[]];
+
+        // Create an array to hold our individual pattern
+        // matching groups.
+        var arrMatches = null;
+
+
+        // Keep looping over the regular expression matches
+        // until we can no longer find a match.
+        while (arrMatches = objPattern.exec( strData )){
+
+            // Get the delimiter that was found.
+            var strMatchedDelimiter = arrMatches[ 1 ];
+
+            // Check to see if the given delimiter has a length
+            // (is not the start of string) and if it matches
+            // field delimiter. If id does not, then we know
+            // that this delimiter is a row delimiter.
+            if (
+                strMatchedDelimiter.length &&
+                strMatchedDelimiter !== strDelimiter
+                ){
+
+                // Since we have reached a new row of data,
+                // add an empty row to our data array.
+                arrData.push( [] );
+
+            }
+
+            var strMatchedValue;
+
+            // Now that we have our delimiter out of the way,
+            // let's check to see which kind of value we
+            // captured (quoted or unquoted).
+            if (arrMatches[ 2 ]){
+
+                // We found a quoted value. When we capture
+                // this value, unescape any double quotes.
+                strMatchedValue = arrMatches[ 2 ].replace(
+                    new RegExp( "\"\"", "g" ),
+                    "\""
+                    );
+
+            } else {
+
+                // We found a non-quoted value.
+                strMatchedValue = arrMatches[ 3 ];
+
+            }
+
+
+            // Now that we have our value string, let's add
+            // it to the data array.
+            arrData[ arrData.length - 1 ].push( strMatchedValue );
+        }
+
+        // Return the parsed data.
+        return( arrData );
+    }
+*/
+	var createMultiPolygon=function()
+	{
+		var returned="";
+		if(GLOBAL_WFS_ARRAY.length>0)
+		{
+			$('#chosen_layer').val(GLOBAL_LAYER_ARRAY.join("; "));
+			returned="GEOMETRYCOLLECTION("+ GLOBAL_WFS_ARRAY.join(",") +")";
+		}
+		//console.log(returned);
+		GLOBAL_WFS_GEOM=returned;
+		
+		
+	}
+	
+	var remove_last=function()
+	{
+		GLOBAL_WFS_ARRAY.pop();
+		GLOBAL_LAYER_ARRAY.pop();
+		createMultiPolygon();
+		$('#chosen_layer').val(GLOBAL_LAYER_ARRAY.join("; "));
+	}
+
+   	var styleWKT= new ol.style.Style({
+			  fill: new ol.style.Fill({
+				color: 'rgba(255, 255, 255, 0.2)'
+			  }),
+			  stroke: new ol.style.Stroke({
+				color: '#ffcc33',
+				width: 4
+			  }),
+			  image: new ol.style.Circle({
+				radius: 7,
+				fill: new ol.style.Fill({
+				  color: '#ffcc33'
+				})
+			  })
+			});
+            
+	   function removeDarwinLayer(p_max){		
+			if(vectorLoaded){
+				map.getLayers().forEach(function(layer) {	
+					if (typeof layer !== 'undefined') {			
+						if(layer.get("name")!="background"&&parseInt(layer.get("name"))==p_max ){				
+							map.removeLayer(layer);
+						}
+					}
+				});
+			}		
+		}
+		
+	
+            
+    	function addDarwinLayer(feature,origininput)
+        {
+            var tmp_geom =new ol.geom.Polygon(feature.getGeometry().getCoordinates());
+            var  generic_feature = new ol.Feature({geometry: tmp_geom});
+              
+            var tmpSource=new ol.source.Vector();
+            tmpSource.addFeature(generic_feature);
+            iLayer++;
+            var vectorlayer_local = new ol.layer.Vector({
+                        name: iLayer,
+                        source: tmpSource,
+                        style: styleWKT	});
+                        
+            
+            map.addLayer(vectorlayer_local);
+            var format = new ol.format.WKT();
+			tmp_geom4326= tmp_geom.clone();
+			tmp_geom4326.transform("EPSG:3857", "EPSG:4326");
+			wktfeaturegeom = format.writeGeometry(tmp_geom4326);
+			$('.wkt_search').val(wktfeaturegeom);
+            vectorLoaded=true;		
+        }
+	     //button draw bbox
+      DrawBoxControl = function(opt_options) {
+                
+                
+                var options = opt_options || {};
+                var element = document.createElement('div');
+                element.className = 'draw-box ol-unselectable ol-control';
+                element.innerHTML='&#9633;';   
+                $(element).click(
+                    function()
+                    {
+                        type_draw="box";
+                        removeDarwinLayer(iLayer);
+                        map.removeInteraction(draw);
+                        draw = new ol.interaction.Draw({
+                        source: source_draw,
+                        type: 'circle',
+                        geometryFunction: ol.interaction.Draw.createBox(),
+                        //finishCondition: ol.events.condition.doubleClick 
+                        });
+                        draw.on('drawend', function (event) {                        
+                            addDarwinLayer(event.feature,"from drawing");
+                            map.removeInteraction(draw);
+                        });
+                        map.addInteraction(draw);
+                    }
+                );
+                 ol.control.Control.call(this, {
+                  element: element,
+                  target: options.target
+                });
+      };
+     ol.inherits(DrawBoxControl, ol.control.Control);
+     
+     //button draw Polygons
+      DrawPolygonControl = function(opt_options) {
+               
+                var options = opt_options || {};
+                var element = document.createElement('div');
+                element.className = 'draw-polygon ol-unselectable ol-control';
+                element.innerHTML='&#11040;';   
+                $(element).click(
+                    function()
+                    {
+                         type_draw="polygon";
+                        removeDarwinLayer(iLayer);
+                        map.removeInteraction(draw);
+                        draw = new ol.interaction.Draw({
+                        source: source_draw,
+                        type: 'Polygon'
+                        });
+                        draw.on('drawend', function (event) {
+                            addDarwinLayer(event.feature,"from drawing");
+                            map.removeInteraction(draw);
+                        });
+                        map.addInteraction(draw);
+                    }
+                );
+                 ol.control.Control.call(this, {
+                  element: element,
+                  target: options.target
+                });
+      };
+     ol.inherits(DrawPolygonControl, ol.control.Control); 
+
+
+	 
 map=new ol.Map({
     layers:[bingBackground],
-    target: 'map',
+    target: 'main_map',
     view: view,
     controls: ol.control.defaults({
        attributionOptions: ({collapsible: false})
-    }).extend([mousePositionControl, scaleLineControl ])
+    }).extend([mousePositionControl, scaleLineControl, new DrawBoxControl(),new DrawPolygonControl() ])
 }); 
+
+ map.on('dblclick', function(evt) {            
+            if(type_draw=="box")            {
+              
+                draw.finishDrawing();
+            }
+        });
+
+	map.on('singleclick', function(evt) {
+			if(globalLayers.length>0)
+			{
+								
+				var lonlat = map.getCoordinateFromPixel(evt.pixel);
+				lonlat= ol.proj.transform(lonlat, "EPSG:3857", "EPSG:4326");
+				//console.log(lonlat);
+				var filter="INTERSECTS(geom, POINT ("+ lonlat[1] +" "+ lonlat[0] +"))";
+				
+				var query_url=wfs_url + current_wms+"/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames="+ current_layer_name +"&outputFormat=application/json&cql_filter="+filter;
+				//console.log(query_url);
+				$.get( query_url)
+				  .done(function( data ) {
+	
+						console.log(data);
+						var geom=data["features"][0]["geometry"]["coordinates"];
+						console.log(geom);
+						var multi_array=Array();
+						var i_geom;
+						for(i_geom=0; i_geom<geom.length; i_geom++)
+						{
+							
+							var cluster=geom[i_geom];
+							//console.log(cluster);
+							var i_geom2;
+							//console.log(i_geom2);
+							for(i_geom2=0; i_geom2<cluster.length; i_geom2++)
+							{
+								var tmp_wkt="";
+								var tmp_wkt_array=Array();
+								var cluster2=cluster[i_geom2];
+								var i_geom3;
+								var first=null;
+								for(i_geom3=0; i_geom3<cluster2.length; i_geom3++)
+								{
+									var tmp_point=cluster2[i_geom3];
+									//console.log(tmp_point);
+									tmp_wkt_array.push(tmp_point[0]+ " "+ tmp_point[1]);
+								}
+								var tmp_wkt="(("+tmp_wkt_array.join(",")+"))";
+								console.log(tmp_wkt);
+								multi_array.push(tmp_wkt);
+							}
+							
+						}
+						var geom_data = "MULTIPOLYGON("+multi_array.join(",")+")";
+						var geom_name = data["features"][0]["properties"]["name"];
+						GLOBAL_WFS_ARRAY.push(geom_data);
+						GLOBAL_LAYER_ARRAY.push(geom_name);
+						createMultiPolygon();
+										
+				  });
+			}
+	});				
 
 /////////
 //send map to other scripts
@@ -167,12 +488,91 @@ MAP={map:map};
 
 /////////
 
+//////WMS
+
+	var parseCapabilities= function(wms_point)
+	{
+		var cap_query=wfs_url + wms_point+ '/ows?service=wms&version=1.1.1&request=GetCapabilities';
+		//console.log(cap_query);
+		$.get( cap_query)
+			  .done(function( data ) {
+					//console.log(data);
+					$('#addwmslayer').find('option').remove().end();
+					$(data).find("Layer > Name").each(
+						function(index, obj)
+						{
+							var name_layer=obj.childNodes[0].nodeValue;
+							//console.log(name_layer);
+							var o = new Option(name_layer, name_layer);
+							$(o).html(name_layer);
+							$("#addwmslayer").append(o);
+						}
+					);					
+			  });
+	}
+	
+	var addLayer=function(wms_point, layer_name)
+	{
+			$(globalLayers).each(
+				function(idx, obj)
+				{
+					map.removeLayer(obj);			
+					
+				}
+			);
+			globalLayers=Array();
+			var wms_layer= new ol.layer.Tile(
+				{
+					source: new ol.source.TileWMS(
+					{
+					  url: wfs_url + wms_point + '/ows?',
+					  params: {'LAYERS': layer_name},
+					  ratio: 1,
+					  serverType: 'geoserver',
+					  projection: 'EPSG:4326',
+					  transition: 0
+					}
+					)
+				}
+				);
+		    current_layer_name=layer_name;
+			globalLayers.push(wms_layer);
+			map.addLayer(wms_layer);				
+	}
+	
+	$("#remove_last").click(
+		function()
+		{
+			remove_last();
+		}
+	);
+////////
+
 $(document).ready(
 	function()
 	{
 		modeRemovePage=true;
         test_map_visibility(map_visible);
-        control_mode_map();
+        
+		
+		$("#browse_wms").click(
+			function()
+			{
+				var wms_url=$("#addwms").val();					
+				parseCapabilities(wms_url);
+				current_wms=wms_url;
+			}
+
+		);
+		
+		$("#put_layer").click(
+			function()
+			{
+				var wms_url=$("#addwmslayer").val();					
+				addLayer($("#addwms").val(),$("#addwmslayer").val());
+			}
+		);
+   
            
 	    	 
 	}

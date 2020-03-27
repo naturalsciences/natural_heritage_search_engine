@@ -8,19 +8,19 @@
     {% set initcount = (pagination.page  - 1) * page_size %}
     {% for record in data['hits'] %}
            {% set initcount = initcount + 1 %}
-           <div class="col-md-12 col-sm6">
+           <div class="col-md-12 col-sm12 col-xs-12 col-12">
            <div  class="row" style=" overflow-wrap: break-word;">
-           <div class="col-md-12 col-sm6">
+           <div class="col-md-12 col-sm12 col-xs-12 col-12">
            <div>{{ initcount }}</div>
            <div class="thumbnail">
            <div class="caption">
             {{ record["_source"]["institution"] |default('')  }}<br/>
 			{% if "RBINS" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="{{asset('assets/img/institutions/rbins.png')}}"/></div>
+				<div><img class="instilink" src="http://www.naturalheritage.be/partners/rbins/logo1.png"/></div>
 			{% elseif "Meise" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="{{asset('assets/img/institutions/apm.png')}}"/></div>
+				<div><img class="instilink" src="http://www.naturalheritage.be/partners/mbg/logo1.png"/></div>
 			{% elseif "RMCA" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="{{asset('assets/img/institutions/rmca.png')}}"/></div>
+				<div><img class="instilink" src="http://www.naturalheritage.be/partners/rmca/logo1.png"/></div>
 			{% endif %}
             {{ record["_source"]["main_collection"]|default('') }}<br/>
             {% if record["_source"]["sub_collection"]|default('')|length > 0 %}{{ record["_source"]["sub_collection"]|default('') }}<br/>{% endif %}

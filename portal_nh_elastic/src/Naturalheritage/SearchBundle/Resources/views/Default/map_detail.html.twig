@@ -14,7 +14,7 @@
 
 </div>
  <script type="text/javascript">
-    var map;
+    var map_detail;
     var bingBackground;
     var view;
     var mousePositionControl;
@@ -82,7 +82,7 @@
         style: style
       });
            
-        map=new ol.Map({
+        map_detail=new ol.Map({
             layers:[bingBackground, vectorLayer],
             target: 'map_{{ map_id }}',
             view: view,
@@ -96,7 +96,7 @@
       
      
       var extent = vectorLayer.getSource().getExtent();
-        map.getView().fit(extent);
-        map.getView().setZoom(11);
+        map_detail.getView().fit(extent);
+        map_detail.getView().setZoom(11);
 
  </script>
