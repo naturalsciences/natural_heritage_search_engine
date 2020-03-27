@@ -188,10 +188,14 @@ class IPTParser(object):
             if 'institutionCode' in item:
                 var_department = item["institutionCode"]
             if 'collectionCode' in item:
-                var_main_collection = item["collectionCode"] 
-                var_dataset = item["datasetName"]
+                var_main_collection = item["collectionCode"]
+            else:                
+                var_main_collection = None
             if 'datasetName' in item:
-                var_sub_collection = item["datasetName"] 
+                var_sub_collection = item["datasetName"]
+            else:
+                var_sub_collection = None
+            
                 
             for type in type_object :
                 main_type_json = {"main_category": "what", "sub_category": "main_object_category" , "value": type, "sub_category_weight": 10 }
@@ -224,7 +228,7 @@ class IPTParser(object):
             if 'phylum' in item:
                 taxon_json = {"main_category": "what", "sub_category": "biological_scientific_name" , "value" : item['phylum'] , "sub_category_weight": 8.7, "rank" : "kingdom"}
                 search_criterias.append(taxon_json)
-            what.append(item['phylum'])
+                what.append(item['phylum'])
             if 'class' in item:
                 taxon_json = {"main_category": "what", "sub_category": "biological_scientific_name" , "value" : item['class'] , "sub_category_weight": 8.6, "rank" : "class"}
                 search_criterias.append(taxon_json)
@@ -232,7 +236,7 @@ class IPTParser(object):
             if 'order' in item:
                 taxon_json = {"main_category": "what", "sub_category": "biological_scientific_name" , "value" : item['order'] , "sub_category_weight": 8.5, "rank" :"order"}
                 search_criterias.append(taxon_json)
-            what.append(item['order'] )
+                what.append(item['order'] )
             if 'family' in item:
                 taxon_json = {"main_category": "what", "sub_category": "biological_scientific_name" , "value" : item['family'] , "sub_category_weight": 8.4, "rank" : "family"}
                 search_criterias.append(taxon_json)
@@ -351,13 +355,14 @@ class IPTParser(object):
             
             #coordinates
             coordinates=[]
+            gis_wkt=""
             if "latitude" in item and "longitude" in item:
                 latitude= item['decimalLatitude']
                 longitude = item['decimalLongitude']                
                 if latitude is not None and longitude is not None:
                     if(len(empty_if_null(latitude))>0 and len(empty_if_null(longitude))>0) :
                         coordinates.append({"geo_ref_point" :{'lat': latitude  ,'lon':    longitude} })
-            
+                        gis_wkt="POINT("+ longitude +" "+ latitude +")"
             #ipr
             if 'license' in item :
                 license = item['license']
@@ -388,6 +393,7 @@ class IPTParser(object):
             elastic_json= { "id" : null_if_empty(url_specimen), "url" : null_if_empty(url_specimen),     "urls_metadata": [{"url_annex_type": "IPT webservice"}], "object_identifiers" : identifiers, "object_format" : format, "institution" : var_institution, "object_type": type_object    ,"department" : var_department, "main_collection" : var_main_collection,  "sub_collection" : var_sub_collection, "content_text" : null_if_empty(removeduplicate(what)), "search_criteria" : null_if_empty(removeduplicate(search_criterias)), "dates": when, "data_creation_date": null_if_empty(last_modification), "data_modification_date": null_if_empty(last_modification)}
             if len(coordinates)>0: 
                 elastic_json["coordinates"] = coordinates
+                elastic_json["gis_point"] = gis_wkt
             #print(elastic_json)
             self.m_elastic_instance.index(index=self.m_index_name, doc_type='document', id=elastic_json['id'], body=elastic_json)
         except Exception as inst:
