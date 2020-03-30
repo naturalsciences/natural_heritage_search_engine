@@ -750,8 +750,8 @@ class DefaultController extends Controller
     
     public function indexAction_logic(Request $request, $template)
     {
-        $map=$request->request->get("map",'off');
-        $details=$request->request->get("details",'off');
+        $map=$request->query->get("map",'off');
+        $details=$request->query->get("details",'off');
         $session = $request->getSession(); 
 		$session->remove('es_result');		
 		$session->remove('expanded');
