@@ -1,3 +1,6 @@
+--Franck Theeten 2020-04-24
+--partly based on based on https://stackoverflow.com/questions/46540352/calling-restful-web-services-from-postgresql-procedure-function
+
 --exemple of call
 --EX: SELECT * FROM georeferencing.call_nominatim_service('Meuse', 'BE', NULL, array['water', 'river']);
 --4th parameter is the osm key/value for the type of feature
