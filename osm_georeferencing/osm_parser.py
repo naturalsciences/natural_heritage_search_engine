@@ -1,3 +1,6 @@
+# Franck Theeten 2020 04 04
+#code heavily based on the QuickOSM pluging of Quantum GIS developped  by Etienne Trimaille
+
 import requests
 
 save_folder="C:\\WORK_CORONA\\osm_congo\\"
