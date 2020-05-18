@@ -22,6 +22,7 @@ key="waterway"
 
 
 cpt=1
+#useful if download interrupted
 cpt_min=1
 for x in range(x_min,x_max, size_degree):
     print(x)
