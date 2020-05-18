@@ -76,7 +76,7 @@ GRANT EXECUTE ON FUNCTION fct_rmca_py_webservice(text, text, text) TO darwin2;
 
 /*
 ---------------------------------------------------------------------------------
-FUNCTION 2 : map overpass data into PostGIS feature
+FUNCTION 2 : map overpass data into PostGIS features
 
 */
 
@@ -155,7 +155,7 @@ ALTER FUNCTION georeferencing.call_overpass_id(character varying, character vary
 /*
 Function 3
 ---------------------------------------------------------------------------------
-Main function
+Main function calling nominatim anf then OverPass to map the data to PostGIS
 
 */
 -- Function: georeferencing.call_nominatim_service(character varying, character varying, character varying, text[], text, text)
