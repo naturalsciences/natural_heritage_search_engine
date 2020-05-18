@@ -4,7 +4,11 @@
 --exemple of call
 --EX: SELECT * FROM georeferencing.call_nominatim_service('Meuse', 'BE', NULL, array['water', 'river']);
 --4th parameter is the osm key/value for the type of feature
--- of SELECT *,  georeferencing.call_nominatim_service(name, 'iso3166', NULL, array['water', 'river']) FROM  gist_table;
+-- of SELECT *,  georeferencing.call_nominatim_service(name_field, iso3166_2_field, NULL, array['water', 'river']) FROM  gist_table;
+--notes:
+-- currently this only takes relations and ways (not OSM nodes)
+--uses nominatim API as an intermediate step
+
 --output
 --
 /*
