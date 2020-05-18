@@ -1,7 +1,7 @@
 # Franck Theeten 2020 04 04
 #code heavily based on the QuickOSM pluging of Quantum GIS developped  by Etienne Trimaille
 
-#use Osmium tool to merge the OSM files into a single gile that can be converted into shapefile
+#use Osmium tool to merge the OSM files into a single file that can be converted into shapefile
 
 import requests
 
