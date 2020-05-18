@@ -2,10 +2,11 @@
 #code heavily based on the QuickOSM pluging of Quantum GIS developped  by Etienne Trimaille
 
 #use Osmium tool to merge the OSM files into a single file that can be converted into shapefile
+#uses Python 3
 
 import requests
 
-save_folder="C:\\WORK_CORONA\\osm_congo\\"
+save_folder="/YOUR_OUTPUT_FOLDER"
 
 root_url="http://overpass-api.de/api/interpreter?data="
 size_degree=4
