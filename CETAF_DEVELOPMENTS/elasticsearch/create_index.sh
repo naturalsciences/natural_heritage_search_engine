@@ -4,6 +4,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
         "number_of_shards" : 1
     },
     "mappings" : {
+     "dynamic":"strict",
          "properties":{
                 "url_id": {
                     "type":"text"                   
