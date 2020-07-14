@@ -1,0 +1,163 @@
+import json
+from elasticsearch import Elasticsearch
+
+URL_ID="http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/"
+def lorem_ipsum(field,idx):
+    return field+ " " + str(idx) +" Section 1.10.32 du \"De Finibus Bonorum et Malorum\" de Ciceron (45 av. J.-C.) \r\n Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+
+def lorem_ipsum_short(field,idx):
+    return field+ " " + str(idx) +" Short text"
+    
+def get_url():
+    return  "https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"         
+
+def create_person(iter=1):
+    returned=[]
+    returned_2={}
+    for i in range(1,iter+1):
+        tmp_array={}
+        tmp_array["contact_type"]="contact type"+str(i)
+        tmp_array["email"]="test_"+str(i)+"cetaf.org"
+        tmp_array["name"]="Name"+str(i)
+        tmp_array["name"]="Name Surname"+str(i)
+        tmp_array["phone"]="0032 7777 "+str(i)
+        tmp_array["title"]="Dr."
+        returned.append(tmp_array)       
+    returned_2["contact_person"]=returned
+    json_tmp=json.dumps(returned_2)
+    return json_tmp
+    
+
+#+ iter    
+def create_collection(parent):
+    returned=[]
+    returned_2=[]
+    returned_2["main_type"]="institution"
+    returned_2["url_id"]=URL_ID+"collection/"+str(i) 
+    
+    
+
+def create_institution(iter=1):
+    returned=[]
+   
+    for i in range(1,iter+1):
+        returned_2={}
+        tmp_array={}
+        tmp_array["name"]="Museum of Natural History "+str(i)
+        tmp_array["description"]="The Museum of Natural Sciences of Belgium "+str(i)
+        
+        identification={}
+        identification["country_iso3166"]="be"
+        identification["country_en"]="Belgium"
+        identification["unique_acronym"]="BE-NHM"+str(i)
+        identification["grscicoll_code"]="RBINS"
+        identification["wikidata_id"]="Q16665660"
+        identification["grid_id"]="grid.20478.39"
+        
+        original_name_1={}
+        original_name_1["iso639"]="fr"
+        original_name_1["lang"]="French"
+        original_name_1["lang"]="Institut Royal des Sciences Naturelles de Belgique "+str(i)
+        original_name_2={}
+        original_name_2["iso639"]="nl"
+        original_name_2["lang"]="Dutch"
+        original_name_2["lang"]="Koninklijk Belgisch Instituut voor Natuurwetenschappen "+str(i)
+        
+        identification["original_name"]=[original_name_1, original_name_2]
+        
+        tmp_array["identification_fields"]=identification
+        
+        tmp_array["annual_report_fields"]=lorem_ipsum("Annual report",1)
+        tmp_array["annual_report_fields_url"]=get_url()
+        tmp_array["dashboard"]=lorem_ipsum("dashboard report",1)
+        tmp_array["dashboard_url"]=get_url()
+        tmp_array["description"]=lorem_ipsum("Description",1)
+        
+        finances={}
+        finances["funding_sources_external_euros"]=lorem_ipsum_short("External finance",1)
+        finances["funding_sources_internal_euros"]=lorem_ipsum_short("Internal finance",1)
+        finances["general_description"]=lorem_ipsum("General description finance",1)
+        finances["operating_budget_euros"]=5000000
+        finances["other_informations_operating_budget"]=lorem_ipsum("Finance information",1)
+        tmp_array["finances"]=finances
+        
+        interest={}
+        interest["current_topics_of_interest"]=["Field work", "Ecology", "Development Cooperation", "Conservation of protected areas", "Caribous"]
+        interest["future_topics_of_interest"]=["Space travel", "space rock", "Electric cars", "Trap music for fast food animation"]
+        interest["general_description"]=lorem_ipsum("General description interest",i)
+        
+        links={}
+        link_1={}
+        link_1["link_type"]="wikipedia"
+        link_1["url"]="https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"
+        
+        link_2={}
+        link_2["link_type"]="wikidata"
+        link_2["url"]="https://www.wikidata.org/wiki/Q5163385"        
+        tmp_array["links"]=[link_1, link_2]
+        
+        
+        tmp_array["interest_involvement_cetaf"]=interest
+        
+        tmp_array["main_areas_of_taxonomic_expertise"]=["Vertebrates", "Heterocera","Hymenoptera","Rhopalocera", "Echinodermata"]
+        tmp_array["name"]="Museum TEST"+str(i)
+        
+        research={}
+        research["general_description"]=lorem_ipsum("General description research",1)
+        research["research_fields"]=["Zoology", "Anthroplogy", "Social sciences", "History of arts"]
+        research_programs=[]
+        for j in range (1,4):
+            research_program_tmp={}
+            research_program_tmp["contribution_description"]=lorem_ipsum("General description research program",j)
+            links={}
+            link_1={}
+            link_1["link_description"]="wikipedia"
+            link_1["url"]="https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"
+            
+            link_2={}
+            link_2["link_description"]="wikidata"
+            link_2["url"]="https://www.wikidata.org/wiki/Q5163385"        
+            research_program_tmp["links"]=[link_1, link_2]
+            research_program_tmp["partner_institutions"]=["Naturalis", "MNHN", "NFM", "NHM"]
+            research_program_tmp["program_name"]="ICEDIG.EU"
+            research_program_tmp["workpackage_name"]=["WP4.3", "WP1.7"]
+            research_programs.append(research_program_tmp)
+        research["research_programs"]=research_programs    
+        tmp_array["research"]=research
+        
+        
+        #############
+        returned_2["main_type"]="institution"
+        returned_2["url_id"]=URL_ID+str(i)
+        returned_2["cetaf_institution"]=tmp_array
+
+       
+        
+        returned.append(returned_2)
+    
+        
+    #json_tmp=json.dumps(returned)
+    return returned
+
+    
+    
+def parse():
+    print("test")
+    tmp_person=create_person(iter=5)
+    print(tmp_person)
+    tmp_institutions=create_institution(5)
+    print(tmp_institutions)
+    es =  Elasticsearch(
+        ['ursidae.rbins.be'],       
+        use_ssl = False,
+        port=9200,
+    )
+    for inst in tmp_institutions:
+        print(inst)
+        es.index(index="cetaf_passport_dev", id=inst["cetaf_institution"]["identification_fields"]["unique_acronym"], body=inst)
+    
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    parse()
+    
