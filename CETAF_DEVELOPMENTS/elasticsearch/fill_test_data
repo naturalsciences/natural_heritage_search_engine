@@ -132,7 +132,15 @@ def create_coll(museum, coll, parent_coll=None):
     returned_2["parent_relationship"]=relation
     print("CREATE COLL")
     global INDEX_NAME
+    print("created "+returned_2["full_path"])
     es.index(index=INDEX_NAME, doc_type= "_doc",id=returned_2["full_path"], body=returned_2, routing=relation["parent"])
+    if(coll=="Vascular plants"):
+        for i in range(0,3):
+            print("CREATE = "+coll+"sub_col"+str(i)+ " with parent "+parent_coll+"/"+coll)
+            list_paths[parent_coll+"/"+ coll]=[parent_coll]
+            create_coll(museum, coll+"sub_col"+str(i),parent_coll+"/"+ coll)
+            #raise Exception("debug") 
+            
             
 def init_main_coll(museum):
     for main_coll, subs in coll_struct.items():
@@ -253,6 +261,7 @@ def create_institution(iter=1):
         #############
         returned_2["main_type"]="institution"
         returned_2["url_id"]=URL_ID+str(i)
+        returned_2["direct_children"]=[]
         returned_2["full_path"]=tmp_array["institution_name"]
         returned_2["cetaf_institution"]=tmp_array
         relation={}
@@ -282,7 +291,7 @@ def parse():
         port=9200,
     )
     for inst in tmp_institutions:
-        print(inst)
+        #print(inst)
         global INDEX_NAME
         es.index(index=INDEX_NAME, doc_type= "_doc",id=inst["cetaf_institution"]["identification_fields"]["unique_acronym"], body=inst, routing="null")
         init_main_coll(inst["cetaf_institution"]["identification_fields"]["unique_acronym"])
