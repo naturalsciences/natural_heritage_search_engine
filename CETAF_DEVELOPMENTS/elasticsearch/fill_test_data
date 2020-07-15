@@ -10,6 +10,7 @@ coll_struct["Botany"]=["Vascular plants","Bryophytes (mosses)","Algae" ]
 coll_struct["Mycology"]=["Fungi and lichens" ]
 coll_struct["Zoology Invertebrates"]=["Arthropods - insects", "Arthropods - arachnids", "Arthropods - crustaceans & myriapods", "Mollusks (bivalves, gastropods, cephalopods)", "Cnidaria (corals, jellyfish, anemones)", "Porifera (sponges)", "Other (other taxonomic groups)"]
 coll_struct["Zoology Vertebrates"]=["Fishes", "Amphibians", "Reptiles", "Birds", "Mammals"]
+list_paths={}
 
 addresses=[{"city":"Brussel",
            "country":"Belgium",
@@ -86,16 +87,22 @@ def create_coll(museum, coll, parent_coll=None):
     returned_2={}
     returned_2["main_type"]="collection"
     returned_2["url_id"]=URL_ID+"/collection/"+str(iCols)
+    returned_2["parent_institution"]=museum
+    global list_paths
     if parent_coll:
+        returned_2["list_parent_collections"]=list_paths[parent_coll]+ [parent_coll]
         returned_2["full_path"]=museum+"/"+parent_coll+"/"+coll
+        list_paths[coll]=returned_2["list_parent_collections"]
     else:
+        returned_2["list_parent_collections"]=[museum]
         returned_2["full_path"]=museum+"/"+coll
+        list_paths[coll]=returned_2["list_parent_collections"]
     returned={}
-    returned["name"]=coll
-    returned["description"]=lorem_ipsum("Description of collection",iCols)
+    returned["collection_name"]=coll
+    returned["collection_description"]=lorem_ipsum("Description of collection",iCols)
     
     coverage={}
-    coverage["countries_and_areas"]=[{"area_type":"country", "identifier":{"system":"iso3166", "value":"be" }, "name":"Belgium"},{"area_type":"country", "name":"Vlaams Brabant"},{"area_type":"country", "name":"Hainaut"}]
+    coverage["countries_and_areas"]=[{"area_type":"country", "area_identifier":{"area_identifier_system":"iso3166", "area_identifier_value":"be" }, "area_name":"Belgium"},{"area_type":"country", "area_name":"Vlaams Brabant"},{"area_type":"country", "area_name":"Hainaut"}]
     
     if not parent_coll:
         coverage["taxonomic_coverage_main_category"]=coll
@@ -121,7 +128,7 @@ def create_coll(museum, coll, parent_coll=None):
         relation["parent"]=museum
     print(relation)
     
-    returned_2["manager_head_of_collection"]={"title":"Dr.", "name":"Syd Barrett", "email":"syd.barrett@cetaf.be", "research_fields":['Mycology','Anthropology']}
+    returned_2["manager_head_of_collection"]={"manager_title":"Dr.", "manager_name":"Syd Barrett", "manager_email":"syd.barrett@cetaf.be", "manager_research_fields":['Mycology','Anthropology']}
     returned_2["parent_relationship"]=relation
     print("CREATE COLL")
     global INDEX_NAME
@@ -156,8 +163,8 @@ def create_institution(iter=1):
     for i in range(1,iter+1):
         returned_2={}
         tmp_array={}
-        tmp_array["name"]="Museum of Natural History "+str(i)
-        tmp_array["description"]="The Museum of Natural Sciences of Belgium "+str(i)
+        tmp_array["institution_name"]="Museum of Natural History "+str(i)
+        tmp_array["institution_description"]="The Museum of Natural Sciences of Belgium "+str(i)
         
         identification={}
         identification["country_iso3166"]="be"
@@ -184,7 +191,7 @@ def create_institution(iter=1):
         tmp_array["annual_report_fields_url"]=get_url()
         tmp_array["dashboard"]=lorem_ipsum("dashboard report",1)
         tmp_array["dashboard_url"]=get_url()
-        tmp_array["description"]=lorem_ipsum("Description",1)
+        tmp_array["institution_description"]=lorem_ipsum("Description",1)
         
         finances={}
         finances["funding_sources_external_euros"]=lorem_ipsum_short("External finance",1)
@@ -201,19 +208,19 @@ def create_institution(iter=1):
         
         links={}
         link_1={}
-        link_1["link_type"]="wikipedia"
-        link_1["url"]="https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"
+        link_1["institution_link_type"]="wikipedia"
+        link_1["institution_url"]="https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"
         
         link_2={}
-        link_2["link_type"]="wikidata"
-        link_2["url"]="https://www.wikidata.org/wiki/Q5163385"        
-        tmp_array["links"]=[link_1, link_2]
+        link_2["institution_link_type"]="wikidata"
+        link_2["institution_url"]="https://www.wikidata.org/wiki/Q5163385"        
+        tmp_array["institution_links"]=[link_1, link_2]
         
         
         tmp_array["interest_involvement_cetaf"]=interest
         
         tmp_array["main_areas_of_taxonomic_expertise"]=["Vertebrates", "Heterocera","Hymenoptera","Rhopalocera", "Echinodermata"]
-        tmp_array["name"]="Museum TEST"+str(i)
+        tmp_array["institution_name"]="Museum TEST"+str(i)
         
         research={}
         research["general_description"]=lorem_ipsum("General description research",1)
@@ -224,13 +231,13 @@ def create_institution(iter=1):
             research_program_tmp["contribution_description"]=lorem_ipsum("General description research program",j)
             links={}
             link_1={}
-            link_1["link_description"]="wikipedia"
-            link_1["url"]="https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"
+            link_1["research_link_description"]="wikipedia"
+            link_1["research_url"]="https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"
             
             link_2={}
-            link_2["link_description"]="wikidata"
-            link_2["url"]="https://www.wikidata.org/wiki/Q5163385"        
-            research_program_tmp["links"]=[link_1, link_2]
+            link_2["research_link_description"]="wikidata"
+            link_2["research_url"]="https://www.wikidata.org/wiki/Q5163385"        
+            research_program_tmp["research_links"]=[link_1, link_2]
             research_program_tmp["partner_institutions"]=["Naturalis", "MNHN", "NFM", "NHM"]
             research_program_tmp["program_name"]="ICEDIG.EU"
             research_program_tmp["workpackage_name"]=["WP4.3", "WP1.7"]
@@ -246,7 +253,7 @@ def create_institution(iter=1):
         #############
         returned_2["main_type"]="institution"
         returned_2["url_id"]=URL_ID+str(i)
-        returned_2["full_path"]=tmp_array["name"]
+        returned_2["full_path"]=tmp_array["institution_name"]
         returned_2["cetaf_institution"]=tmp_array
         relation={}
         relation["name"]="root"
@@ -286,4 +293,3 @@ if __name__ == "__main__":
     # execute only if run as a script
     parse()
     
-
