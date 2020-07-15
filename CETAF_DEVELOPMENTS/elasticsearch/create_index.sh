@@ -19,7 +19,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "dashboard_url": {
               "type": "keyword"
             },
-            "description": {
+            "institution_description": {
               "type": "text"
             },
             "finances": {
@@ -66,7 +66,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     "lang": {
                       "type": "keyword"
                     },
-                    "name": {
+                    "translated_name": {
                       "type": "text"
                     }
                   }
@@ -93,13 +93,13 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 }
               }
             },
-            "links": {
+            "institution_links": {
               "type": "nested",
               "properties": {
-                "link_type": {
+                "institution_link_type": {
                   "type": "keyword"
                 },
-                "url": {
+                "institution_url": {
                   "type": "keyword"
                 }
               }
@@ -107,7 +107,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "main_areas_of_taxonomic_expertise": {
               "type": "text"
             },
-            "name": {
+            "institution_name": {
               "type": "text"
             },
             "research": {
@@ -125,13 +125,13 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     "contribution_description": {
                       "type": "text"
                     },
-                    "links": {
+                    "research_links": {
                       "type": "nested",
                       "properties": {
-                        "link_description": {
+                        "research_link_description": {
                           "type": "keyword"
                         },
-                        "url": {
+                        "research_url": {
                           "type": "keyword"
                         }
                       }
@@ -236,36 +236,36 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "contact_person": {
               "type": "nested",
               "properties": {
-                "contact_type": {
+                "edu_contact_type": {
                   "type": "keyword"
                 },
-                "email": {
+                "edu_email": {
                   "type": "keyword"
                 },
-                "name": {
+                "edu_name": {
                   "type": "keyword"
                 },
-                "phone": {
+                "edu_phone": {
                   "type": "keyword"
                 },
-                "title": {
+                "edu_title": {
                   "type": "keyword"
                 }
               }
             },
-            "general_description": {
+            "education_general_description": {
               "type": "text"
             },
             "training": {
               "type": "nested",
               "properties": {
-                "one_line_or_presential": {
+                "training_online_or_presential": {
                   "type": "keyword"
                 },
                 "training_type": {
                   "type": "keyword"
                 },
-                "url": {
+                "training_url": {
                   "type": "keyword"
                 }
               }
@@ -281,7 +281,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "available_tools": {
               "type": "text"
             },
-            "description": {
+            "facility_description": {
               "type": "text"
             },
             "exhibitions": {
@@ -293,7 +293,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "list_of_laboratories": {
               "type": "text"
             },
-            "name": {
+            "facility_name": {
               "type": "text"
             },
             "other_scientific_facilities": {
@@ -307,22 +307,22 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
         "manager_head_of_collection": {
           "type": "nested",
           "properties": {
-            "email": {
+            "manager_email": {
               "type": "keyword"
             },
-            "name": {
+            "manager_name": {
               "type": "keyword"
             },
-            "phone": {
+            "manager_phone": {
               "type": "keyword"
             },
-            "position": {
+            "manager_position": {
               "type": "text"
             },
-            "research_fields": {
+            "manager_research_fields": {
               "type": "text"
             },
-            "title": {
+            "manager_title": {
               "type": "keyword"
             }
           }
@@ -342,19 +342,19 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 "contact_person": {
                   "type": "nested",
                   "properties": {
-                    "contact_type": {
+                    "adm_contact_type": {
                       "type": "keyword"
                     },
-                    "email": {
+                    "adm_email": {
                       "type": "keyword"
                     },
-                    "name": {
+                    "adm_name": {
                       "type": "keyword"
                     },
-                    "phone": {
+                    "adm_phone": {
                       "type": "keyword"
                     },
-                    "title": {
+                    "adm_title": {
                       "type": "keyword"
                     }
                   }
@@ -373,37 +373,37 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "collection_staff": {
               "type": "nested",
               "properties": {
-                "collection_role": {
+                "staff_collection_role": {
                   "type": "keyword"
                 },
-                "curatorial_role": {
+                "staff_curatorial_role": {
                   "type": "keyword"
                 },
-                "degree_msc_discipline": {
+                "staff_degree_msc_discipline": {
                   "type": "keyword"
                 },
-                "degree_msc_title": {
+                "staff_degree_msc_title": {
                   "type": "keyword"
                 },
-                "description": {
+                "staff_description": {
                   "type": "text"
                 },
-                "expertise_description": {
+                "staff_expertise_description": {
                   "type": "text"
                 },
-                "expertise_domain": {
+                "staff_expertise_domain": {
                   "type": "keyword"
                 },
-                "expertise_geography": {
+                "staff_expertise_geography": {
                   "type": "keyword"
                 },
-                "first_name": {
+                "staff_first_name": {
                   "type": "text"
                 },
-                "full_time_equivalent_pc": {
+                "staff_full_time_equivalent_pc": {
                   "type": "keyword"
                 },
-                "identifiers": {
+                "staff_identifiers": {
                   "type": "nested",
                   "properties": {
                     "system": {
@@ -414,22 +414,22 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     }
                   }
                 },
-                "last_name": {
+                "staff_last_name": {
                   "type": "text"
                 },
-                "link": {
+                "staff_link": {
                   "type": "keyword"
                 },
-                "phd_msc_discipline": {
+                "staff_phd_msc_discipline": {
                   "type": "keyword"
                 },
                 "phd_msc_title": {
                   "type": "keyword"
                 },
-                "status": {
+                "staff_status": {
                   "type": "keyword"
                 },
-                "title": {
+                "staff_title": {
                   "type": "keyword"
                 }
               }
@@ -446,18 +446,18 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     "area_type": {
                       "type": "keyword"
                     },
-                    "identifier": {
+                    "area_identifier": {
                       "type": "nested",
                       "properties": {
-                        "system": {
+                        "area_identifier_system": {
                           "type": "keyword"
                         },
-                        "value": {
+                        "area_identifier_value": {
                           "type": "keyword"
                         }
                       }
                     },
-                    "name": {
+                    "area_name": {
                       "type": "text"
                     }
                   }
@@ -510,7 +510,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 }
               }
             },
-            "description": {
+            "collection_description": {
               "type": "text"
             },
             "description_fields": {
@@ -598,7 +598,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 }
               }
             },
-            "name": {
+            "collection_name": {
               "type": "text"
             },
             "original_collectors": {
@@ -653,7 +653,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 "label_system_if_other": {
                   "type": "keyword"
                 },
-                "preparation_crosswak_description_standard": {
+                "preparation_crosswalk_description_standard": {
                   "type": "keyword"
                 },
                 "preparation_treatment": {
@@ -673,10 +673,10 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 "dataset_role": {
                   "type": "keyword"
                 },
-                "description": {
+                "valorisation_description": {
                   "type": "text"
                 },
-                "identification_fields": {
+                "valorisation_identification_fields": {
                   "type": "nested",
                   "properties": {
                     "identifier": {
@@ -687,19 +687,19 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     }
                   }
                 },
-                "licence": {
+                "valorisation_licence": {
                   "type": "keyword"
                 },
-                "licence_holder": {
+                "valorisation_licence_holder": {
                   "type": "text"
                 },
-                "title": {
+                "valorisation_title": {
                   "type": "text"
                 },
-                "type": {
+                "valorisation_type": {
                   "type": "keyword"
                 },
-                "url": {
+                "valorisation_url": {
                   "type": "keyword"
                 }
               }
@@ -750,22 +750,22 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "director_or_legal_representative": {
               "type": "nested",
               "properties": {
-                "email": {
+                "dir_rep_email": {
                   "type": "keyword"
                 },
-                "name": {
+                "dir_rep_name": {
                   "type": "keyword"
                 },
-                "phone": {
+                "dir_rep_phone": {
                   "type": "keyword"
                 },
-                "position": {
+                "dir_rep_position": {
                   "type": "text"
                 },
-                "research_fields": {
+                "dir_rep_research_fields": {
                   "type": "text"
                 },
-                "title": {
+                "dir_rep_title": {
                   "type": "keyword"
                 }
               }
@@ -791,22 +791,22 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 "official_representative": {
                   "type": "nested",
                   "properties": {
-                    "email": {
+                    "member_rep_email": {
                       "type": "keyword"
                     },
-                    "name": {
+                    "member_rep_name": {
                       "type": "keyword"
                     },
-                    "phone": {
+                    "member_rep_phone": {
                       "type": "keyword"
                     },
-                    "position": {
+                    "member_rep_position": {
                       "type": "text"
                     },
-                    "research_fields": {
+                    "member_rep_research_fields": {
                       "type": "text"
                     },
-                    "title": {
+                    "member_rep_title": {
                       "type": "keyword"
                     }
                   }
@@ -852,29 +852,29 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     "cetaf_deputy": {
                       "type": "boolean"
                     },
-                    "email": {
+                    "cetaf_staff_email": {
                       "type": "keyword"
                     },
-                    "name": {
+                    "cetaf_staff_name": {
                       "type": "keyword"
                     },
-                    "phone": {
+                    "cetaf_staff_phone": {
                       "type": "keyword"
                     },
-                    "position": {
+                    "cetaf_staff_position": {
                       "type": "text"
                     },
-                    "research_fields": {
+                    "cetaf_staff_research_fields": {
                       "type": "text"
                     },
-                    "title": {
+                    "cetaf_staff_title": {
                       "type": "keyword"
                     }
                   }
                 }
               }
             },
-            "name": {
+            "organisation_name": {
               "type": "text"
             },
             "staff_fields": {
@@ -927,42 +927,42 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "communication_tools": {
               "type": "nested",
               "properties": {
-                "category": {
+                "comm_tool_category": {
                   "type": "keyword"
                 },
-                "link": {
+                "comm_tool_link": {
                   "type": "keyword"
                 },
-                "media_name": {
+                "comm_tool_media_name": {
                   "type": "text"
                 },
-                "title": {
+                "comm_tool_title": {
                   "type": "text"
                 }
               }
             },
-            "description": {
+            "comm_description": {
               "type": "text"
             },
-            "identification_fields": {
+            "comm_identification_fields": {
               "type": "nested",
               "properties": {
                 "contact_person": {
                   "type": "nested",
                   "properties": {
-                    "contact_type": {
+                    "comm_contact_type": {
                       "type": "keyword"
                     },
-                    "email": {
+                    "comm_email": {
                       "type": "keyword"
                     },
-                    "name": {
+                    "comm_name": {
                       "type": "keyword"
                     },
-                    "phone": {
+                    "comm_phone": {
                       "type": "keyword"
                     },
-                    "title": {
+                    "comm_title": {
                       "type": "keyword"
                     }
                   }
@@ -972,9 +972,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 }
               }
             },
-            "name": {
-              "type": "text"
-            },
+            
             "visitors_fields": {
               "type": "nested",
               "properties": {
@@ -1005,7 +1003,13 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
 		,
         "full_path": {
           "type": "text"
-        }
+        },
+		"parent_institution":{
+			"type":"text"
+		},
+		"list_parent_collections":{
+			"type":"text"
+		}
       }
     }
   
