@@ -1009,6 +1009,10 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
 		},
 		"list_parent_collections":{
 			"type":"text"
+		},
+		"direct_children":
+		{
+			"type":"text"
 		}
       }
     }
