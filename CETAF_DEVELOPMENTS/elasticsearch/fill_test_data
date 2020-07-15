@@ -2,6 +2,18 @@ import json
 from elasticsearch import Elasticsearch
 
 URL_ID="http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/"
+
+coll_struct={}
+coll_struct["Botany"]=["Vascular plants","Bryophytes (mosses)","Algae" ]
+coll_struct["Mycology"]=["Fungi and lichens" ]
+coll_struct["Zoology Invertebrates"]=["Arthropods - insects", "Arthropods - arachnids", "Arthropods - crustaceans & myriapods", "Mollusks (bivalves, gastropods, cephalopods)", "Cnidaria (corals, jellyfish, anemones)", "Porifera (sponges)", "Other (other taxonomic groups)"]
+coll_struct["Zoology Vertebrates"]=["Fishes", "Amphibians", "Reptiles", "Birds", "Mammals"]
+
+global_generator=None
+started=False
+iCols=1
+es=None
+
 def lorem_ipsum(field,idx):
     return field+ " " + str(idx) +" Section 1.10.32 du \"De Finibus Bonorum et Malorum\" de Ciceron (45 av. J.-C.) \r\n Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
 
@@ -28,15 +40,83 @@ def create_person(iter=1):
     return json_tmp
     
 
-#+ iter    
-def create_collection(parent):
-    returned=[]
-    returned_2=[]
-    returned_2["main_type"]="institution"
-    returned_2["url_id"]=URL_ID+"collection/"+str(i) 
-    
-    
+#+ iter 
+def coll_generator(iter_total=15):
+    i=0
+    for main_coll, subs in coll_struct.items(): 
+        print(main_coll)
+        for sub_coll in subs:
+            yield [main_coll, sub_coll]
 
+def create_coll(museum, coll, parent_coll=None):
+    global iCols
+    global es
+    returned_2={}
+    returned_2["main_type"]="collection"
+    returned_2["url_id"]=URL_ID+"/collection/"+str(iCols)
+    if parent_coll:
+        returned_2["full_path"]=museum+"/"+parent_coll+"/"+coll
+    else:
+        returned_2["full_path"]=museum+"/"+coll
+    returned={}
+    returned["name"]=coll
+    returned["description"]=lorem_ipsum("Description of collection",iCols)
+    
+    coverage={}
+    coverage["countries_and_areas"]=[{"area_type":"country", "identifier":{"system":"iso3166", "value":"be" }, "name":"Belgium"},{"area_type":"country", "name":"Vlaams Brabant"},{"area_type":"country", "name":"Hainaut"}]
+    
+    if not parent_coll:
+        coverage["taxonomic_coverage_main_category"]=coll
+    else:
+        coverage["taxonomic_coverage_main_category"]=parent_coll
+        coverage["taxonomic_coverage_sub_category"]=coll
+    coverage["temporal_scope"]={"gte":1800,"lte":2000}
+    returned["coverage_fields"]=coverage
+    
+    size={}
+    size["mids_level"]=2
+    size["primary_types_count"]=iCols
+    size["specimens_count"]=iCols*1000
+    size["units_count"]=iCols*100
+    returned["description_fields"]=size
+    
+    returned_2["natural_history_collection"]=returned
+    relation={}
+    relation["name"]="root"
+    if parent_coll:
+        relation["parent"]=museum+"/"+parent_coll
+    else:
+        relation["parent"]=museum
+    print(relation)
+    
+    returned_2["manager_head_of_collection"]={"title":"Dr.", "name":"Syd Barrett", "email":"syd.barrett@cetaf.be", "research_fields":['Mycology','Anthropology']}
+    returned_2["parent_relationship"]=relation
+    
+    es.index(index="cetaf_passport_dev", doc_type= "_doc",id=returned_2["full_path"], body=returned_2, routing=relation["parent"])
+            
+def init_main_coll(museum):
+    for main_coll, subs in coll_struct.items():
+        create_coll(museum, main_coll)
+        
+def create_collection(museum, iter_total=18, iter_in_level=3):
+    global started
+    global global_generator
+    global iCols
+    if not  started:
+        global_generator=coll_generator(iter_total)
+        started=True       
+    for i in range(0,iter_total):
+        try:         
+            cols=next(global_generator)
+            print(cols)
+            create_coll(museum, cols[1], cols[0])
+        except StopIteration:
+            print("REWIND")
+            global_generator=coll_generator(iter_total)
+        print(iCols)
+        iCols=iCols+1 
+        
+         
 def create_institution(iter=1):
     returned=[]
    
@@ -129,8 +209,12 @@ def create_institution(iter=1):
         #############
         returned_2["main_type"]="institution"
         returned_2["url_id"]=URL_ID+str(i)
+        returned_2["full_path"]=tmp_array["name"]
         returned_2["cetaf_institution"]=tmp_array
-
+        relation={}
+        relation["name"]="root"
+        relation["parent"]="null"
+        returned_2["parent_relationship"]=relation
        
         
         returned.append(returned_2)
@@ -143,10 +227,11 @@ def create_institution(iter=1):
     
 def parse():
     print("test")
-    tmp_person=create_person(iter=5)
+    tmp_person=create_person(iter=6)
     print(tmp_person)
-    tmp_institutions=create_institution(5)
+    tmp_institutions=create_institution(160)
     print(tmp_institutions)
+    global es
     es =  Elasticsearch(
         ['ursidae.rbins.be'],       
         use_ssl = False,
@@ -154,7 +239,9 @@ def parse():
     )
     for inst in tmp_institutions:
         print(inst)
-        es.index(index="cetaf_passport_dev", id=inst["cetaf_institution"]["identification_fields"]["unique_acronym"], body=inst)
+        es.index(index="cetaf_passport", doc_type= "_doc",id=inst["cetaf_institution"]["identification_fields"]["unique_acronym"], body=inst, routing="null")
+        init_main_coll(inst["cetaf_institution"]["identification_fields"]["unique_acronym"])
+        create_collection(inst["cetaf_institution"]["identification_fields"]["unique_acronym"])
     
 
 if __name__ == "__main__":
