@@ -124,3 +124,9 @@ curl -X PUT "localhost:9200/cetaf_passport/_doc/BE-RBINS-ANT-ARC?routing=BE-RBIN
 	   }
 }
 '
+
+#filter institutions
+https://darwin.naturalsciences.be/elasticsearch_cetaf_passport/_search?q=main_type:institution
+
+#filter collections:
+https://darwin.naturalsciences.be/elasticsearch_cetaf_passport/_search?q=main_type:collection
