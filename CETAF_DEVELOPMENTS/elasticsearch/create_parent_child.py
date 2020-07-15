@@ -1,7 +1,7 @@
 import json
 from elasticsearch import Elasticsearch, helpers, exceptions
 
-INDEX_NAME="cetaf_passport_dev"
+INDEX_NAME="cetaf_passport"
 es=None
 relations={}
 
