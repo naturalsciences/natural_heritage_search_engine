@@ -92,7 +92,7 @@ def create_coll(museum, coll, parent_coll=None):
     returned_2["manager_head_of_collection"]={"title":"Dr.", "name":"Syd Barrett", "email":"syd.barrett@cetaf.be", "research_fields":['Mycology','Anthropology']}
     returned_2["parent_relationship"]=relation
     
-    es.index(index="cetaf_passport_dev", doc_type= "_doc",id=returned_2["full_path"], body=returned_2, routing=relation["parent"])
+    es.index(index="cetaf_passport", doc_type= "_doc",id=returned_2["full_path"], body=returned_2, routing=relation["parent"])
             
 def init_main_coll(museum):
     for main_coll, subs in coll_struct.items():
