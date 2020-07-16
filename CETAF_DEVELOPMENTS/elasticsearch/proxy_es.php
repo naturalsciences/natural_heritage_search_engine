@@ -40,8 +40,13 @@
    
     
     $ch = curl_init( );
-    $payload = json_encode( $_REQUEST);
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $payload );
+    
+    if(count($_REQUEST)>0)
+    {
+        
+        $payload = json_encode( $_REQUEST);
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $payload );
+    }
     curl_setopt($ch, CURLOPT_URL,$ES.$tmp_query2);
     curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
     # Return response instead of printing.
