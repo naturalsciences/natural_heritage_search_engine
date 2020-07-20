@@ -4,9 +4,7 @@
     $ES="http://ursidae.rbins.be:9200/cetaf_passport/";
     function return_json($es, $id)
     {
-        //print("<br/>");
-        //print($es."_doc/".rawurlencode ($id));
-        // print("<br/>");
+
         $ch = curl_init( );
     
     
@@ -18,22 +16,17 @@
         $response = curl_exec($ch);
         curl_close($ch);
         $tmp_array=json_decode($response, true);
-        //print_r($tmp_array);
+
         $doc=$tmp_array["_source"];
-         //print("<br/>");
-         
-        //$children=$doc["direct_children"];
+
         $children_data=Array();
         if(array_key_exists("direct_children", $doc))
         {
             $children= $doc["direct_children"];
             foreach( $children as $elem)
-            {
-                //print($elem);
+            {                
                 $detail=return_json($es, urldecode($elem));
-                $detail_array=json_decode($detail, true);
-                //print_r($detail_array);
-                
+                $detail_array=json_decode($detail, true);            
                 $children_data[$detail_array["_id"]]=$detail_array["_source"];
             }
         }
