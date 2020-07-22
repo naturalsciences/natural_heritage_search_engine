@@ -287,7 +287,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
             "exhibitions": {
               "type": "text"
             },
-            "list_of_facilities_": {
+            "list_of_facilities": {
               "type": "text"
             },
             "list_of_laboratories": {
@@ -397,7 +397,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 "staff_expertise_geography": {
                   "type": "keyword"
                 },
-                "staff_first_name": {
+                "staff_name": {
                   "type": "text"
                 },
                 "staff_full_time_equivalent_pc": {
@@ -414,16 +414,14 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     }
                   }
                 },
-                "staff_last_name": {
-                  "type": "text"
-                },
+               
                 "staff_link": {
                   "type": "keyword"
                 },
                 "staff_phd_msc_discipline": {
                   "type": "keyword"
                 },
-                "phd_msc_title": {
+                "staff_phd_msc_title": {
                   "type": "keyword"
                 },
                 "staff_status": {
@@ -480,10 +478,10 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                     "habitat_type": {
                       "type": "keyword"
                     },
-                    "pc": {
-                      "type": "integer"
+                    "habitat_pc": {
+                      "type": "double"
                     },
-                    "texte": {
+                    "habitat_text": {
                       "type": "keyword"
                     }
                   }
@@ -732,7 +730,7 @@ curl -X PUT "localhost:9200/cetaf_passport?pretty" -H 'Content-Type: application
                 }
               }
             },
-            "description": {
+            "organisation_description": {
               "type": "text"
             },
             "direction_governing_and_executive_bodies": {
