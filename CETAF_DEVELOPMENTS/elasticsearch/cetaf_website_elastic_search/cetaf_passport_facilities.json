@@ -61,7 +61,7 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 				"facility_description": {
 					"type": "text"
 				},
-				"facilty_name": {
+				"facility_name": {
 					"type": "keyword"
 				},
 				"identifiers": {
