@@ -1,1 +1,190 @@
-{"cetaf_passport_institutions":{"aliases":{},"mappings":{"dynamic":"strict","properties":{"contact":{"type":"nested","properties":{"contact_description":{"type":"text"},"contact_email":{"type":"keyword"},"contact_name":{"type":"keyword"},"contact_phone":{"type":"keyword"},"contact_title":{"type":"keyword"},"contact_type":{"type":"keyword"}}},"country_en":{"type":"keyword"},"country_iso3166":{"type":"keyword"},"director_or_legal_representative":{"type":"nested","properties":{"dir_rep_category":{"type":"keyword"},"dir_rep_description":{"type":"text"},"dir_rep_email":{"type":"keyword"},"dir_rep_name":{"type":"keyword"},"dir_rep_phone":{"type":"keyword"},"dir_rep_position":{"type":"text"},"dir_rep_research_fields":{"type":"text"},"dir_rep_title":{"type":"keyword"}}},"identification_fields":{"type":"nested","properties":{"grid_id":{"type":"keyword"},"grscicoll_code":{"type":"keyword"},"original_name":{"type":"nested","properties":{"iso639":{"type":"keyword"},"lang":{"type":"keyword"},"translated_name":{"type":"text"}}},"unique_acronym":{"type":"keyword"},"wikidata_id":{"type":"keyword"}}},"institution_address":{"type":"nested","properties":{"city":{"type":"text"},"country":{"type":"text"},"email":{"type":"text"},"phone":{"type":"text"},"postcode":{"type":"text"},"street":{"type":"text"}}},"main_identifier":{"type":"keyword"},"research":{"type":"nested","properties":{"general_description":{"type":"text"},"research_fields":{"type":"text"},"research_programs":{"type":"nested","properties":{"contribution_description":{"type":"text"},"partner_institutions":{"type":"keyword"},"program_name":{"type":"keyword"},"research_links":{"type":"nested","properties":{"research_link_description":{"type":"keyword"},"research_url":{"type":"keyword"}}},"workpackage_name":{"type":"keyword"}}}}},"to_collection_list":{"type":"keyword"},"to_facility_list":{"type":"keyword"},"to_research_expertise_list":{"type":"keyword"},"url_id":{"type":"text"}}},"settings":{"index":{"creation_date":"1595952570757","number_of_shards":"1","number_of_replicas":"1","uuid":"yz70hExrTWGB00N9_tyPmQ","version":{"created":"7060199"},"provided_name":"cetaf_passport_institutions"}}}}
+{
+	"cetaf_passport_institutions": {
+		"aliases": {
+			
+		},
+		"mappings": {
+			"dynamic": "strict",
+			"properties": {
+				"contact": {
+					"type": "nested",
+					"properties": {
+						"contact_description": {
+							"type": "text"
+						},
+						"contact_email": {
+							"type": "keyword"
+						},
+						"contact_name": {
+							"type": "keyword"
+						},
+						"contact_phone": {
+							"type": "keyword"
+						},
+						"contact_title": {
+							"type": "keyword"
+						},
+						"contact_type": {
+							"type": "keyword"
+						}
+					}
+				},
+				"country_en": {
+					"type": "keyword"
+				},
+				"country_iso3166": {
+					"type": "keyword"
+				},
+				"director_or_legal_representative": {
+					"type": "nested",
+					"properties": {
+						"dir_rep_category": {
+							"type": "keyword"
+						},
+						"dir_rep_description": {
+							"type": "text"
+						},
+						"dir_rep_email": {
+							"type": "keyword"
+						},
+						"dir_rep_name": {
+							"type": "keyword"
+						},
+						"dir_rep_phone": {
+							"type": "keyword"
+						},
+						"dir_rep_position": {
+							"type": "text"
+						},
+						"dir_rep_research_fields": {
+							"type": "text"
+						},
+						"dir_rep_title": {
+							"type": "keyword"
+						}
+					}
+				},
+				"identification_fields": {
+					"type": "nested",
+					"properties": {
+						"grid_id": {
+							"type": "keyword"
+						},
+						"grscicoll_code": {
+							"type": "keyword"
+						},
+						"original_name": {
+							"type": "nested",
+							"properties": {
+								"iso639": {
+									"type": "keyword"
+								},
+								"lang": {
+									"type": "keyword"
+								},
+								"translated_name": {
+									"type": "text"
+								}
+							}
+						},
+						"unique_acronym": {
+							"type": "keyword"
+						},
+						"wikidata_id": {
+							"type": "keyword"
+						}
+					}
+				},
+				"institution_address": {
+					"type": "nested",
+					"properties": {
+						"city": {
+							"type": "text"
+						},
+						"country": {
+							"type": "text"
+						},
+						"email": {
+							"type": "text"
+						},
+						"phone": {
+							"type": "text"
+						},
+						"postcode": {
+							"type": "text"
+						},
+						"street": {
+							"type": "text"
+						}
+					}
+				},
+				"main_identifier": {
+					"type": "keyword"
+				},
+				"research": {
+					"type": "nested",
+					"properties": {
+						"general_description": {
+							"type": "text"
+						},
+						"research_fields": {
+							"type": "text"
+						},
+						"research_programs": {
+							"type": "nested",
+							"properties": {
+								"contribution_description": {
+									"type": "text"
+								},
+								"partner_institutions": {
+									"type": "keyword"
+								},
+								"program_name": {
+									"type": "keyword"
+								},
+								"research_links": {
+									"type": "nested",
+									"properties": {
+										"research_link_description": {
+											"type": "keyword"
+										},
+										"research_url": {
+											"type": "keyword"
+										}
+									}
+								},
+								"workpackage_name": {
+									"type": "keyword"
+								}
+							}
+						}
+					}
+				},
+				"to_collection_list": {
+					"type": "keyword"
+				},
+				"to_facility_list": {
+					"type": "keyword"
+				},
+				"to_research_expertise_list": {
+					"type": "keyword"
+				},
+				"url_id": {
+					"type": "text"
+				}
+			}
+		},
+		"settings": {
+			"index": {
+				"creation_date": "1595952570757",
+				"number_of_shards": "1",
+				"number_of_replicas": "1",
+				"uuid": "yz70hExrTWGB00N9_tyPmQ",
+				"version": {
+					"created": "7060199"
+				},
+				"provided_name": "cetaf_passport_institutions"
+			}
+		}
+	}
+}
