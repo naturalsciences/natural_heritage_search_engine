@@ -161,18 +161,6 @@
 					"type": "text"
 				}
 			}
-		},
-		"settings": {
-			"index": {
-				"creation_date": "1595952591895",
-				"number_of_shards": "1",
-				"number_of_replicas": "1",
-				"uuid": "ITlkQZ0cTwKJ-Xal1WkT3w",
-				"version": {
-					"created": "7060199"
-				},
-				"provided_name": "cetaf_passport_collections"
-			}
 		}
 	}
 }
