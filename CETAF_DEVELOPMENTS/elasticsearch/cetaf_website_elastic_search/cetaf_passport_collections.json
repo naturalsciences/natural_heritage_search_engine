@@ -1,8 +1,5 @@
+curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type: application/json' -d'
 {
-	"cetaf_passport_collections": {
-		"aliases": {
-			
-		},
 		"mappings": {
 			"dynamic": "strict",
 			"properties": {
@@ -148,6 +145,9 @@
 				"to_parent_collection": {
 					"type": "keyword"
 				},
+				"to_all_parent_collections": {
+					"type": "keyword"
+				},
 				"to_parent_institution": {
 					"type": "keyword"
 				},
@@ -159,8 +159,11 @@
 				},
 				"url_id": {
 					"type": "text"
+				},
+				"full_path":{
+					"type": "keyword"
 				}
 			}
 		}
 	}
-}
+'
