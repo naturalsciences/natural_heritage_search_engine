@@ -1,1 +1,178 @@
-{"cetaf_passport_collections":{"aliases":{},"mappings":{"dynamic":"strict","properties":{"collection_acronym":{"type":"keyword"},"collection_description":{"type":"text"},"collection_name":{"type":"keyword"},"collection_type":{"type":"keyword"},"coverage_fields":{"type":"nested","properties":{"collecting_period_text":{"type":"text"},"countries_and_areas":{"type":"nested","properties":{"area_identifier":{"type":"nested","properties":{"area_identifier_system":{"type":"keyword"},"area_identifier_value":{"type":"keyword"}}},"area_name":{"type":"text"},"area_type":{"type":"keyword"}}},"functional_group":{"type":"text"},"geographical_coverage_bbox":{"type":"geo_shape"},"geographical_coverage_coverage_text":{"type":"text"},"geographical_coverage_link":{"type":"keyword"},"habitat":{"type":"nested","properties":{"habitat_pc":{"type":"double"},"habitat_text":{"type":"keyword"},"habitat_type":{"type":"keyword"}}},"stratigraphical_coverage_text":{"type":"text"},"stratigraphical_subdivision":{"type":"keyword"},"stratigraphy_link":{"type":"keyword"},"taxonomic_coverage_main_category":{"type":"text"},"taxonomic_coverage_sub_category":{"type":"text"},"temporal_scope":{"type":"date_range","format":"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||yyyy"}}},"main_identifier":{"type":"keyword"},"manager_head_of_collection":{"type":"nested","properties":{"manager_email":{"type":"keyword"},"manager_name":{"type":"keyword"},"manager_phone":{"type":"keyword"},"manager_position":{"type":"text"},"manager_research_fields":{"type":"text"},"manager_title":{"type":"keyword"}}},"size_and_digitisation_fields":{"type":"nested","properties":{"mids_level":{"type":"integer"},"other_size_indicators":{"type":"text"},"owc_size_evaluation":{"type":"integer"},"primary_types_count":{"type":"integer"},"specimens_count":{"type":"integer"},"units_count":{"type":"integer"}}},"to_facilities":{"type":"keyword"},"to_parent_collection":{"type":"keyword"},"to_parent_institution":{"type":"keyword"},"to_research_expertises":{"type":"keyword"},"to_sub_collections":{"type":"keyword"},"url_id":{"type":"text"}}},"settings":{"index":{"creation_date":"1595952591895","number_of_shards":"1","number_of_replicas":"1","uuid":"ITlkQZ0cTwKJ-Xal1WkT3w","version":{"created":"7060199"},"provided_name":"cetaf_passport_collections"}}}}
+{
+	"cetaf_passport_collections": {
+		"aliases": {
+			
+		},
+		"mappings": {
+			"dynamic": "strict",
+			"properties": {
+				"collection_acronym": {
+					"type": "keyword"
+				},
+				"collection_description": {
+					"type": "text"
+				},
+				"collection_name": {
+					"type": "keyword"
+				},
+				"collection_type": {
+					"type": "keyword"
+				},
+				"coverage_fields": {
+					"type": "nested",
+					"properties": {
+						"collecting_period_text": {
+							"type": "text"
+						},
+						"countries_and_areas": {
+							"type": "nested",
+							"properties": {
+								"area_identifier": {
+									"type": "nested",
+									"properties": {
+										"area_identifier_system": {
+											"type": "keyword"
+										},
+										"area_identifier_value": {
+											"type": "keyword"
+										}
+									}
+								},
+								"area_name": {
+									"type": "text"
+								},
+								"area_type": {
+									"type": "keyword"
+								}
+							}
+						},
+						"functional_group": {
+							"type": "text"
+						},
+						"geographical_coverage_bbox": {
+							"type": "geo_shape"
+						},
+						"geographical_coverage_coverage_text": {
+							"type": "text"
+						},
+						"geographical_coverage_link": {
+							"type": "keyword"
+						},
+						"habitat": {
+							"type": "nested",
+							"properties": {
+								"habitat_pc": {
+									"type": "double"
+								},
+								"habitat_text": {
+									"type": "keyword"
+								},
+								"habitat_type": {
+									"type": "keyword"
+								}
+							}
+						},
+						"stratigraphical_coverage_text": {
+							"type": "text"
+						},
+						"stratigraphical_subdivision": {
+							"type": "keyword"
+						},
+						"stratigraphy_link": {
+							"type": "keyword"
+						},
+						"taxonomic_coverage_main_category": {
+							"type": "text"
+						},
+						"taxonomic_coverage_sub_category": {
+							"type": "text"
+						},
+						"temporal_scope": {
+							"type": "date_range",
+							"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||yyyy"
+						}
+					}
+				},
+				"main_identifier": {
+					"type": "keyword"
+				},
+				"manager_head_of_collection": {
+					"type": "nested",
+					"properties": {
+						"manager_email": {
+							"type": "keyword"
+						},
+						"manager_name": {
+							"type": "keyword"
+						},
+						"manager_phone": {
+							"type": "keyword"
+						},
+						"manager_position": {
+							"type": "text"
+						},
+						"manager_research_fields": {
+							"type": "text"
+						},
+						"manager_title": {
+							"type": "keyword"
+						}
+					}
+				},
+				"size_and_digitisation_fields": {
+					"type": "nested",
+					"properties": {
+						"mids_level": {
+							"type": "integer"
+						},
+						"other_size_indicators": {
+							"type": "text"
+						},
+						"owc_size_evaluation": {
+							"type": "integer"
+						},
+						"primary_types_count": {
+							"type": "integer"
+						},
+						"specimens_count": {
+							"type": "integer"
+						},
+						"units_count": {
+							"type": "integer"
+						}
+					}
+				},
+				"to_facilities": {
+					"type": "keyword"
+				},
+				"to_parent_collection": {
+					"type": "keyword"
+				},
+				"to_parent_institution": {
+					"type": "keyword"
+				},
+				"to_research_expertises": {
+					"type": "keyword"
+				},
+				"to_sub_collections": {
+					"type": "keyword"
+				},
+				"url_id": {
+					"type": "text"
+				}
+			}
+		},
+		"settings": {
+			"index": {
+				"creation_date": "1595952591895",
+				"number_of_shards": "1",
+				"number_of_replicas": "1",
+				"uuid": "ITlkQZ0cTwKJ-Xal1WkT3w",
+				"version": {
+					"created": "7060199"
+				},
+				"provided_name": "cetaf_passport_collections"
+			}
+		}
+	}
+}
