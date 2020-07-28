@@ -1,1 +1,82 @@
-{"cetaf_research_expertises":{"aliases":{},"mappings":{"dynamic":"strict","properties":{"country_en":{"type":"keyword"},"country_iso3166":{"type":"keyword"},"main_identifier":{"type":"keyword"},"person":{"type":"nested","properties":{"email":{"type":"keyword"},"name":{"type":"keyword"},"person_description":{"type":"text"},"phone":{"type":"keyword"},"title":{"type":"keyword"},"type":{"type":"keyword"}}},"person_identifier":{"type":"nested","properties":{"identifier_protocol":{"type":"keyword"},"identifier_value":{"type":"keyword"}}},"seniority":{"type":"keyword"},"taxonomic_fields":{"type":"keyword"},"to_parent_collection":{"type":"keyword"},"to_parent_institution":{"type":"keyword"},"url_id":{"type":"text"}}},"settings":{"index":{"creation_date":"1595952692197","number_of_shards":"1","number_of_replicas":"1","uuid":"Ep5O735lQbGvMzASniJxYw","version":{"created":"7060199"},"provided_name":"cetaf_research_expertises"}}}}
+{
+	"cetaf_research_expertises": {
+		"aliases": {
+			
+		},
+		"mappings": {
+			"dynamic": "strict",
+			"properties": {
+				"country_en": {
+					"type": "keyword"
+				},
+				"country_iso3166": {
+					"type": "keyword"
+				},
+				"main_identifier": {
+					"type": "keyword"
+				},
+				"person": {
+					"type": "nested",
+					"properties": {
+						"email": {
+							"type": "keyword"
+						},
+						"name": {
+							"type": "keyword"
+						},
+						"person_description": {
+							"type": "text"
+						},
+						"phone": {
+							"type": "keyword"
+						},
+						"title": {
+							"type": "keyword"
+						},
+						"type": {
+							"type": "keyword"
+						}
+					}
+				},
+				"person_identifier": {
+					"type": "nested",
+					"properties": {
+						"identifier_protocol": {
+							"type": "keyword"
+						},
+						"identifier_value": {
+							"type": "keyword"
+						}
+					}
+				},
+				"seniority": {
+					"type": "keyword"
+				},
+				"taxonomic_fields": {
+					"type": "keyword"
+				},
+				"to_parent_collection": {
+					"type": "keyword"
+				},
+				"to_parent_institution": {
+					"type": "keyword"
+				},
+				"url_id": {
+					"type": "text"
+				}
+			}
+		},
+		"settings": {
+			"index": {
+				"creation_date": "1595952692197",
+				"number_of_shards": "1",
+				"number_of_replicas": "1",
+				"uuid": "Ep5O735lQbGvMzASniJxYw",
+				"version": {
+					"created": "7060199"
+				},
+				"provided_name": "cetaf_research_expertises"
+			}
+		}
+	}
+}
