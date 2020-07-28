@@ -1,8 +1,6 @@
+curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type: application/json' -d'
 {
-	"cetaf_passport_institutions": {
-		"aliases": {
-			
-		},
+	
 		"mappings": {
 			"dynamic": "strict",
 			"properties": {
@@ -95,6 +93,12 @@
 						}
 					}
 				},
+				"institution_name": {
+					"type": "keyword"
+				},
+				"institution_description": {
+					"type": "text"
+				},
 				"institution_address": {
 					"type": "nested",
 					"properties": {
@@ -170,9 +174,12 @@
 					"type": "keyword"
 				},
 				"url_id": {
-					"type": "text"
+					"type": "keyword"
+				},
+				"full_path":{
+					"type": "keyword"
 				}
 			}
 		}
-	}
-}
+	
+}'
