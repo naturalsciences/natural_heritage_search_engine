@@ -173,18 +173,6 @@
 					"type": "text"
 				}
 			}
-		},
-		"settings": {
-			"index": {
-				"creation_date": "1595952570757",
-				"number_of_shards": "1",
-				"number_of_replicas": "1",
-				"uuid": "yz70hExrTWGB00N9_tyPmQ",
-				"version": {
-					"created": "7060199"
-				},
-				"provided_name": "cetaf_passport_institutions"
-			}
 		}
 	}
 }
