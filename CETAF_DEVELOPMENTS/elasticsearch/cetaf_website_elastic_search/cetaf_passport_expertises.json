@@ -1,5 +1,5 @@
 {
-	"cetaf_research_expertises": {
+	"cetaf_passport_expertises": {
 		"aliases": {
 			
 		},
@@ -44,6 +44,30 @@
 						"identifier_protocol": {
 							"type": "keyword"
 						},
+						"identifier_value": {
+							"type": "keyword"
+						}
+					}
+				},
+				"seniority": {
+					"type": "keyword"
+				},
+				"taxonomic_fields": {
+					"type": "keyword"
+				},
+				"to_parent_collection": {
+					"type": "keyword"
+				},
+				"to_parent_institution": {
+					"type": "keyword"
+				},
+				"url_id": {
+					"type": "text"
+				}
+			}
+		}
+	}
+}
 						"identifier_value": {
 							"type": "keyword"
 						}
