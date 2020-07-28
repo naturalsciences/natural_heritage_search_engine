@@ -1,1 +1,108 @@
-{"cetaf_passport_facilities":{"aliases":{},"mappings":{"dynamic":"strict","properties":{"available_protocols":{"type":"text"},"available_tools":{"type":"text"},"contact":{"type":"nested","properties":{"contact_description":{"type":"text"},"contact_email":{"type":"keyword"},"contact_name":{"type":"keyword"},"contact_phone":{"type":"keyword"},"contact_title":{"type":"keyword"},"contact_type":{"type":"keyword"}}},"facility_acronym":{"type":"keyword"},"facility_address":{"type":"nested","properties":{"city":{"type":"text"},"country":{"type":"text"},"email":{"type":"text"},"phone":{"type":"text"},"postcode":{"type":"text"},"street":{"type":"text"}}},"facility_description":{"type":"text"},"facilty_name":{"type":"keyword"},"identifiers":{"type":"nested","properties":{"identifier_protocol":{"type":"keyword"},"identifier_value":{"type":"keyword"}}},"main_identifier":{"type":"keyword"},"to_parent_collection":{"type":"keyword"},"to_parent_institution":{"type":"keyword"},"url_id":{"type":"text"}}},"settings":{"index":{"creation_date":"1595952658887","number_of_shards":"1","number_of_replicas":"1","uuid":"HAOkOiA6TnKaGm7pbAJwUw","version":{"created":"7060199"},"provided_name":"cetaf_passport_facilities"}}}}
+{
+	"cetaf_passport_facilities": {
+		"aliases": {
+			
+		},
+		"mappings": {
+			"dynamic": "strict",
+			"properties": {
+				"available_protocols": {
+					"type": "text"
+				},
+				"available_tools": {
+					"type": "text"
+				},
+				"contact": {
+					"type": "nested",
+					"properties": {
+						"contact_description": {
+							"type": "text"
+						},
+						"contact_email": {
+							"type": "keyword"
+						},
+						"contact_name": {
+							"type": "keyword"
+						},
+						"contact_phone": {
+							"type": "keyword"
+						},
+						"contact_title": {
+							"type": "keyword"
+						},
+						"contact_type": {
+							"type": "keyword"
+						}
+					}
+				},
+				"facility_acronym": {
+					"type": "keyword"
+				},
+				"facility_address": {
+					"type": "nested",
+					"properties": {
+						"city": {
+							"type": "text"
+						},
+						"country": {
+							"type": "text"
+						},
+						"email": {
+							"type": "text"
+						},
+						"phone": {
+							"type": "text"
+						},
+						"postcode": {
+							"type": "text"
+						},
+						"street": {
+							"type": "text"
+						}
+					}
+				},
+				"facility_description": {
+					"type": "text"
+				},
+				"facilty_name": {
+					"type": "keyword"
+				},
+				"identifiers": {
+					"type": "nested",
+					"properties": {
+						"identifier_protocol": {
+							"type": "keyword"
+						},
+						"identifier_value": {
+							"type": "keyword"
+						}
+					}
+				},
+				"main_identifier": {
+					"type": "keyword"
+				},
+				"to_parent_collection": {
+					"type": "keyword"
+				},
+				"to_parent_institution": {
+					"type": "keyword"
+				},
+				"url_id": {
+					"type": "text"
+				}
+			}
+		},
+		"settings": {
+			"index": {
+				"creation_date": "1595952658887",
+				"number_of_shards": "1",
+				"number_of_replicas": "1",
+				"uuid": "HAOkOiA6TnKaGm7pbAJwUw",
+				"version": {
+					"created": "7060199"
+				},
+				"provided_name": "cetaf_passport_facilities"
+			}
+		}
+	}
+}
