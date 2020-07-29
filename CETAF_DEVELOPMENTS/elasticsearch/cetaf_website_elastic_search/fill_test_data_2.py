@@ -203,7 +203,7 @@ def create_institution(iter=1):
         print(iso_tmp)
         returned_2["country_iso3166"]="be"
         returned_2["country_en"]="Belgium"
-        
+        returned_2["institution_name"]="Natural Science Institute n°"+str(i)
         identification={}
         
         identification["unique_acronym"]="BE-NHM"+str(i)
@@ -277,7 +277,7 @@ def create_institution(iter=1):
             research_program_tmp["workpackage_name"]=["WP4.3", "WP1.7"]
             research_programs.append(research_program_tmp)
         research["research_programs"]=research_programs    
-        research["research"]=research
+        returned_2["research"]=research
         
         
         returned.append(returned_2)
