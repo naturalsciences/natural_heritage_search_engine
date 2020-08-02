@@ -131,6 +131,9 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
 								 "area_type":{
 									"type":"keyword"
 								 },
+								 "area_detail":{
+									"type":"text"
+								 },
 								 "area_quantity":{
 									"type":"long"
 								 },
@@ -150,6 +153,9 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
                   "type":"nested",
                   "properties":{
                      "taxonomic_discipline_name":{
+                        "type":"keyword"
+                     },
+					  "taxonomic_discipline_detail":{
                         "type":"keyword"
                      },
                      "taxonomic_discipline_quantity":{
@@ -176,6 +182,9 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
 					  "properties":{
 						 "taxonomic_category_name":{
 							"type":"keyword"
+						 },
+						 "taxonomic_category_detail":{
+							"type":"text"
 						 },
 						 "taxonomic_category_quantity":{
 							"type":"long"
@@ -215,6 +224,10 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
 								 },
 								 "area_type":{
 									"type":"keyword"
+								 }
+								 ,
+								 "area_detail":{
+									"type":"text"
 								 },
 								 "area_quantity":{
 									"type":"long"
