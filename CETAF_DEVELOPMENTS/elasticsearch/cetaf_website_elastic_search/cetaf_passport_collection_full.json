@@ -45,34 +45,6 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
                "collecting_period_text":{
                   "type":"text"
                },
-               "countries_and_areas":{
-                  "type":"nested",
-                  "properties":{
-                     "area_identifier":{
-                        "type":"nested",
-                        "properties":{
-                           "area_identifier_system":{
-                              "type":"keyword"
-                           },
-                           "area_identifier_value":{
-                              "type":"keyword"
-                           }
-                        }
-                     },
-                     "area_name":{
-                        "type":"text"
-                     },
-                     "area_type":{
-                        "type":"keyword"
-                     },
-                     "area_quantity":{
-                        "type":"long"
-                     },
-                     "area_quantity_confidence_pc":{
-                        "type":"short"
-                     }
-                  }
-               },
                "discipline":{
                   "type":"text"
                },
@@ -138,6 +110,35 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
                            "stratigraphical_subdivision_mids_3_pc":{
                               "type":"short"
                            }
+						   ,
+						   "countries_and_areas":{
+							  "type":"nested",
+							  "properties":{
+								 "area_identifier":{
+									"type":"nested",
+									"properties":{
+									   "area_identifier_system":{
+										  "type":"keyword"
+									   },
+									   "area_identifier_value":{
+										  "type":"keyword"
+									   }
+									}
+								 },
+								 "area_name":{
+									"type":"text"
+								 },
+								 "area_type":{
+									"type":"keyword"
+								 },
+								 "area_quantity":{
+									"type":"long"
+								 },
+								 "area_quantity_confidence_pc":{
+									"type":"short"
+								 }
+							  }
+						   }
                         }
                      }
                   }
@@ -169,33 +170,65 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
                      "taxonomic_discipline_mids_3_pc":{
                         "type":"short"
                      }
+					   ,
+				   "taxonomic_category":{
+					  "type":"nested",
+					  "properties":{
+						 "taxonomic_category_name":{
+							"type":"keyword"
+						 },
+						 "taxonomic_category_quantity":{
+							"type":"long"
+						 },
+						 "taxonomic_category_confidence_pc":{
+							"type":"short"
+						 },
+						 "taxonomic_category_mids_0_pc":{
+							"type":"short"
+						 },
+						 "taxonomic_category_mids_1_pc":{
+							"type":"short"
+						 },
+						 "taxonomic_category_mids_2_pc":{
+							"type":"short"
+						 },
+						 "taxonomic_category_mids_3_pc":{
+							"type":"short"
+						 }
+						 ,
+						   "countries_and_areas":{
+							  "type":"nested",
+							  "properties":{
+								 "area_identifier":{
+									"type":"nested",
+									"properties":{
+									   "area_identifier_system":{
+										  "type":"keyword"
+									   },
+									   "area_identifier_value":{
+										  "type":"keyword"
+									   }
+									}
+								 },
+								 "area_name":{
+									"type":"text"
+								 },
+								 "area_type":{
+									"type":"keyword"
+								 },
+								 "area_quantity":{
+									"type":"long"
+								 },
+								 "area_quantity_confidence_pc":{
+									"type":"short"
+								 }
+							  }
+						   }
+					  }
+					
+				   }
                   }
-               },
-               "taxonomic_category":{
-                  "type":"nested",
-                  "properties":{
-                     "taxonomic_category_name":{
-                        "type":"keyword"
-                     },
-                     "taxonomic_category_quantity":{
-                        "type":"long"
-                     },
-                     "taxonomic_category_confidence_pc":{
-                        "type":"short"
-                     },
-                     "taxonomic_category_mids_0_pc":{
-                        "type":"short"
-                     },
-                     "taxonomic_category_mids_1_pc":{
-                        "type":"short"
-                     },
-                     "taxonomic_category_mids_2_pc":{
-                        "type":"short"
-                     },
-                     "taxonomic_category_mids_3_pc":{
-                        "type":"short"
-                     }
-                  }
+				
                },
                "temporal_scope":{
                   "type":"date_range",
