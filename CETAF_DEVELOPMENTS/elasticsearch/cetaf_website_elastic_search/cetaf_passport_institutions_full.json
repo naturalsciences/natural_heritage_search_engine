@@ -206,6 +206,10 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content
                             "type":"keyword"
                         }
                     }
+                },
+                "main_areas_of_taxonomic_expertise":
+                {
+                             "type":"keyword"               
                 }
                 ,
                 "education": {
@@ -323,3 +327,4 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content
 		}
 	
 }'
+
