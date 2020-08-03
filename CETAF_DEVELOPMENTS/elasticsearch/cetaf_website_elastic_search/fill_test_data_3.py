@@ -52,6 +52,12 @@ phanerozoic["cenozoic"]=cenozoic
 eons={}
 eons["phanerozoic"]=phanerozoic
 
+
+project_struct={}
+project_struct["ICEDIG.EU"]="https://icedig.eu/"
+project_struct["SYNTHESYS"]="https://www.synthesys.info/"
+project_struct["DISSCo"]="https://www.dissco.eu/"
+
 addresses=[{"city":"Brussel",
            "country":"Belgium",
            "email": "info@naturalsciences.be",
@@ -345,8 +351,8 @@ def create_institution(iter=1):
         representative={}
         representative["dir_rep_category"]="CETAF Deputy"
         representative["dir_rep_description"]="Elected since 2016, Mr Smith is XXXXXXX and WWWWW"
-        representative["dir_rep_email"]="ian.smith@yahoo.fr"
-        representative["dir_rep_name"]="Ian Smith"
+        representative["dir_rep_email"]="Peter.smith@yahoo.fr"
+        representative["dir_rep_name"]="Peter Smith"
         representative["dir_rep_phone"]="+34 444"
         representative["dir_rep_position"]="Executive Director"
         representative["dir_rep_title"]="Dr."
@@ -363,9 +369,12 @@ def create_institution(iter=1):
         ir=random.sample(range(0, 3), 3)
         research["research_fields"]=[research_fields[ir[0]], research_fields[ir[1]], research_fields[ir[2]]]
         research_programs=[]
-        for j in range (1,4):
+        
+        
+        projects=random.sample(list(project_struct), 2)        
+        for proj in projects:
             research_program_tmp={}
-            research_program_tmp["contribution_description"]=lorem_ipsum("General description research program",j)
+            research_program_tmp["contribution_description"]=lorem_ipsum("General description research program "+proj,i)
             links={}
             link_1={}
             link_1["research_link_description"]="wikipedia"
@@ -374,15 +383,39 @@ def create_institution(iter=1):
             link_2={}
             link_2["research_link_description"]="wikidata"
             link_2["research_url"]="https://www.wikidata.org/wiki/Q5163385"        
-            research_program_tmp["research_links"]=[link_1, link_2]
+            
             research_program_tmp["partner_institutions"]=["Naturalis", "MNHN", "NFM", "NHM"]
-            research_program_tmp["program_name"]="ICEDIG.EU"
+            research_program_tmp["program_name"]=proj
             research_program_tmp["workpackage_name"]=["WP4.3", "WP1.7"]
+            research_link1={}
+            research_link1["research_link_description"]="main_site"
+            research_link1["research_url"]=project_struct[proj]
+            research_program_tmp["research_links"]=[link_1, link_2,research_link1]
+            
             research_programs.append(research_program_tmp)
         research["research_programs"]=research_programs    
         returned_2["research"]=research
         
+        returned_2["dashboard_url"]="https://app.powerbi.com/view?r=eyJrIjoiNTNhODE2NTYtYTUzZi00N2ZkLTk5ZWItMzkwMzZhOGU1OGYzIiwidCI6IjczYTI5YzAxLTRlNzgtNDM3Zi1hMGQ0LWM4NTUzZTE5NjBjMSIsImMiOjh9"
+        returned_2["dashboard_text"]=lorem_ipsum("Dashboard text", i)
         
+        topics=random.sample(list(taxo_struct), 2)
+        returned_2["current_topics_of_interest"]=topics
+        
+       
+        inst_link1={}
+        inst_link1["institution_link_description"]="main website"
+        inst_link1["institution_link_url"]="https://www.naturalsciences.be/"
+        inst_link2={}
+        inst_link2["institution_link_description"]="colledaction portal"
+        inst_link2["institution_link_url"]="https://darwin.naturalsciences.be/"
+        returned_2["institution_links"]=[inst_link1, inst_link2]
+        
+        taxa_1=random.sample(list(taxo_struct), 2)
+        tax_categ=[]
+        for tax in taxa_1:
+            tax_categ=tax_categ +random.sample(list(taxo_struct[tax]), 2)
+        returned_2["main_areas_of_taxonomic_expertise"]=tax_categ
         returned.append(returned_2)
         
 
