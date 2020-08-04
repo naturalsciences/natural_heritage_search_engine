@@ -1,8 +1,7 @@
+curl -X DELETE "localhost:9200/cetaf_passport_expertises?pretty"
+curl -X PUT "localhost:9200/cetaf_passport_expertises?pretty" -H 'Content-Type: application/json' -d'
 {
-	"cetaf_passport_expertises": {
-		"aliases": {
-			
-		},
+
 		"mappings": {
 			"dynamic": "strict",
 			"properties": {
@@ -30,9 +29,8 @@
 						"phone": {
 							"type": "keyword"
 						},
-						"title": {
-							"type": "keyword"
-						},
+						
+						
 						"type": {
 							"type": "keyword"
 						}
@@ -51,8 +49,18 @@
 				},
 				"seniority": {
 					"type": "keyword"
+				}
+				,
+				"dedication": {
+					"type": "keyword"
 				},
 				"taxonomic_fields": {
+					"type": "keyword"
+				},
+				"institution_name": {
+					"type": "keyword"
+				},
+				"collection_name": {
 					"type": "keyword"
 				},
 				"to_parent_collection": {
@@ -66,5 +74,9 @@
 				}
 			}
 		}
-	}
+	
 }
+
+   
+
+'
