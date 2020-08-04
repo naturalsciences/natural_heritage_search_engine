@@ -138,12 +138,12 @@ def coll_generator(iter_total=15):
             
             
             
-def init_main_coll(museum):
+def init_main_coll(museum, museum_name):
     for main_coll, subs in coll_struct.items():
-        create_coll(museum, main_coll)
+        create_coll(museum, museum_name, main_coll)
 
         
-def create_collection(museum, iter_total=18, iter_in_level=3):
+def create_collection(museum, museum_name, iter_total=18, iter_in_level=3):
     global started
     global global_generator
     global iCols
@@ -162,7 +162,7 @@ def create_collection(museum, iter_total=18, iter_in_level=3):
         iCols=iCols+1 
         
 
-def create_coll(museum, coll, parent_coll=None):
+def create_coll(museum, museum_name, coll, parent_coll=None):
     global iCols
     global es
     returned_2={}
@@ -181,12 +181,50 @@ def create_coll(museum, coll, parent_coll=None):
         
 
     returned_2["collection_name"]=coll
+    returned_2["institution_name"]=museum_name
     returned_2["collection_description"]=lorem_ipsum("Description of collection",iCols)
+    returned_2["collection_description_outstanding_features"]=lorem_ipsum("Description of collection specificities",iCols)
+    returned_2["collection_statistics"]=lorem_ipsum("Description statistics",iCols)
     
-    genetic_repo={}
-    genetic_repo["genetic_repository_description"]=lorem_ipsum_short("Genetic repository",iCols)
-    genetic_repo["genetic_repository_url"]=URL_ID+"/collection/"+str(iCols)+"/genetic_repo"
-    returned_2["genetic_repository"]=genetic_repo
+    coll_link1={}
+    coll_link1["collection_page_url"]="https://darwin.naturalsciences.be"
+    coll_link1["collection_page_description"]="Institution collection management system"
+    returned_2["collection_portal"]=coll_link1
+    
+    staff1={}
+    staff1["staff_collection_role"]="Researcher in entomology"
+    staff1["staff_curatorial_role"]="Scientific curator"
+    staff1["staff_degree_msc_discipline"]="Agrononmy"
+    staff1["staff_degree_msc_title"]="Economic impact of the introduction of lobster in technical mangroves"
+    staff1["staff_description"]=lorem_ipsum_short("staff 1", iCols)
+    staff1["staff_expertise_description"]="Agronomy and taxonomi"
+    staff1["staff_expertise_domain"]=["Ecology of mangrove", "ecology of small lakes"]
+    staff1["staff_expertise_geography"]="Adriatic sea"
+    staff1["staff_name"]="Jacqueline Robson"
+    staff1["staff_full_time_equivalent_pc"]=90
+    si1={}
+    si1["value"]="0000-0002-0626-538X"
+    si1["system"]="ORCID"
+    staff1["staff_identifiers"]=si1
+    
+    staff2={}
+    staff2["staff_collection_role"]="Researcher in entomology"
+    staff2["staff_curatorial_role"]="Scientific curator"
+    staff2["staff_degree_msc_discipline"]="Agrononmy"
+    staff2["staff_degree_msc_title"]="Economic impact of the introduction of lobster in technical mangroves"
+    staff2["staff_description"]=lorem_ipsum_short("staff 1", iCols)
+    staff2["staff_expertise_description"]="Agronomy and taxonomi"
+    staff2["staff_expertise_domain"]=["Ecology of mangrove", "ecology of small lakes"]
+    staff2["staff_expertise_geography"]="North Pacific coast"
+    staff2["staff_name"]="John Mondale"
+    staff2["staff_full_time_equivalent_pc"]=50
+    si2={}
+    si2["value"]="0000-0002-0626-540X"
+    si2["system"]="ORCID"
+    staff2["staff_identifiers"]=si2
+
+    returned_2["collection_staff"]=[staff1, staff2]
+    
     
     coverage={}
     
@@ -282,6 +320,20 @@ def create_coll(museum, coll, parent_coll=None):
     returned_2["manager_head_of_collection"]={"manager_title":"Dr.", "manager_name":"Syd Barrett", "manager_email":"syd.barrett@cetaf.be", "manager_research_fields":['Mycology','Anthropology']}
     
     
+    contact_person={}
+    contact_person["adm_contact_type"]="Curator of collection"
+    contact_person["adm_email"]="test@google.com"
+    contact_person["adm_name"]="Jenny Wilson"
+    contact_person["adm_phone"]="+32"
+    adm={}
+    adm["contact_person"]=contact_person
+    adm["legal_property"]="Public collection"
+    adm["status"]="Permanent donation"
+    returned_2["administration_field"]=adm
+    returned_2["collection_abstract"]=lorem_ipsum("Collection abstract",iCols)
+    returned_2["collection_acquisition_source"]="Donated by Pr XXXX"
+    returned_2["accession_specimens"]=lorem_ipsum_short("Accession specimens "+categ, iCols )
+    
     returned_2["url_id"]=URL_ID+'/collection/'+str(iCols)
     print("CREATE COLL")
     global INDEX_NAME_COLLECTIONS
@@ -308,6 +360,21 @@ def create_institution(iter=1):
         tmp_array["institution_name"]="Museum of Natural History "+str(i)
         tmp_array["institution_description"]="The Museum of Natural Sciences of Belgium "+str(i)
         returned_2["url_id"]=URL_ID+str(i)
+        
+        
+        inst_link1={}
+        inst_link1["institution_link_url"]="https://www.naturalsciences.be"
+        inst_link1["institution_link_description"]="Institution main website"
+        inst_link2={}
+        inst_link2["institution_link_url"]="http://collections.naturalsciences.be"
+        inst_link2["institution_link_description"]="collection metadata and bibliographical portal"
+        inst_link3={}
+        inst_link3["institution_link_url"]="https://darwin.naturalsciences.be"
+        inst_link3["institution_link_description"]="collection portal"
+        
+        returned_2["institution_links"]=[inst_link1,inst_link2,inst_link3]
+        
+        
         print(country)
         print(iso_tmp)
         returned_2["country_iso3166"]="be"
@@ -358,6 +425,22 @@ def create_institution(iter=1):
         representative["dir_rep_title"]="Dr."
         returned_2["director_or_legal_representative"]=representative
         
+        organisation={}
+        organisation["direction_governing_and_executive_bodies"]=lorem_ipsum_short("Governing body",i)
+        organisation["direction_governing_and_executive_bodies"]=lorem_ipsum_short("Governing body",i)
+        organisation["direction_structure_chart"]=lorem_ipsum("Governing body",i)
+        organisation["direction_structure_chart_url"]=URL_ID+str(i)+"/institution_chart"
+        organisation["direction_structure_chart_file"]=URL_ID+str(i)+"/institution_chart_file"
+        
+        organisation["file_information"]=URL_ID+str(i)+"/file_information"
+        organisation["if_part_of_a_larger_body"]="no"
+        organisation["legal_status"]="public"
+        organisation["membership_fields"]=lorem_ipsum_short("Membership field",i)
+        organisation["organisation_description"]=lorem_ipsum("Organisation description",i)
+        organisation["organisation_name"]=lorem_ipsum_short("Organisation name",i)
+        organisation["staff_fields"]=lorem_ipsum("Staff fields",i)
+        organisation["type_of_institution"]="Natural sciences museum"
+        returned_2["organisation"]=organisation
         returned_2["institution_description"]=lorem_ipsum("Institution description",i)
         
         returned_2["contact"]=[contact1, contact2]
@@ -418,7 +501,29 @@ def create_institution(iter=1):
         returned_2["main_areas_of_taxonomic_expertise"]=tax_categ
         returned.append(returned_2)
         
-
+        edu_contact1={}
+        edu_contact1["edu_contact_type"]="Organizer of the Summer school"
+        edu_contact1["edu_email"]="test1@gmail.com"
+        edu_contact1["edu_name"]="Kim Jacobsen"
+        edu_contact1["edu_phone"]="+32 XXXXX"
+        edu_contact1["edu_title"]="Dr."
+    
+        edu_contact2={}
+        edu_contact2["edu_contact_type"]="Registration officer"
+        edu_contact2["edu_email"]="test2@gmail.com"
+        edu_contact2["edu_name"]="Douglas Smith"
+        edu_contact2["edu_phone"]="+32 4XXXX"
+    
+        education={}
+        education["education_general_description"]="Summer school on the Electric Discharge organs of fishes"
+        education_detail={}
+        education_detail["training_online_or_presential"]="presential"
+        education_detail["training_type"]="summer school (No ECTS)"
+        education["training"]=education_detail
+        education["contact_person"]=[edu_contact1, edu_contact2]
+        returned_2["education"]=education
+        
+        
     
         
     #json_tmp=json.dumps(returned)
@@ -441,8 +546,8 @@ def parse():
         #print(inst)
         global INDEX_NAME_INSTITUTIONS
         es.index(index=INDEX_NAME_INSTITUTIONS, doc_type= "_doc",id=inst["identification_fields"]["unique_acronym"], body=inst)
-        init_main_coll(inst["identification_fields"]["unique_acronym"])
-        create_collection(inst["identification_fields"]["unique_acronym"])
+        init_main_coll(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
+        create_collection(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
         create_facility(inst["identification_fields"]["unique_acronym"])
         create_facility(inst["identification_fields"]["unique_acronym"])
    
