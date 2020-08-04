@@ -105,12 +105,12 @@ def coll_generator(iter_total=15):
             
             
             
-def init_main_coll(museum):
+def init_main_coll(museum, museum_name ):
     for main_coll, subs in coll_struct.items():
-        create_coll(museum, main_coll)
+        create_coll(museum, museum_name, main_coll)
 
         
-def create_collection(museum, iter_total=18, iter_in_level=3):
+def create_collection(museum, museum_name, iter_total=18, iter_in_level=3):
     global started
     global global_generator
     global iCols
@@ -121,7 +121,7 @@ def create_collection(museum, iter_total=18, iter_in_level=3):
         try:         
             cols=next(global_generator)
             print(cols)
-            create_coll(museum, cols[1], cols[0])
+            create_coll(museum,museum_name,  cols[1], cols[0])
         except StopIteration:
             print("REWIND")
             global_generator=coll_generator(iter_total)
@@ -129,7 +129,7 @@ def create_collection(museum, iter_total=18, iter_in_level=3):
         iCols=iCols+1 
         
 
-def create_coll(museum, coll, parent_coll=None):
+def create_coll(museum, museum_name,  coll, parent_coll=None):
     global iCols
     global es
     returned_2={}
@@ -148,7 +148,8 @@ def create_coll(museum, coll, parent_coll=None):
         
 
     returned_2["collection_name"]=coll
-    returned_2["collection_description"]=lorem_ipsum("Description of collection",iCols)
+    returned_2["institution_name"]=museum_name
+    #returned_2["collection_description"]=lorem_ipsum("Description of collection",iCols)
     
     coverage={}
     coverage["countries_and_areas"]=[{"area_type":"country", "area_identifier":{"area_identifier_system":"iso3166", "area_identifier_value":"be" }, "area_name":"Belgium"},{"area_type":"country", "area_name":"Vlaams Brabant"},{"area_type":"country", "area_name":"Hainaut"}]
@@ -305,8 +306,8 @@ def parse():
         #print(inst)
         global INDEX_NAME_INSTITUTIONS
         es.index(index=INDEX_NAME_INSTITUTIONS, doc_type= "_doc",id=inst["identification_fields"]["unique_acronym"], body=inst)
-        init_main_coll(inst["identification_fields"]["unique_acronym"])
-        create_collection(inst["identification_fields"]["unique_acronym"])
+        init_main_coll(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
+        create_collection(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
         create_facility(inst["identification_fields"]["unique_acronym"])
         create_facility(inst["identification_fields"]["unique_acronym"])
    
