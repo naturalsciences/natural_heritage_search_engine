@@ -1,3 +1,4 @@
+curl -X DELETE "localhost:9200/cetaf_passport_facilities?pretty"
 curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: application/json' -d'
 {
 		"mappings": {
@@ -7,7 +8,30 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 					"type": "text"
 				},
 				"available_tools": {
-					"type": "text"
+					"type": "nested",
+					"properties":
+					{
+						"tool_name": {
+							"type": "keyword"
+						},
+						"tool_product_name": {
+							"type": "keyword"
+						},
+						"tool_description": {
+							"type": "text"
+						},
+						"identifiers": {
+							"type": "nested",
+							"properties": {
+								"identifier_protocol": {
+									"type": "keyword"
+								},
+								"identifier_value": {
+									"type": "keyword"
+								}
+							}
+				}
+					}
 				},
 				"contact": {
 					"type": "nested",
@@ -66,17 +90,6 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 				},
 				"facility_name": {
 					"type": "keyword"
-				},
-				"identifiers": {
-					"type": "nested",
-					"properties": {
-						"identifier_protocol": {
-							"type": "keyword"
-						},
-						"identifier_value": {
-							"type": "keyword"
-						}
-					}
 				},
 				"main_identifier": {
 					"type": "keyword"
