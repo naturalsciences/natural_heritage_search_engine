@@ -7,9 +7,6 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 				"collection_acronym": {
 					"type": "keyword"
 				},
-				"collection_description": {
-					"type": "text"
-				},
 				"collection_name": {
 					"type": "keyword"
 				},
@@ -75,16 +72,10 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 								}
 							}
 						},
-						"stratigraphical_coverage_text": {
-							"type": "text"
-						},
-						"stratigraphical_subdivision": {
-							"type": "keyword"
-						},
 						"stratigraphy_link": {
 							"type": "keyword"
 						},
-						"taxonomic_coverage_main_category": {
+						"taxonomic_discopline": {
 							"type": "text"
 						},
 						"taxonomic_coverage_sub_category": {
@@ -173,3 +164,4 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 		}
 	}
 '
+
