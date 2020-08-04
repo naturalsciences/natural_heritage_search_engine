@@ -102,15 +102,67 @@ def lorem_ipsum_short(field,idx):
 def get_url():
     return  "https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"         
 
-def create_facility(museum):
+
+def create_expertises():
+    global iFacility
+    global es
+    global INDEX_NAME_EXPERTISES
+    iF=random.randrange(0, len(facility_list)-1)
+    iT=random.sample(range(0, len(tool_list)-1), 2)
+    iP=random.randrange(0, len(protocol_list)-1)
+    returned_2={"collection_name":"BE-NHM1/Anthropology",
+                    "institution_name":"BE-NHM1",
+                    "country_en":"Belgium",
+                    "country_iso3166":"be",
+                     "seniority":"Dr.",
+                     "person":
+                        {"name": "Patrick Semal",
+                         "email": "patrick.semal@naturalsciences.be",
+                         "person_description":"Head of Natural Heritage Collections",
+                         "phone":"+32 2 627 43 80",
+                         "type":"researchers"},
+                     "taxonomic_fields":["Anthropology", "Vertebrates"] ,
+                     "person_identifier":{
+                            "identifier_protocol":"ORCID",
+                            "identifier_value":"0000-0002-4048-7728"
+                        }
+                 }
+    es.index(index=INDEX_NAME_EXPERTISES, doc_type= "_doc",id="0000-0002-4048-7728", body=returned_2)
+    returned_2={"collection_name":"MNHN",
+                    "institution_name":"Musée National d'Histoire Naturelle",
+                    "country_en":"France",
+                    "country_iso3166":"fr",
+                     "seniority":"Dr.",
+                     "person":
+                        {"name": "Régine Vignes-Lebbes",
+                         "email": "regine.vignes_lebbe@sorbonne-universite.f",
+                         "person_description":"Head of LIS Laoboraory and French GBIF node",
+                       
+                         "type":"researcher"},
+                     "taxonomic_fields":["Vertebrates"] ,
+                     "person_identifier":{
+                            "identifier_protocol":"ORCID",
+                            "identifier_value":"0000-0002-6912-6248"
+                        }
+                 }
+    es.index(index=INDEX_NAME_EXPERTISES, doc_type= "_doc",id="0000-0002-6912-6248", body=returned_2)
+    
+def create_facility(museum, museum_name):
     global iFacility
     iF=random.randrange(0, len(facility_list)-1)
     iT=random.sample(range(0, len(tool_list)-1), 2)
     iP=random.randrange(0, len(protocol_list)-1)
     returned_2={}
     returned_2["to_parent_institution"]=museum
-    returned_2["facility_name"]=facility_list[iF]
-    returned_2["available_tools"]=[tool_list[iT[0]], tool_list[iT[1]]]
+    returned_2["institution_name"]=museum_name
+    returned_2["laboratories"]=facility_list[iF]
+    returned_2["facility_name"]="Test laboratory "+ museum_name
+    returned_2["available_tools"]={
+                                    "tool_name":"thermic printer",
+                                    "tool_description":"thermic printer for alcohol-resistant labels",
+                                    "tool_product_name":"Avery Dennison 9400"
+                                }
+    returned_2["facility_acronym"]="JEMU"
     returned_2["available_protocols"]=protocol_list[iP]
     returned_2["facility_description"]=lorem_ipsum("Facility description", iFacility)
     returned_2["facility_address"]=addresses[random.randrange(0,len(addresses))]
@@ -235,6 +287,14 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     print(tax_discipline)
     print("TAX CATEG :")
     print(tax_category)
+    coverage["collecting_period_text"]=lorem_ipsum_short("collecting period "+tax_discipline, iCols )
+    poly={}
+    poly["type"]="polygon"
+    poly["coordinates"]="POLYGON ((-180 -90, 180 -90 , 180 90, 180 -90,-180 -90))"
+    coverage["geographical_coverage_bbox"]= "POLYGON ((100.0 0.0, 101.0 0.0, 101.0 1.0, 100.0 1.0, 100.0 0.0))"
+    coverage["geographical_coverage_text"]=lorem_ipsum_short("geographical coverage text "+tax_discipline, iCols )
+    coverage["geographical_coverage_link"]=URL_ID+"/collection/"+str(iCols)+"/geographical_coverage"
+    
     coverage["taxonomic_discipline"]={}
     coverage["taxonomic_discipline"]["taxonomic_discipline_name"]=tax_discipline
     coverage["taxonomic_discipline"]["taxonomic_discipline_detail"]=lorem_ipsum_short("taxonomic discipline detail "+tax_discipline, iCols )
@@ -310,12 +370,14 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     
     returned_2["coverage_fields"]=coverage
     
-    #size={}
+    size={}
     #size["mids_level"]=random.randrange(1,3)
-    #size["primary_types_count"]=iCols
-    #size["specimens_count"]=iCols*1000
-    #size["units_count"]=iCols*100
-    #returned_2["size_and_digitisation_fields"]=size
+    size["primary_types_count"]=iCols
+    size["specimens_count"]=iCols*1000
+    size["units_count"]=iCols*100
+    size["other_size_indicators"]=iCols*100
+    size["owc_size_evaluation"]=6
+    returned_2["size_and_digitisation_fields"]=size
     
     returned_2["manager_head_of_collection"]={"manager_title":"Dr.", "manager_name":"Syd Barrett", "manager_email":"syd.barrett@cetaf.be", "manager_research_fields":['Mycology','Anthropology']}
     
@@ -332,7 +394,15 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     returned_2["administration_field"]=adm
     returned_2["collection_abstract"]=lorem_ipsum("Collection abstract",iCols)
     returned_2["collection_acquisition_source"]="Donated by Pr XXXX"
-    returned_2["accession_specimens"]=lorem_ipsum_short("Accession specimens "+categ, iCols )
+    returned_2["accession_specimens"]=lorem_ipsum_short("Accession specimens ", iCols )
+    
+    digitisation={}
+    digitisation["digitisation_list_text"]=lorem_ipsum_short("Digitisation list", iCols )
+    digitisation["digitisation_list_url"]=URL_ID+"/collection/"+str(iCols)+"/digitisation"
+    digitisation["digitisation_strategy"]=lorem_ipsum_short("Digitisation strategy", iCols )
+    digitisation["imaging"]=lorem_ipsum_short("Imaging", iCols )
+    digitisation["proportion_digitised"]="15%"
+    returned_2["digitisation_fields"]=digitisation    
     
     returned_2["url_id"]=URL_ID+'/collection/'+str(iCols)
     print("CREATE COLL")
@@ -542,14 +612,15 @@ def parse():
         use_ssl = False,
         port=9200,
     )
+    create_expertises()
     for inst in tmp_institutions:
         #print(inst)
         global INDEX_NAME_INSTITUTIONS
         es.index(index=INDEX_NAME_INSTITUTIONS, doc_type= "_doc",id=inst["identification_fields"]["unique_acronym"], body=inst)
         init_main_coll(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
         create_collection(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
-        create_facility(inst["identification_fields"]["unique_acronym"])
-        create_facility(inst["identification_fields"]["unique_acronym"])
+        create_facility(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
+        #create_facility(inst["identification_fields"]["unique_acronym"])
    
     
 
