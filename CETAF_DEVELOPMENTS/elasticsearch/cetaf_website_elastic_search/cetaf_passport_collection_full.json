@@ -1,3 +1,4 @@
+curl -X DELETE "localhost:9200/cetaf_passport_collections_full?pretty"
 curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-Type: application/json' -d'
 
 {
@@ -148,7 +149,7 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
             "geographical_coverage_bbox": {
               "type": "geo_shape"
             },
-            "geographical_coverage_coverage_text": {
+            "geographical_coverage_text": {
               "type": "text"
             },
             "geographical_coverage_link": {
