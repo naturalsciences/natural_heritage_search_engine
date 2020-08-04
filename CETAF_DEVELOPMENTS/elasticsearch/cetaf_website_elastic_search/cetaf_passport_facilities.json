@@ -4,6 +4,9 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 		"mappings": {
 			"dynamic": "strict",
 			"properties": {
+			"laboratories": {
+					"type": "text"
+				},
 				"available_protocols": {
 					"type": "text"
 				},
@@ -100,6 +103,9 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 				"to_parent_institution": {
 					"type": "keyword"
 				},
+				"institution_name": {
+					"type": "keyword"
+				},
 				"url_id": {
 					"type": "text"
 				},
@@ -110,3 +116,6 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 		}
 	
 }'
+
+
+
