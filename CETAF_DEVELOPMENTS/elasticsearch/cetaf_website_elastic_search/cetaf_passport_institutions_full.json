@@ -272,30 +272,7 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content
             },
             "direction_structure_chart_url": {
               "type": "keyword"
-            },
-            "director_or_legal_representative": {
-              "type": "nested",
-              "properties": {
-                "dir_rep_email": {
-                  "type": "keyword"
-                },
-                "dir_rep_name": {
-                  "type": "keyword"
-                },
-                "dir_rep_phone": {
-                  "type": "keyword"
-                },
-                "dir_rep_position": {
-                  "type": "text"
-                },
-                "dir_rep_research_fields": {
-                  "type": "text"
-                },
-                "dir_rep_title": {
-                  "type": "keyword"
-                }
-              }
-            },
+            },            
             "file_information": {
               "type": "keyword"
             },
@@ -327,4 +304,3 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content
 		}
 	
 }'
-
