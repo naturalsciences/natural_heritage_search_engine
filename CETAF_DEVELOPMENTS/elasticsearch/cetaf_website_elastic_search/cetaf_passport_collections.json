@@ -1,3 +1,4 @@
+curl -X DELETE "localhost:9200/cetaf_passport_collections?pretty"
 curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type: application/json' -d'
 {
 		"mappings": {
@@ -15,6 +16,11 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 				"collection_type": {
 					"type": "keyword"
 				},
+                "institution_name":
+                 {
+                    "type": "keyword"
+                 }
+                ,
 				"coverage_fields": {
 					"type": "nested",
 					"properties": {
