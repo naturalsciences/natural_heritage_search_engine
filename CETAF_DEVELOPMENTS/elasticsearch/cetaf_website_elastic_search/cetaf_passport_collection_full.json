@@ -342,18 +342,7 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
         },
         "full_path": {
           "type": "keyword"
-        },
-        "genetic_repository": {
-          "type": "nested",
-          "properties": {
-            "genetic_repository_description": {
-              "type": "text"
-            },
-            "genetic_repository_url": {
-              "type": "keyword"
-            }
-          }
-        },
+        },        
         "identification_fields": {
           "type": "nested",
           "properties": {
