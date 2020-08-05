@@ -85,7 +85,10 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 						},
 						"street": {
 							"type": "text"
-						}
+						},
+			"country_iso3166": {
+			  "type": "keyword"
+			}
 					}
 				},
 				"facility_description": {
@@ -116,6 +119,4 @@ curl -X PUT "localhost:9200/cetaf_passport_facilities?pretty" -H 'Content-Type: 
 		}
 	
 }'
-
-
 
