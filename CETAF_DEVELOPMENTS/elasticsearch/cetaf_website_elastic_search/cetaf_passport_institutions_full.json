@@ -1,5 +1,5 @@
-curl -X DELETE "localhost:9200/cetaf_passport_institutions_fulltions_full?pretty"
-curl -X PUT "localhost:9200/cetaf_passport_institutions_fulltions_full?pretty" -H 'Content-Type: application/json' -d'
+curl -X DELETE "localhost:9200/cetaf_passport_institutions_full?pretty"
+curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content-Type: application/json' -d'
 {
   
     "mappings": {
