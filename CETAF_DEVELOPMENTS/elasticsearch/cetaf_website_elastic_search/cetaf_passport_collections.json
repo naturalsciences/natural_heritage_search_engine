@@ -24,28 +24,52 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 						"collecting_period_text": {
 							"type": "text"
 						},
-						"countries_and_areas": {
-							"type": "nested",
-							"properties": {
-								"area_identifier": {
-									"type": "nested",
-									"properties": {
-										"area_identifier_system": {
-											"type": "keyword"
-										},
-										"area_identifier_value": {
-											"type": "keyword"
-										}
-									}
-								},
-								"area_name": {
-									"type": "text"
-								},
-								"area_type": {
-									"type": "keyword"
-								}
-							}
-						},
+			     "countries_and_areas": {
+                      "type": "nested",
+                      "properties": {
+                        "area_detail": {
+                          "type": "text"
+                        },
+                        "area_identifier": {
+                          "type": "nested",
+                          "properties": {
+                            "area_identifier_system": {
+                              "type": "keyword"
+                            },
+                            "area_identifier_value": {
+                              "type": "keyword"
+                            }
+                          }
+                        },
+                        "area_name": {
+                          "type": "text"
+                        },
+                        "area_quantity": {
+                          "type": "long"
+                        },
+                        "area_quantity_confidence_pc": {
+                          "type": "short"
+                        },
+                        "area_type": {
+                          "type": "keyword"
+                        },
+                        "countries":
+                        {
+                            "type":"nested",
+                            "properties":
+                            {
+                                "collection_country_iso3166":
+                                {
+                                    "type":"keyword"
+                                },
+                                 "collection_country_name":
+                                {
+                                    "type":"keyword"
+                                }
+                            }
+                        }
+                      }
+					},
 						"functional_group": {
 							"type": "text"
 						},
@@ -75,7 +99,7 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 						"stratigraphy_link": {
 							"type": "keyword"
 						},
-						"taxonomic_discopline": {
+						"taxonomic_discipline": {
 							"type": "text"
 						},
 						"taxonomic_coverage_sub_category": {
@@ -164,4 +188,3 @@ curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type:
 		}
 	}
 '
-
