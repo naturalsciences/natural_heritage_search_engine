@@ -1,3 +1,4 @@
+curl -X DELETE "localhost:9200/cetaf_passport_institutions?pretty"
 curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type: application/json' -d'
 {
 	
@@ -26,12 +27,6 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type
 							"type": "keyword"
 						}
 					}
-				},
-				"country_en": {
-					"type": "keyword"
-				},
-				"country_iso3166": {
-					"type": "keyword"
 				},
 				"director_or_legal_representative": {
 					"type": "nested",
@@ -120,6 +115,11 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type
 						"street": {
 							"type": "text"
 						}
+						,
+						
+						"country_iso3166": {
+							"type": "keyword"
+						}
 					}
 				},
 				"main_identifier": {
@@ -179,6 +179,14 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type
 				"full_path":{
 					"type": "keyword"
 				}
+				,
+            "type_of_institution": {
+              "type": "keyword"
+            }
+				,
+            "type_of_institution_if_other": {
+              "type": "keyword"
+            }
 			}
 		}
 	
