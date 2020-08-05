@@ -1,5 +1,5 @@
-curl -X DELETE "localhost:9200/cetaf_passport_institutions_full?pretty"
-curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content-Type: application/json' -d'
+curl -X DELETE "localhost:9200/cetaf_passport_institutions?pretty"
+curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type: application/json' -d'
 {
 	
 		"mappings": {
@@ -179,127 +179,11 @@ curl -X PUT "localhost:9200/cetaf_passport_institutions_full?pretty" -H 'Content
 				},
 				"full_path":{
 					"type": "keyword"
-				},
-                "dashboard_url":
-                {
-                    "type": "keyword"
-                },
-                "dashboard_text":
-                {
-                    "type": "text"
-                },
-                "current_topics_of_interest":
-                {
-                    "type":"text"
-                },
-                "institution_links":
-                {
-                    "type":"nested",
-                    "properties":
-                    {
-                        "institution_link_description":
-                        {
-                            "type":"keyword"
-                        },
-                        "institution_link_url":
-                        {
-                            "type":"keyword"
-                        }
-                    }
-                },
-                "main_areas_of_taxonomic_expertise":
-                {
-                             "type":"keyword"               
-                }
-                ,
-                "education": {
-                  "type": "nested",
-                  "properties": {
-                    "contact_person": {
-                      "type": "nested",
-                      "properties": {
-                        "edu_contact_type": {
-                          "type": "keyword"
-                        },
-                        "edu_email": {
-                          "type": "keyword"
-                        },
-                        "edu_name": {
-                          "type": "keyword"
-                        },
-                        "edu_phone": {
-                          "type": "keyword"
-                        },
-                        "edu_title": {
-                          "type": "keyword"
-                        }
-                      }
-                    },
-                    "education_general_description": {
-                      "type": "text"
-                    },
-                    "training": {
-                      "type": "nested",
-                      "properties": {
-                        "training_online_or_presential": {
-                          "type": "keyword"
-                        },
-                        "training_type": {
-                          "type": "keyword"
-                        },
-                        "training_url": {
-                          "type": "keyword"
-                        }
-                      }
-                    }
-                  }
-                },
-                "organisation": {
-          "type": "nested",
-          "properties": {
-  
-            "organisation_description": {
-              "type": "text"
-            },
-            "direction_governing_and_executive_bodies": {
-              "type": "text"
-            },
-            "direction_structure_chart": {
-              "type": "text"
-            },
-            "direction_structure_chart_file": {
-              "type": "keyword"
-            },
-            "direction_structure_chart_url": {
-              "type": "keyword"
-            },            
-            "file_information": {
-              "type": "keyword"
-            },
-            "if_part_of_a_larger_body": {
-              "type": "text"
-            },
-            "legal_status": {
-              "type": "keyword"
-            },
-            "membership_fields": {
-              "type": "text"
-           
-            },
-            "organisation_name": {
-              "type": "text"
-            },
-            "staff_fields": {
-              "type": "text" 
-            },
-            "type_of_institution": {
-              "type": "keyword"
-            },
+				}
+				,
             "type_of_institution_if_other": {
               "type": "keyword"
             }
-          }
-        }
 			}
 		}
 	
