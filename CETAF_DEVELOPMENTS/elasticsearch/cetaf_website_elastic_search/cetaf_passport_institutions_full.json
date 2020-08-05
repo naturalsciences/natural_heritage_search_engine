@@ -1,190 +1,317 @@
-curl -X DELETE "localhost:9200/cetaf_passport_institutions?pretty"
-curl -X PUT "localhost:9200/cetaf_passport_institutions?pretty" -H 'Content-Type: application/json' -d'
+curl -X DELETE "localhost:9200/cetaf_passport_institutions_fulltions_full?pretty"
+curl -X PUT "localhost:9200/cetaf_passport_institutions_fulltions_full?pretty" -H 'Content-Type: application/json' -d'
 {
-	
-		"mappings": {
-			"dynamic": "strict",
-			"properties": {
-				"contact": {
-					"type": "nested",
-					"properties": {
-						"contact_description": {
-							"type": "text"
-						},
-						"contact_email": {
-							"type": "keyword"
-						},
-						"contact_name": {
-							"type": "keyword"
-						},
-						"contact_phone": {
-							"type": "keyword"
-						},
-						"contact_title": {
-							"type": "keyword"
-						},
-						"contact_type": {
-							"type": "keyword"
-						}
-					}
-				},
-				"country_en": {
-					"type": "keyword"
-				},
-				"country_iso3166": {
-					"type": "keyword"
-				},
-				"director_or_legal_representative": {
-					"type": "nested",
-					"properties": {
-						"dir_rep_category": {
-							"type": "keyword"
-						},
-						"dir_rep_description": {
-							"type": "text"
-						},
-						"dir_rep_email": {
-							"type": "keyword"
-						},
-						"dir_rep_name": {
-							"type": "keyword"
-						},
-						"dir_rep_phone": {
-							"type": "keyword"
-						},
-						"dir_rep_position": {
-							"type": "text"
-						},
-						"dir_rep_research_fields": {
-							"type": "text"
-						},
-						"dir_rep_title": {
-							"type": "keyword"
-						}
-					}
-				},
-				"identification_fields": {
-					"type": "nested",
-					"properties": {
-						"grid_id": {
-							"type": "keyword"
-						},
-						"grscicoll_code": {
-							"type": "keyword"
-						},
-						"original_name": {
-							"type": "nested",
-							"properties": {
-								"iso639": {
-									"type": "keyword"
-								},
-								"lang": {
-									"type": "keyword"
-								},
-								"translated_name": {
-									"type": "text"
-								}
-							}
-						},
-						"unique_acronym": {
-							"type": "keyword"
-						},
-						"wikidata_id": {
-							"type": "keyword"
-						}
-					}
-				},
-				"institution_name": {
-					"type": "keyword"
-				},
-				"institution_description": {
-					"type": "text"
-				},
-				"institution_address": {
-					"type": "nested",
-					"properties": {
-						"city": {
-							"type": "text"
-						},
-						"country": {
-							"type": "text"
-						},
-						"email": {
-							"type": "text"
-						},
-						"phone": {
-							"type": "text"
-						},
-						"postcode": {
-							"type": "text"
-						},
-						"street": {
-							"type": "text"
-						}
-					}
-				},
-				"main_identifier": {
-					"type": "keyword"
-				},
-				"research": {
-					"type": "nested",
-					"properties": {
-						"general_description": {
-							"type": "text"
-						},
-						"research_fields": {
-							"type": "text"
-						},
-						"research_programs": {
-							"type": "nested",
-							"properties": {
-								"contribution_description": {
-									"type": "text"
-								},
-								"partner_institutions": {
-									"type": "keyword"
-								},
-								"program_name": {
-									"type": "keyword"
-								},
-								"research_links": {
-									"type": "nested",
-									"properties": {
-										"research_link_description": {
-											"type": "keyword"
-										},
-										"research_url": {
-											"type": "keyword"
-										}
-									}
-								},
-								"workpackage_name": {
-									"type": "keyword"
-								}
-							}
-						}
-					}
-				},
-				"to_collection_list": {
-					"type": "keyword"
-				},
-				"to_facility_list": {
-					"type": "keyword"
-				},
-				"to_research_expertise_list": {
-					"type": "keyword"
-				},
-				"url_id": {
-					"type": "keyword"
-				},
-				"full_path":{
-					"type": "keyword"
-				}
-				,
+  
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "contact": {
+          "type": "nested",
+          "properties": {
+            "contact_description": {
+              "type": "text"
+            },
+            "contact_email": {
+              "type": "keyword"
+            },
+            "contact_name": {
+              "type": "keyword"
+            },
+            "contact_phone": {
+              "type": "keyword"
+            },
+            "contact_title": {
+              "type": "keyword"
+            },
+            "contact_type": {
+              "type": "keyword"
+            }
+          }
+        },
+
+        "current_topics_of_interest": {
+          "type": "text"
+        },
+        "dashboard_text": {
+          "type": "text"
+        },
+        "dashboard_url": {
+          "type": "keyword"
+        },
+        "director_or_legal_representative": {
+          "type": "nested",
+          "properties": {
+            "dir_rep_category": {
+              "type": "keyword"
+            },
+            "dir_rep_description": {
+              "type": "text"
+            },
+            "dir_rep_email": {
+              "type": "keyword"
+            },
+            "dir_rep_name": {
+              "type": "keyword"
+            },
+            "dir_rep_phone": {
+              "type": "keyword"
+            },
+            "dir_rep_position": {
+              "type": "text"
+            },
+            "dir_rep_research_fields": {
+              "type": "text"
+            },
+            "dir_rep_title": {
+              "type": "keyword"
+            }
+          }
+        },
+        "education": {
+          "type": "nested",
+          "properties": {
+            "contact_person": {
+              "type": "nested",
+              "properties": {
+                "edu_contact_type": {
+                  "type": "keyword"
+                },
+                "edu_email": {
+                  "type": "keyword"
+                },
+                "edu_name": {
+                  "type": "keyword"
+                },
+                "edu_phone": {
+                  "type": "keyword"
+                },
+                "edu_title": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "education_general_description": {
+              "type": "text"
+            },
+            "training": {
+              "type": "nested",
+              "properties": {
+                "training_online_or_presential": {
+                  "type": "keyword"
+                },
+                "training_type": {
+                  "type": "keyword"
+                },
+                "training_url": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "full_path": {
+          "type": "keyword"
+        },
+        "identification_fields": {
+          "type": "nested",
+          "properties": {
+            "grid_id": {
+              "type": "keyword"
+            },
+            "grscicoll_code": {
+              "type": "keyword"
+            },
+            "original_name": {
+              "type": "nested",
+              "properties": {
+                "iso639": {
+                  "type": "keyword"
+                },
+                "lang": {
+                  "type": "keyword"
+                },
+                "translated_name": {
+                  "type": "text"
+                }
+              }
+            },
+            "unique_acronym": {
+              "type": "keyword"
+            },
+            "wikidata_id": {
+              "type": "keyword"
+            }
+          }
+        },
+        "institution_address": {
+          "type": "nested",
+          "properties": {
+            "city": {
+              "type": "text"
+            },
+            "country": {
+              "type": "text"
+            },
+            "email": {
+              "type": "text"
+            },
+            "phone": {
+              "type": "text"
+            },
+            "postcode": {
+              "type": "text"
+            },
+            "street": {
+              "type": "text"
+            },
+			"country_iso3166": {
+			  "type": "keyword"
+			}
+          }
+        },
+        "institution_description": {
+          "type": "text"
+        },
+        "institution_links": {
+          "type": "nested",
+          "properties": {
+            "institution_link_description": {
+              "type": "keyword"
+            },
+            "institution_link_url": {
+              "type": "keyword"
+            }
+          }
+        },
+        "institution_name": {
+          "type": "keyword"
+        },
+        "main_areas_of_taxonomic_expertise": {
+          "type": "keyword"
+        },
+        "main_identifier": {
+          "type": "keyword"
+        },
+        "organisation": {
+          "type": "nested",
+          "properties": {
+            "direction_governing_and_executive_bodies": {
+              "type": "text"
+            },
+            "direction_structure_chart": {
+              "type": "text"
+            },
+            "direction_structure_chart_file": {
+              "type": "keyword"
+            },
+            "direction_structure_chart_url": {
+              "type": "keyword"
+            },
+            "director_or_legal_representative": {
+              "type": "nested",
+              "properties": {
+                "dir_rep_email": {
+                  "type": "keyword"
+                },
+                "dir_rep_name": {
+                  "type": "keyword"
+                },
+                "dir_rep_phone": {
+                  "type": "keyword"
+                },
+                "dir_rep_position": {
+                  "type": "text"
+                },
+                "dir_rep_research_fields": {
+                  "type": "text"
+                },
+                "dir_rep_title": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "file_information": {
+              "type": "keyword"
+            },
+            "if_part_of_a_larger_body": {
+              "type": "text"
+            },
+            "legal_status": {
+              "type": "keyword"
+            },
+            "membership_fields": {
+              "type": "text"
+            },
+            "organisation_description": {
+              "type": "text"
+            },
+            "organisation_name": {
+              "type": "text"
+            },
+            "staff_fields": {
+              "type": "text"
+            },
+            "type_of_institution": {
+              "type": "keyword"
+            },
             "type_of_institution_if_other": {
               "type": "keyword"
             }
-			}
-		}
-	
-}'
+          }
+        },
+        "research": {
+          "type": "nested",
+          "properties": {
+            "general_description": {
+              "type": "text"
+            },
+            "research_fields": {
+              "type": "text"
+            },
+            "research_programs": {
+              "type": "nested",
+              "properties": {
+                "contribution_description": {
+                  "type": "text"
+                },
+                "partner_institutions": {
+                  "type": "keyword"
+                },
+                "program_name": {
+                  "type": "keyword"
+                },
+                "research_links": {
+                  "type": "nested",
+                  "properties": {
+                    "research_link_description": {
+                      "type": "keyword"
+                    },
+                    "research_url": {
+                      "type": "keyword"
+                    }
+                  }
+                },
+                "workpackage_name": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "to_collection_list": {
+          "type": "keyword"
+        },
+        "to_facility_list": {
+          "type": "keyword"
+        },
+        "to_research_expertise_list": {
+          "type": "keyword"
+        },
+        "url_id": {
+          "type": "keyword"
+        }
+      }
+    }
+  
+}
+'
