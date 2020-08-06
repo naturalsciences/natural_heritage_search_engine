@@ -6,10 +6,14 @@ INDEX_NAME_INSTITUTIONS="cetaf_passport_institutions_full"
 INDEX_NAME_COLLECTIONS="cetaf_passport_collections_full"
 INDEX_NAME_FACILITIES="cetaf_passport_facilities"
 INDEX_NAME_EXPERTISES="cetaf_passport_expertises"
+INDEX_NAME_COLLECTIONS_LIGHT="cetaf_passport_collections"
 URL_ID="http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/"
-countries=['Belgium', 'Netherlands', 'United Kingdom', 'Germany']
-countries_iso=['be', 'nl', 'gb', 'de']
-i_countries=1
+countries=['Belgium', 'Netherlands', 'United Kingdom', 'Germany', 'France']
+countries_iso=['be', 'nl', 'gb', 'de', 'fr']
+i_countries=0
+
+i_institutions=0
+type_institutions=["Museum", "Botanical Garden", "University", "Others"]
 
 coll_struct={}
 coll_struct["Botany"]=["Vascular plants","Bryophytes (mosses)","Algae" ]
@@ -63,7 +67,8 @@ addresses=[{"city":"Brussel",
            "email": "info@naturalsciences.be",
            "postcode":"1000",
            "street": "Rue Vautier",
-           "phone":"+32 (0)2 627 42 11"
+           "phone":"+32 (0)2 627 42 11",
+            "country_iso3166":"be"
           },
           
           {"city":"Leiden",
@@ -71,18 +76,23 @@ addresses=[{"city":"Brussel",
            "email": "contact@naturalis.nl",
            "postcode":"2333 CR Leiden",
            "street": "Darwinweg 2"
+           ,
+            "country_iso3166":"nl"
           },
           {"city":"London",
            "country":"United Kingdom",
            "email": "info@mfn.berlin",
            "postcode":"SW 7 5BD",
            "street": "Cromwell Rd, South Kensington, "
+           ,
+            "country_iso3166":"uk"
           },
            {"city":"Berlin",
            "country":"Germany",
            "email": "info@mfn.berlin",
            "postcode":"SW 7 5BD",
-           "street": "Invalidenstraße 43"
+           "street": "Invalidenstraße 43",
+            "country_iso3166":"de"
           }
           
           ]
@@ -206,7 +216,7 @@ def create_collection(museum, museum_name, iter_total=18, iter_in_level=3):
         try:         
             cols=next(global_generator)
             print(cols)
-            create_coll(museum, cols[1], cols[0])
+            create_coll(museum, museum_name, cols[1], cols[0])
         except StopIteration:
             print("REWIND")
             global_generator=coll_generator(iter_total)
@@ -220,20 +230,32 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     returned_2={}
     returned_2["url_id"]=URL_ID+"/collection/"+str(iCols)
     returned_2["to_parent_institution"]=museum
+    returned_3={}
+    returned_3["url_id"]=URL_ID+"/collection/"+str(iCols)
+    returned_3["to_parent_institution"]=museum
     global list_paths
     if parent_coll:
         returned_2["to_all_parent_collections"]=list_paths[parent_coll]+ [parent_coll]        
         returned_2["full_path"]=museum+"/"+parent_coll+"/"+coll
         returned_2["to_parent_collection"]='/'.join(returned_2["full_path"].split("/")[:-1])
         list_paths[coll]=returned_2["to_all_parent_collections"]
+        returned_3["to_all_parent_collections"]=list_paths[parent_coll]+ [parent_coll]        
+        returned_3["full_path"]=museum+"/"+parent_coll+"/"+coll
+        returned_3["to_parent_collection"]='/'.join(returned_2["full_path"].split("/")[:-1])
+        list_paths[coll]=returned_3["to_all_parent_collections"]
     else:
         returned_2["to_all_parent_collections"]=[museum]
         returned_2["full_path"]=museum+"/"+coll
         list_paths[coll]=returned_2["to_all_parent_collections"]
+        returned_3["to_all_parent_collections"]=[museum]
+        returned_3["full_path"]=museum+"/"+coll
+        list_paths[coll]=returned_3["to_all_parent_collections"]
         
 
     returned_2["collection_name"]=coll
     returned_2["institution_name"]=museum_name
+    returned_3["collection_name"]=coll
+    returned_3["institution_name"]=museum_name
     returned_2["collection_description"]=lorem_ipsum("Description of collection",iCols)
     returned_2["collection_description_outstanding_features"]=lorem_ipsum("Description of collection specificities",iCols)
     returned_2["collection_statistics"]=lorem_ipsum("Description statistics",iCols)
@@ -328,7 +350,7 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
         area_vals=[]
         if(len(region_struct[area_type])>2):
             area_vals=random.sample(list(region_struct[area_type]), 3)
-        elif(len(region_struct[area_type])>2):
+        elif(len(region_struct[area_type])>=1):
             area_vals=random.sample(list(region_struct[area_type]), 1)
  
         areas_agg=[]
@@ -339,6 +361,13 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
             areas["area_detail"]=lorem_ipsum_short("taxonomic category detail "+val, iCols )
             areas["area_quantity"]=random.randrange(100,1000000)
             areas["area_quantity_confidence_pc"]=random.randrange(50,100)
+            global i_countries
+            i_countries=(i_countries + 1 ) % len(countries)
+            tmp_array={}
+            country=countries[i_countries-1]
+            iso_tmp=countries_iso[i_countries-1]
+            areas["countries"]={"collection_country_iso3166":iso_tmp, "collection_country_name":country}
+            
             areas_agg.append(areas)
         cat["countries_and_areas"]=areas_agg
         cats.append(cat)
@@ -367,8 +396,14 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     cert3=100-cert1-cert2-cert0
     strat["stratigraphical_subdivision_mids_3_pc"]=cert3
     coverage["stratigraphical_subdivision"]=strat
-    
     returned_2["coverage_fields"]=coverage
+
+    
+    coverage2={}
+    coverage2["taxonomic_discipline"]=tax_discipline
+    coverage2["temporal_scope"]={"gte":1800,"lte":2000}
+    coverage2["countries_and_areas"]=areas_agg
+    returned_3["coverage_fields"]=coverage2
     
     size={}
     #size["mids_level"]=random.randrange(1,3)
@@ -378,9 +413,11 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     size["other_size_indicators"]=iCols*100
     size["owc_size_evaluation"]=6
     returned_2["size_and_digitisation_fields"]=size
+    returned_3["size_and_digitisation_fields"]=size
+    returned_3["coverage_fields"]=coverage2
     
     returned_2["manager_head_of_collection"]={"manager_title":"Dr.", "manager_name":"Syd Barrett", "manager_email":"syd.barrett@cetaf.be", "manager_research_fields":['Mycology','Anthropology']}
-    
+    returned_3["manager_head_of_collection"]={"manager_title":"Dr.", "manager_name":"Syd Barrett", "manager_email":"syd.barrett@cetaf.be", "manager_research_fields":['Mycology','Anthropology']}
     
     contact_person={}
     contact_person["adm_contact_type"]="Curator of collection"
@@ -407,23 +444,29 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     returned_2["url_id"]=URL_ID+'/collection/'+str(iCols)
     print("CREATE COLL")
     global INDEX_NAME_COLLECTIONS
+    global INDEX_NAME_COLLECTIONS_LIGHT
     print("created "+returned_2["full_path"])
     es.index(index=INDEX_NAME_COLLECTIONS, doc_type= "_doc",id=returned_2["full_path"], body=returned_2)
+    es.index(index=INDEX_NAME_COLLECTIONS_LIGHT, doc_type= "_doc",id=returned_3["full_path"], body=returned_3)
     if(coll=="Vascular plants"):
         for i in range(0,3):
             #print("CREATE = "+coll+"sub_col"+str(i)+ " with parent "+parent_coll+"/"+coll)
             list_paths[parent_coll+"/"+ coll]=[parent_coll]
-            create_coll(museum, coll+"sub_col"+str(i),parent_coll+"/"+ coll)
+            create_coll(museum,  museum_name, coll+"sub_col"+str(i),parent_coll+"/"+ coll)
             #raise Exception("debug")     
          
 def create_institution(iter=1):
     returned=[]
     global i_countries
     i_countries=0
+    
+    global i_institutions
+    i_institutions=0
     for i in range(1,iter+1):
         returned_2={}
         
         i_countries=(i_countries + 1 ) % len(countries)
+        i_institutions=(i_institutions + 1 ) % len(type_institutions)
         tmp_array={}
         country=countries[i_countries-1]
         iso_tmp=countries_iso[i_countries-1]
@@ -447,8 +490,7 @@ def create_institution(iter=1):
         
         print(country)
         print(iso_tmp)
-        returned_2["country_iso3166"]="be"
-        returned_2["country_en"]="Belgium"
+        
         returned_2["institution_name"]="Natural Science Institute n°"+str(i)
         identification={}
         
