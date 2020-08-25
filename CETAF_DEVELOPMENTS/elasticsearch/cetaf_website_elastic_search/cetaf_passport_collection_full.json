@@ -1,11 +1,12 @@
 curl -X DELETE "localhost:9200/cetaf_passport_collections_full?pretty"
 curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-Type: application/json' -d'
-
 {
-  
     "mappings": {
       "dynamic": "strict",
       "properties": {
+        "accession_specimens": {
+          "type": "text"
+        },
         "administration_field": {
           "type": "nested",
           "properties": {
@@ -121,22 +122,12 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
             }
           }
         },
-        "accession_specimens": {
-          "type": "text"
-        }
-        ,
         "collection_statistics": {
           "type": "text"
         },
         "collection_type": {
           "type": "keyword"
-        }
-        ,
-        "institution_name":
-                 {
-                    "type": "keyword"
-                 }
-                ,
+        },
         "coverage_fields": {
           "type": "nested",
           "properties": {
@@ -149,11 +140,11 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
             "geographical_coverage_bbox": {
               "type": "geo_shape"
             },
-            "geographical_coverage_text": {
-              "type": "text"
-            },
             "geographical_coverage_link": {
               "type": "keyword"
+            },
+            "geographical_coverage_text": {
+              "type": "text"
             },
             "habitat": {
               "type": "nested",
@@ -175,7 +166,6 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
             "stratigraphical_subdivision": {
               "type": "nested",
               "properties": {
-        
                 "eon_name": {
                   "type": "keyword"
                 },
@@ -246,20 +236,16 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
                         "area_type": {
                           "type": "keyword"
                         },
-                        "countries":
-                        {
-                            "type":"nested",
-                            "properties":
-                            {
-                                "collection_country_iso3166":
-                                {
-                                    "type":"keyword"
-                                },
-                                 "collection_country_name":
-                                {
-                                    "type":"keyword"
-                                }
+                        "countries": {
+                          "type": "nested",
+                          "properties": {
+                            "collection_country_iso3166": {
+                              "type": "keyword"
+                            },
+                            "collection_country_name": {
+                              "type": "keyword"
                             }
+                          }
                         }
                       }
                     },
@@ -318,6 +304,14 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
             "temporal_scope": {
               "type": "date_range",
               "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||yyyy"
+            },
+            "main_category":
+            {
+             "type": "keyword"
+            },
+            "name_taxonomic_category":
+            {
+                "type": "keyword"
             }
           }
         },
@@ -343,7 +337,7 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
         },
         "full_path": {
           "type": "keyword"
-        },        
+        },
         "identification_fields": {
           "type": "nested",
           "properties": {
@@ -375,6 +369,9 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
             }
           }
         },
+        "institution_name": {
+          "type": "keyword"
+        },
         "main_identifier": {
           "type": "keyword"
         },
@@ -402,6 +399,29 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
           }
         },
         "size_and_digitisation_fields": {
+          "type": "nested",
+          "properties": {
+            "mids_level": {
+              "type": "short"
+            },
+            "other_size_indicators": {
+              "type": "text"
+            },
+            "owc_size_evaluation": {
+              "type": "short"
+            },
+            "primary_types_count": {
+              "type": "long"
+            },
+            "specimens_count": {
+              "type": "long"
+            },
+            "units_count": {
+              "type": "long"
+            }
+          }
+        },
+        "size_and_digitisation_fields_sum_all": {
           "type": "nested",
           "properties": {
             "mids_level": {
