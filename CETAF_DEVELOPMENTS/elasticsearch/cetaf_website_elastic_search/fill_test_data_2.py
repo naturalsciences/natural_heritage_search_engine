@@ -9,7 +9,14 @@ INDEX_NAME_EXPERTISES="cetaf_passport_expertises"
 URL_ID="http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/"
 countries=['Belgium', 'Netherlands', 'United Kingdom', 'Germany']
 countries_iso=['be', 'nl', 'gb', 'de']
-i_countries=1
+i_countries=0
+
+i_institutions=0
+type_institutions=["Museum", "Botanical Garden", "University", "Others"]
+
+
+i_collection_category=0
+collection_category=["Earth Science", "Life Science", "Heritage Science"]
 
 coll_struct={}
 coll_struct["Botany"]=["Vascular plants","Bryophytes (mosses)","Algae" ]
@@ -30,7 +37,8 @@ addresses=[{"city":"Brussel",
            "email": "info@naturalsciences.be",
            "postcode":"1000",
            "street": "Rue Vautier",
-           "phone":"+32 (0)2 627 42 11"
+           "phone":"+32 (0)2 627 42 11",
+            "country_iso3166":"be"
           },
           
           {"city":"Leiden",
@@ -38,18 +46,23 @@ addresses=[{"city":"Brussel",
            "email": "contact@naturalis.nl",
            "postcode":"2333 CR Leiden",
            "street": "Darwinweg 2"
+           ,
+            "country_iso3166":"nl"
           },
           {"city":"London",
            "country":"United Kingdom",
            "email": "info@mfn.berlin",
            "postcode":"SW 7 5BD",
            "street": "Cromwell Rd, South Kensington, "
+           ,
+            "country_iso3166":"uk"
           },
            {"city":"Berlin",
            "country":"Germany",
            "email": "info@mfn.berlin",
            "postcode":"SW 7 5BD",
-           "street": "Invalidenstraße 43"
+           "street": "Invalidenstraße 43",
+            "country_iso3166":"de"
           }
           
           ]
@@ -60,6 +73,9 @@ iCols=1
 iFacility=1
 es=None
 
+organisation_type=["Botanical Garden", "Museum", "University", "Research Center"]
+i_organisation_type=0
+
 def lorem_ipsum(field,idx):
     return field+ " " + str(idx) +" Section 1.10.32 du \"De Finibus Bonorum et Malorum\" de Ciceron (45 av. J.-C.) \r\n Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
 
@@ -69,31 +85,7 @@ def lorem_ipsum_short(field,idx):
 def get_url():
     return  "https://en.wikipedia.org/wiki/Consortium_of_European_Taxonomic_Facilities"         
 
-def create_facility(museum):
-    global iFacility
-    iF=random.randrange(0, len(facility_list)-1)
-    iT=random.sample(range(0, len(tool_list)-1), 2)
-    iP=random.randrange(0, len(protocol_list)-1)
-    returned_2={}
-    returned_2["to_parent_institution"]=museum
-    returned_2["facility_name"]=facility_list[iF]
-    returned_2["available_tools"]=[tool_list[iT[0]], tool_list[iT[1]]]
-    returned_2["available_protocols"]=protocol_list[iP]
-    returned_2["facility_description"]=lorem_ipsum("Facility description", iFacility)
-    returned_2["facility_address"]=addresses[random.randrange(0,len(addresses))]
-    contact={}    
-    contact["contact_description"]="Peson to contact to hire the lab"
-    contact["contact_email"]="patrick.juvey@yahoo.fr"
-    contact["contact_name"]="Patrick juvet"
-    contact["contact_phone"]="+34 444"
-    contact["contact_title"]="Dr."
-    contact["contact_type"]="Scientific assistant"
-    returned_2["contact"]=contact    
-    returned_2["url_id"]=returned_2["url_id"]=URL_ID+"/facility/"+str(iFacility)
-    returned_2["full_path"]=museum+"/"+returned_2["facility_name"]
-    iFacility=iFacility+1
-    global INDEX_NAME_FACILITIES
-    es.index(index=INDEX_NAME_FACILITIES, doc_type= "_doc",id=returned_2["full_path"], body=returned_2)
+
 
 #+ iter 
 def coll_generator(iter_total=15):
@@ -162,6 +154,10 @@ def create_coll(museum, museum_name,  coll, parent_coll=None):
     coverage["temporal_scope"]={"gte":1800,"lte":2000}
     coverage["stratigraphical_coverage_text"]=lorem_ipsum("stratigraphical_coverage_text",iCols)
     coverage["stratigraphical_subdivision"]=lorem_ipsum_short("stratigraphical_coverage_text",iCols)
+    global i_collection_category
+    i_collection_category = (i_collection_category + 1 ) % len(collection_category)
+    coverage["main_category"]=collection_category[i_collection_category]
+    coverage["name_taxonomic_category"]=coll
     returned_2["coverage_fields"]=coverage
     
     size={}
@@ -190,10 +186,14 @@ def create_institution(iter=1):
     returned=[]
     global i_countries
     i_countries=0
+    
+    global i_institutions
+    i_institutions=0
     for i in range(1,iter+1):
         returned_2={}
         
         i_countries=(i_countries + 1 ) % len(countries)
+        i_institutions=(i_institutions + 1 ) % len(type_institutions)
         tmp_array={}
         country=countries[i_countries-1]
         iso_tmp=countries_iso[i_countries-1]
@@ -202,8 +202,8 @@ def create_institution(iter=1):
         returned_2["url_id"]=URL_ID+str(i)
         print(country)
         print(iso_tmp)
-        returned_2["country_iso3166"]="be"
-        returned_2["country_en"]="Belgium"
+        
+        
         returned_2["institution_name"]="Natural Science Institute n°"+str(i)
         identification={}
         
@@ -243,8 +243,8 @@ def create_institution(iter=1):
         representative={}
         representative["dir_rep_category"]="CETAF Deputy"
         representative["dir_rep_description"]="Elected since 2016, Mr Smith is XXXXXXX and WWWWW"
-        representative["dir_rep_email"]="ian.smith@yahoo.fr"
-        representative["dir_rep_name"]="Ian Smith"
+        representative["dir_rep_email"]="peter.smith@yahoo.fr"
+        representative["dir_rep_name"]="Peter Smith"
         representative["dir_rep_phone"]="+34 444"
         representative["dir_rep_position"]="Executive Director"
         representative["dir_rep_title"]="Dr."
@@ -254,7 +254,9 @@ def create_institution(iter=1):
         
         returned_2["contact"]=[contact1, contact2]
         
-        returned_2["institution_address"]=addresses[random.randrange(0,len(addresses))]    
+        returned_2["institution_address"]=addresses[random.randrange(0,len(addresses))]
+
+        returned_2["type_of_institution"]=type_institutions[i_institutions]        
         
         research={}
         research["general_description"]=lorem_ipsum("General description research",1)
@@ -280,6 +282,11 @@ def create_institution(iter=1):
         research["research_programs"]=research_programs    
         returned_2["research"]=research
         
+        global i_organisation_type
+        organisation={}
+        organisation["type_of_institution"]=organisation_type[i_organisation_type]
+        i_organisation_type=(i_organisation_type + 1 ) % len(organisation_type)
+        returned_2["organisation"]=organisation
         
         returned.append(returned_2)
         
@@ -306,10 +313,9 @@ def parse():
         #print(inst)
         global INDEX_NAME_INSTITUTIONS
         es.index(index=INDEX_NAME_INSTITUTIONS, doc_type= "_doc",id=inst["identification_fields"]["unique_acronym"], body=inst)
-        init_main_coll(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
-        create_collection(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
-        create_facility(inst["identification_fields"]["unique_acronym"])
-        create_facility(inst["identification_fields"]["unique_acronym"])
+        #init_main_coll(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
+        #create_collection(inst["identification_fields"]["unique_acronym"], inst["institution_name"])
+       
    
     
 
