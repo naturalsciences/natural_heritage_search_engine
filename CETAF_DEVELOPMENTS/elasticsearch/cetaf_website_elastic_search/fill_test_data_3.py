@@ -12,8 +12,13 @@ countries=['Belgium', 'Netherlands', 'United Kingdom', 'Germany', 'France']
 countries_iso=['be', 'nl', 'gb', 'de', 'fr']
 i_countries=0
 
+
+
 i_institutions=0
 type_institutions=["Museum", "Botanical Garden", "University", "Others"]
+
+i_collection_category=0
+collection_category=["Earth Science", "Life Science", "Heritage Science"]
 
 coll_struct={}
 coll_struct["Botany"]=["Vascular plants","Bryophytes (mosses)","Algae" ]
@@ -25,6 +30,7 @@ list_paths={}
 research_fields=["Zoology", "Anthroplogy", "Social sciences", "History of arts"]
 
 facility_list=["Genetic lab", "Histology room", "X Ray scanner", "3D Capture lab"]
+i_facility_list=0
 tool_list=["Sequencer", "3D Printer", "X Ray scanner", "Microscope", "Parallel calculation machine"]
 protocol_list=["PCR", "Genotyping by sequencing", "De Novo Assembly"]
 
@@ -122,6 +128,7 @@ def create_expertises():
     iP=random.randrange(0, len(protocol_list)-1)
     returned_2={"collection_name":"BE-NHM1/Anthropology",
                     "institution_name":"BE-NHM1",
+                    "to_parent_institution":"BE-NHM1",
                     "country_en":"Belgium",
                     "country_iso3166":"be",
                      "seniority":"Dr.",
@@ -165,6 +172,7 @@ def create_facility(museum, museum_name):
     returned_2={}
     returned_2["to_parent_institution"]=museum
     returned_2["institution_name"]=museum_name
+    returned_2["facility_type"]=facility_list[iF]
     returned_2["laboratories"]=facility_list[iF]
     returned_2["facility_name"]="Test laboratory "+ museum_name
     returned_2["available_tools"]={
@@ -403,6 +411,11 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     coverage2["taxonomic_discipline"]=tax_discipline
     coverage2["temporal_scope"]={"gte":1800,"lte":2000}
     coverage2["countries_and_areas"]=areas_agg
+    
+    global i_collection_category
+    i_collection_category = (i_collection_category + 1 ) % len(collection_category)
+    coverage2["main_category"]=collection_category[i_collection_category]
+    coverage2["name_taxonomic_category"]=coll
     returned_3["coverage_fields"]=coverage2
     
     size={}
@@ -551,7 +564,7 @@ def create_institution(iter=1):
         organisation["organisation_description"]=lorem_ipsum("Organisation description",i)
         organisation["organisation_name"]=lorem_ipsum_short("Organisation name",i)
         organisation["staff_fields"]=lorem_ipsum("Staff fields",i)
-        organisation["type_of_institution"]="Natural sciences museum"
+        organisation["type_of_institution"]=type_institutions[i_institutions]
         returned_2["organisation"]=organisation
         returned_2["institution_description"]=lorem_ipsum("Institution description",i)
         
