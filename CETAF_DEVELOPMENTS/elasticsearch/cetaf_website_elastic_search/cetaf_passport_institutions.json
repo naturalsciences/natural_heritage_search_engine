@@ -1,56 +1,113 @@
+curl -X DELETE "localhost:9200/cetaf_passport_collections?pretty"
+curl -X PUT "localhost:9200/cetaf_passport_collections?pretty" -H 'Content-Type: application/json' -d'
 {
-  "cetaf_passport_institutions": {
+  
     "mappings": {
       "dynamic": "strict",
       "properties": {
-        "contact": {
-          "type": "nested",
-          "properties": {
-            "contact_description": {
-              "type": "text"
-            },
-            "contact_email": {
-              "type": "keyword"
-            },
-            "contact_name": {
-              "type": "keyword"
-            },
-            "contact_phone": {
-              "type": "keyword"
-            },
-            "contact_title": {
-              "type": "keyword"
-            },
-            "contact_type": {
-              "type": "keyword"
-            }
-          }
+        "collection_acronym": {
+          "type": "keyword"
         },
-        "director_or_legal_representative": {
+        "collection_name": {
+          "type": "keyword"
+        },
+        "collection_type": {
+          "type": "keyword"
+        },
+        "coverage_fields": {
           "type": "nested",
           "properties": {
-            "dir_rep_category": {
-              "type": "keyword"
-            },
-            "dir_rep_description": {
+            "collecting_period_text": {
               "type": "text"
             },
-            "dir_rep_email": {
-              "type": "keyword"
+            "countries_and_areas": {
+              "type": "nested",
+              "properties": {
+                "area_detail": {
+                  "type": "text"
+                },
+                "area_identifier": {
+                  "type": "nested",
+                  "properties": {
+                    "area_identifier_system": {
+                      "type": "keyword"
+                    },
+                    "area_identifier_value": {
+                      "type": "keyword"
+                    }
+                  }
+                },
+                "area_name": {
+                  "type": "text"
+                },
+                "area_quantity": {
+                  "type": "long"
+                },
+                "area_quantity_confidence_pc": {
+                  "type": "short"
+                },
+                "area_type": {
+                  "type": "keyword"
+                },
+                "countries": {
+                  "type": "nested",
+                  "properties": {
+                    "collection_country_iso3166": {
+                      "type": "keyword"
+                    },
+                    "collection_country_name": {
+                      "type": "keyword"
+                    }
+                  }
+                }
+              }
             },
-            "dir_rep_name": {
-              "type": "keyword"
-            },
-            "dir_rep_phone": {
-              "type": "keyword"
-            },
-            "dir_rep_position": {
+            "functional_group": {
               "type": "text"
             },
-            "dir_rep_research_fields": {
+            "geographical_coverage_bbox": {
+              "type": "geo_shape"
+            },
+            "geographical_coverage_coverage_text": {
               "type": "text"
             },
-            "dir_rep_title": {
+            "geographical_coverage_link": {
+              "type": "keyword"
+            },
+            "habitat": {
+              "type": "nested",
+              "properties": {
+                "habitat_pc": {
+                  "type": "double"
+                },
+                "habitat_text": {
+                  "type": "keyword"
+                },
+                "habitat_type": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "stratigraphy_link": {
+              "type": "keyword"
+            },
+            "taxonomic_coverage_sub_category": {
+              "type": "text"
+            },
+            "taxonomic_discipline": {
+              "type": "text"
+            },
+            "temporal_scope": {
+              "type": "date_range",
+              "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||yyyy"
+            },
+            "main_category":
+            {
+             "type": "keyword"
+            }
+            ,
+            "name_taxonomic_category":
+            {
               "type": "keyword"
             }
           }
@@ -58,133 +115,103 @@
         "full_path": {
           "type": "keyword"
         },
-        "identification_fields": {
-          "type": "nested",
-          "properties": {
-            "grid_id": {
-              "type": "keyword"
-            },
-            "grscicoll_code": {
-              "type": "keyword"
-            },
-            "original_name": {
-              "type": "nested",
-              "properties": {
-                "iso639": {
-                  "type": "keyword"
-                },
-                "lang": {
-                  "type": "keyword"
-                },
-                "translated_name": {
-                  "type": "text"
-                }
-              }
-            },
-            "unique_acronym": {
-              "type": "keyword"
-            },
-            "wikidata_id": {
-              "type": "keyword"
-            }
-          }
-        },
-        "institution_address": {
-          "type": "nested",
-          "properties": {
-            "city": {
-              "type": "text",
-              "fielddata": true
-            },
-            "country": {
-              "type": "text",
-              "fielddata": true
-            },
-            "country_iso3166": {
-              "type": "text",
-              "fielddata": true
-            },
-            "email": {
-              "type": "text"
-            },
-            "phone": {
-              "type": "text"
-            },
-            "postcode": {
-              "type": "text"
-            },
-            "street": {
-              "type": "text"
-            }
-          }
-        },
-        "institution_description": {
-          "type": "text"
-        },
         "institution_name": {
           "type": "keyword"
         },
         "main_identifier": {
           "type": "keyword"
         },
-        "research": {
+        "manager_head_of_collection": {
           "type": "nested",
           "properties": {
-            "general_description": {
+            "manager_email": {
+              "type": "keyword"
+            },
+            "manager_name": {
+              "type": "keyword"
+            },
+            "manager_phone": {
+              "type": "keyword"
+            },
+            "manager_position": {
               "type": "text"
             },
-            "research_fields": {
+            "manager_research_fields": {
               "type": "text"
             },
-            "research_programs": {
-              "type": "nested",
-              "properties": {
-                "contribution_description": {
-                  "type": "text"
-                },
-                "partner_institutions": {
-                  "type": "keyword"
-                },
-                "program_name": {
-                  "type": "keyword"
-                },
-                "research_links": {
-                  "type": "nested",
-                  "properties": {
-                    "research_link_description": {
-                      "type": "keyword"
-                    },
-                    "research_url": {
-                      "type": "keyword"
-                    }
-                  }
-                },
-                "workpackage_name": {
-                  "type": "keyword"
-                }
-              }
+            "manager_title": {
+              "type": "keyword"
             }
           }
         },
-        "to_collection_list": {
+        "size_and_digitisation_fields": {
+          "type": "nested",
+          "properties": {
+            "mids_level": {
+              "type": "integer"
+            },
+            "other_size_indicators": {
+              "type": "text"
+            },
+            "owc_size_evaluation": {
+              "type": "integer"
+            },
+            "primary_types_count": {
+              "type": "integer"
+            },
+            "specimens_count": {
+              "type": "integer"
+            },
+            "units_count": {
+              "type": "integer"
+            }
+          }
+        },
+        "size_and_digitisation_fields_sum_all": {
+          "type": "nested",
+          "properties": {
+            "mids_level": {
+              "type": "integer"
+            },
+            "other_size_indicators": {
+              "type": "text"
+            },
+            "owc_size_evaluation": {
+              "type": "integer"
+            },
+            "primary_types_count": {
+              "type": "integer"
+            },
+            "specimens_count": {
+              "type": "integer"
+            },
+            "units_count": {
+              "type": "integer"
+            }
+          }
+        },
+        "to_all_parent_collections": {
           "type": "keyword"
         },
-        "to_facility_list": {
+        "to_facilities": {
           "type": "keyword"
         },
-        "to_research_expertise_list": {
+        "to_parent_collection": {
           "type": "keyword"
         },
-        "type_of_institution": {
+        "to_parent_institution": {
           "type": "keyword"
         },
-        "type_of_institution_if_other": {
+        "to_research_expertises": {
+          "type": "keyword"
+        },
+        "to_sub_collections": {
           "type": "keyword"
         },
         "url_id": {
-          "type": "keyword"
+          "type": "text"
         }
       }
     }
-  }
-}
+  
+}'
