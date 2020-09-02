@@ -288,8 +288,8 @@ class NaturalheritageOaipmhBundle  extends Bundle implements DataProviderInterfa
         
 		
 		$results=$results["hits"];
-		$size=$results["total"];
-		$oaiPmhRuler->setTotal($size);
+		$size=$results["total"];     
+		$oaiPmhRuler->setTotal($size["value"]);
 		$oaiPmhRuler->setElasticResumption($scroll_id);
 		foreach($results["hits"] as $key=>$sub_array)
 		{

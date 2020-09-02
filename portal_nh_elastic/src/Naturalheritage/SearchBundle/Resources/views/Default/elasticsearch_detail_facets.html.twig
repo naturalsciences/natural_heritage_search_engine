@@ -37,10 +37,38 @@ var route;
 route=$("#base_url").val();
 var facet_url=route.concat("fs_wrapper_all");
 
+var initFacetPost=function(data)
+{
+	data["expanded"] = true;
+    if ($("#facet_criteria").val().length > 0) {
+
+        data["extra_params"] = JSON.stringify($("#facet_criteria").val());
+        data["expanded"] = true;
+    }
+	if ($("#facet_criteria_facets").val().length > 0) {
+
+        data["extra_params_facets"] =JSON.stringify( $("#facet_criteria_facets").val());
+        data["expanded"] = true;
+    }
+	
+    if ($("#facet_criteria_annex").val().length > 0) {
+
+        data["extra_params_annex"] = $("#facet_criteria_annex").val();
+        data["expanded"] = true;
+    }
+
+
+    if ($("#facet_criteria_annex_facets").val().length > 0) {
+
+        data["extra_params_annex_facets"] = JSON.stringify($("#facet_criteria_annex_facets").val());
+        data["expanded"] = true;
+    }
+	return data;
+}
 var buildJsonSearchFacets=function(array_terms, array_concepts)
 {
 
-    var returned="";
+    var returned={};
     if(array_terms.length==array_concepts.length)
     {
         jsonArray=Array();
@@ -50,10 +78,13 @@ var buildJsonSearchFacets=function(array_terms, array_concepts)
             var concept=array_concepts[i];
             jsonArray.push({field:concept, term:term});
         }
-		console.log(jsonArray);
-        returned= JSON.stringify(jsonArray);
+		
+		 returned= JSON.stringify(jsonArray);
+       	
     }
-
+	
+	//returned=initFacetPost(returned);
+	
     return returned;
 }
 
@@ -75,8 +106,17 @@ var updateSelected=function()
 		}
 	);
 }
-
-
+//2020 08 31
+var getStorageDataFacets=function()
+{
+    var returned={};
+    if (sessionStorage.getItem("es_result") !== null) {
+            returned["es_result"]=sessionStorage.getItem("es_result");
+    }
+	
+	returned=initFacetPost(returned);
+    return returned;
+}
 $(function(){
 
  $(".btnDeselectAll").click(function(){
@@ -96,6 +136,8 @@ $(function(){
       selectMode: 3,
       source:$.ajax({
 			url: detect_https(facet_url),
+             method: "POST",
+            data:getStorageDataFacets(),
 			dataType: "json"
 		  }),
       init: function(event, data) {
@@ -124,8 +166,7 @@ $(function(){
 		  }
 
           if(root.key.toLowerCase()=="what"||root.key.toLowerCase()=="where"||root.key.toLowerCase()=="who")
-          {
-		   console.log();
+          {		
             parents.push(node.parent.key);
             selKeys.push(node.key);
           }
@@ -150,7 +191,7 @@ $(function(){
        
 
         var jsonTmp= buildJsonSearchFacets(selKeys,parents);
-		//console.log(jsonTmp);
+	
         $("#facet_criteria_facets").val(jsonTmp);
 		
 		var jsonTmpAnnex= buildJsonSearchFacets(selKeysAnnex,parentsAnnex);

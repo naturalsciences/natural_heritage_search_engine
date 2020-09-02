@@ -107,7 +107,7 @@
 			<input type="hidden" id="facet_criteria_facets"></input>
 			<input type="hidden" id="facet_criteria_annex_facets"></input>
 
-			<input type="button" class="search_dem" id="search_dem" name="search_dem" value="search"></input><br/>
+			<input type="button" class="search_dem" id="search_dem" name="search_dem" value="search"></input> <input type="button" class="clear_all" id="clear_all" name="clear_all" value="clear all"></input><br/>
 
 
 			<div id="placeholder_facets" name="placeholder_facets"></div>
@@ -210,7 +210,7 @@ $(document).ready(
         function()
         {
 			$(".nh_spinner").show(0).delay(5000).hide(0);
-             var term=$("#elastic_search_freetext").val();
+             var term=$("#elastic_search_freetext").val();			
             search_fct(1,true);
         }
        );
@@ -243,10 +243,8 @@ $(document).ready(
 			}
 		}
 		window.onload = function()
-		{  
-			console.log("loading");
-			var in_frame=inIframe();
-		   console.log(in_frame);
+		{  			
+			var in_frame=inIframe();		  
 		   
 		   if(!in_frame)
 		   {

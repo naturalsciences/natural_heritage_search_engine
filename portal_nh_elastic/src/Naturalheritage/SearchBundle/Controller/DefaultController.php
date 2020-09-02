@@ -783,18 +783,24 @@ class DefaultController extends Controller
      public function resultAction_logic(Request $request, $template)
     {        
           $session = $request->getSession();
-          $data=$session->get("es_result",false);
+          //$data=$session->get("es_result",false);
+		  $data=$request->request->get("es_result",false);
+		 
+		  //print_r($data);
 		  $page =  $request->request->get("page",1);
           if($data!==false)
           { 
-
-			$pagination = array(
-            'page' => $page,
-            'route' => 'naturalheritage_search_searchelasticsearchpartial',
-            'pages_count' => ceil($data["hits"]["total"]["value"] / $this->max_results)
-			);
-            return	 $this->render($template, array("data"=> $data["hits"], "pagination"=> $pagination, "page_size"=> $this->max_results, "nb_results"=> $data["hits"]["total"]["value"], "nb_results_all"=> ($data["aggregations"]["total_objects"]["sum_other_doc_count"])+1));
-          }
+			if(strlen($data)>0)
+			{
+				$data=json_decode($data,true);
+				$pagination = array(
+				'page' => $page,
+				'route' => 'naturalheritage_search_searchelasticsearchpartial',
+				'pages_count' => ceil($data["hits"]["total"]["value"] / $this->max_results)
+				);
+				return	 $this->render($template, array("data"=> $data["hits"], "pagination"=> $pagination, "page_size"=> $this->max_results, "nb_results"=> $data["hits"]["total"]["value"], "nb_results_all"=> ($data["aggregations"]["total_objects"]["sum_other_doc_count"])+1));
+			  }
+		  }
     }
     
     
@@ -813,7 +819,9 @@ class DefaultController extends Controller
     {
 		
 		$session = $request->getSession();
-          $data=$session->get("es_result",false);
+          //$data=$session->get("es_result",false);
+		  $data=$request->request->get("es_result",false);
+		  $data=json_decode($data,true);
           $agg=$request->request->get("agg", "what");
           if($data!==false)
           { 
@@ -878,7 +886,7 @@ class DefaultController extends Controller
         return $param;
      }
      
-     protected function es_wrapper_logic($session, $p_term,$p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_wkt_search, $p_wfs_search,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
+     protected function es_wrapper_logic( $p_term,$p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_wkt_search, $p_wfs_search,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
     {
 
             $go_query=false;
@@ -887,11 +895,13 @@ class DefaultController extends Controller
 			if(strtolower($p_expanded=="true"))
 			{
 
-				$session->set("expanded","true");
+				//$session->set("expanded","true");
+				$this->expanded=true;
 			}
 			else
 			{
-				$session->set("expanded","false");
+				//$session->set("expanded","false");
+				$this->expanded=false;
 			}
             //$term = $request->query->get('term',"");
             
@@ -930,30 +940,30 @@ class DefaultController extends Controller
                 {
                     $extra_params = json_decode($p_extra_params,true);
 					
-					$session->set("extra_params", $extra_params);
+					//$session->set("extra_params", $extra_params);
                 }
 				if(isset($p_extra_params_facets))
                 {
                     $extra_params_facets = json_decode($p_extra_params_facets,true);
 					
-					$session->set("extra_params_facets", $extra_params_facets);
+					//$session->set("extra_params_facets", $extra_params_facets);
                 }
 				if(isset($p_extra_params_generic))
                 {				
                     $extra_params_generic = json_decode($p_extra_params_generic,true);
 					
-					$session->set("extra_params_generic", $extra_params_generic);
+					//$session->set("extra_params_generic", $extra_params_generic);
                 }
 				 if(isset($p_extra_params_annex))
                 {
                
                     $extra_params2 = json_decode($p_extra_params_annex,true);
-					$session->set("extra_params2", $extra_params2);
+					//$session->set("extra_params2", $extra_params2);
                 }
 				if(isset($p_extra_params_annex_facets))
                 {
                     $extra_params2_facets = json_decode($p_extra_params_annex_facets,true);
-					$session->set("extra_params2_facets", $extra_params2_facets);
+					//$session->set("extra_params2_facets", $extra_params2_facets);
                 }
                 if(isset($p_coordinates))
                 {
@@ -963,12 +973,12 @@ class DefaultController extends Controller
 				if(isset($p_wkt_search))
                 {					
                     $wkt_search = $p_wkt_search;				
-					$session->set("wkt_search", $wkt_search);
+					//$session->set("wkt_search", $wkt_search);
                 }
 				if(isset($p_wfs_search))
                 {					
                     $wfs_search = $p_wfs_search;				
-					$session->set("wfs_search", $wfs_search);
+					//$session->set("wfs_search", $wfs_search);
                 }
 				if(isset($p_date_from))
                 {					
@@ -1690,9 +1700,9 @@ class DefaultController extends Controller
                             ]
                     ]
                 ];
-            
+           
            $results = $client->search($params);
-           $session->set("es_result", $results);
+           //$session->set("es_result", $results);
            
            
            return new JsonResponse($results);
@@ -1796,12 +1806,12 @@ class DefaultController extends Controller
     
     public function esWrapperAction(Request $request)
     {
-        $session = $request->getSession();
+        //$session = $request->getSession();
         if($request->request->has('term')||$request->request->has('extra_params')||$request->request->has('extra_params_annex')||$request->request->has('coordinates')||$request->request->has('extra_params_generic')||$request->request->has('date_from')||$request->request->has('date_to')||$request->request->has("wkt_search")||$request->request->has("wfs_search"))
 		{
-            $this->recordStateHistory($request, $session);
+            //$this->recordStateHistory($request, $session);
             return $this->es_wrapper_logic( 
-                $session,
+                //$session,
                 $request->request->get('term',""), 
                 $request->request->get('extra_params'), 
                 $request->request->get('extra_params_annex'), 
@@ -1998,12 +2008,37 @@ class DefaultController extends Controller
         $buildString="";
         $buildArray=Array();
         $session = $request->getSession(); 
-		$extra_params=array_merge($session->get("extra_params", Array()),$session->get("extra_params_facets", Array()));
-		$extra_params2=array_merge($session->get("extra_params2", Array()),$session->get("extra_params2_facets", Array()));
+		//$extra_params=array_merge($session->get("extra_params", Array()),$session->get("extra_params_facets", Array()));
+		//$extra_params2=array_merge($session->get("extra_params2", Array()),$session->get("extra_params2_facets", Array()));
+		$facet_criteria=Array();
+		if($request->request->get("facet_criteria", "")!="")
+		{
+			$facet_criteria=json_decode($request->request->get("facet_criteria"),true);
+		}
+		$facet_criteria_facets=Array();
+		if($request->request->get("facet_criteria_facets", "")!="")
+		{
+			$facet_criteria_facets=json_decode($request->request->get("facet_criteria_facets"),true);
+		}
 		
-        $data=$session->get("es_result",false);
-		$this->expanded = $session->get("expanded","false");
-
+		$extra_params_annex=Array();
+		if($request->request->get("extra_params_annex", "")!="")
+		{
+			$extra_params_annex=json_decode($request->request->get("extra_params_annex"),true);
+		}
+		$extra_params_annex_facets=Array();
+		if($request->request->get("extra_params_annex_facets", "")!="")
+		{
+			$extra_params_annex_facets=json_decode($request->request->get("extra_params_annex"),true);
+		}
+		$extra_params=array_merge($facet_criteria,$facet_criteria_facets);
+	    $extra_params2=array_merge($extra_params_annex,$extra_params_annex_facets);
+		
+        //$data=$session->get("es_result",false);
+		$data=$request->request->get("es_result",false);
+		$data=json_decode($data,true);
+		//$this->expanded = $session->get("expanded","false");
+		$this->expanded = $request->request->get("expanded","true");
         $institutionArray=$this->fancyTreeWrapperActionLogicRawCollection($data["aggregations"], array("institution", "department", "collection", "sub_collection"), array("institution", "department", "main_collection", "sub_collection"),$extra_params2);        
          if(count($institutionArray)>0)
         {
@@ -2056,7 +2091,7 @@ class DefaultController extends Controller
 	
 	public function dateTypesAction(Request $request)
 	{
-		 $session = $request->getSession();
+		// $session = $request->getSession();
 		$results=Array();
 		if(count($results)==0)
 		{

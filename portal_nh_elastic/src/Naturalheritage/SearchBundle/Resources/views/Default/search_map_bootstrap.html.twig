@@ -89,9 +89,12 @@
 var map;
 var bingBackground;
 var view;
+console.log("TEST");
 {% if map =="off" %}
+console.log("off");
 var map_visible=false;
 {% else %}
+console.log("on");
 var map_visible=true;
 {% endif %}
 var moveDraw=true;

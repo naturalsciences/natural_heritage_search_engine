@@ -99,6 +99,7 @@ class OaiPmhRulerNh extends BaseRuler
          $resumption = array();
          
          $resumption['next'] = false;
+       
          $nbPages=floor($this->total / $this->countPerLoad)+1;
          $currentStartRecord=$searchParams['record_starts'];
          $currentPage=floor($currentStartRecord / $this->countPerLoad)+1;

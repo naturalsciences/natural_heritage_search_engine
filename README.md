@@ -5,3 +5,13 @@ Two bundles have been developped :
 -A front end for the ElasticSearch catalogue (PHP / JQuery / OpenLayers)
 -an OAI-PMH web service implementing the Naoned interface
  (https://github.com/naoned/OaiPmhServerBundleà
+
+## Example of AOI-PMH requests
+
+ - https://darwin.naturalsciences.be/portal/app_dev.php/oaipmh/?verb=Identify
+
+ - https://darwin.naturalsciences.be/portal/app_dev.php/oaipmh/?verb=ListSets
+
+ - https://darwin.naturalsciences.be/portal/app_dev.php/oaipmh/?verb=ListIdentifiers&metadataPrefix=oai_dc
+
+ - https://darwin.naturalsciences.be/portal/app_dev.php/oaipmh/?verb=ListRecords&metadataPrefix=oai_dc
