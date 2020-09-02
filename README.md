@@ -6,7 +6,7 @@ Two bundles have been developped :
 -an OAI-PMH web service implementing the Naoned interface
  (https://github.com/naoned/OaiPmhServerBundleà
 
-## Example of AOI-PMH requests
+## Example of OAI-PMH requests
 
  - https://darwin.naturalsciences.be/portal/app_dev.php/oaipmh/?verb=Identify
 
