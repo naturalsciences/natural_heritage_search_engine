@@ -462,6 +462,23 @@ curl -X PUT "localhost:9200/cetaf_passport_collections_full?pretty" -H 'Content-
         "to_sub_collections": {
           "type": "keyword"
         },
+        "to_sub_collections_structured": {
+          "type": "nested",
+          "properties":
+          {
+            "collection_id": 
+            {
+                "type":"keyword"
+            },
+            "collection_url": 
+            {
+                "type":"keyword"
+            },
+            "nested_level": {
+                "type":"keyword"
+            }
+          }
+        },
         "url_id": {
           "type": "text"
         }
