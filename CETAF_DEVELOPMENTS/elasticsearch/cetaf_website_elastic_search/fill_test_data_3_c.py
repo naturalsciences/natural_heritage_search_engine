@@ -343,7 +343,7 @@ def create_facility(museum, museum_name):
     contact["contact_type"]="Scientific assistant"
     returned_2["contact"]=contact    
     returned_2["url_id"]=returned_2["url_id"]=URL_ID+"/facility/"+str(iFacility)
-    returned_2["full_path"]=museum+"/"+returned_2["facility_name"]
+    returned_2["full_path"]=museum+"//"+returned_2["facility_name"]
     iFacility=iFacility+1
     global INDEX_NAME_FACILITIES
     es.index(index=INDEX_NAME_FACILITIES, doc_type= "_doc",id=returned_2["full_path"], body=returned_2)
@@ -394,19 +394,19 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
     global list_paths
     if parent_coll:
         returned_2["to_all_parent_collections"]=list_paths[parent_coll]+ [parent_coll]        
-        returned_2["full_path"]=museum+"/"+parent_coll+"/"+coll
-        returned_2["to_parent_collection"]='/'.join(returned_2["full_path"].split("/")[:-1])
+        returned_2["full_path"]=museum+"//"+parent_coll+"//"+coll
+        returned_2["to_parent_collection"]='//'.join(returned_2["full_path"].split("//")[:-1])
         list_paths[coll]=returned_2["to_all_parent_collections"]
         returned_3["to_all_parent_collections"]=list_paths[parent_coll]+ [parent_coll]        
-        returned_3["full_path"]=museum+"/"+parent_coll+"/"+coll
-        returned_3["to_parent_collection"]='/'.join(returned_2["full_path"].split("/")[:-1])
+        returned_3["full_path"]=museum+"//"+parent_coll+"//"+coll
+        returned_3["to_parent_collection"]='//'.join(returned_2["full_path"].split("//")[:-1])
         list_paths[coll]=returned_3["to_all_parent_collections"]
     else:
         returned_2["to_all_parent_collections"]=[museum]
-        returned_2["full_path"]=museum+"/"+coll
+        returned_2["full_path"]=museum+"//"+coll
         list_paths[coll]=returned_2["to_all_parent_collections"]
         returned_3["to_all_parent_collections"]=[museum]
-        returned_3["full_path"]=museum+"/"+coll
+        returned_3["full_path"]=museum+"//"+coll
         list_paths[coll]=returned_3["to_all_parent_collections"]
         
 
@@ -500,6 +500,7 @@ def create_coll(museum, museum_name, coll, parent_coll=None):
         cat["taxonomic_category_name"]=categ
         cat["taxonomic_category_detail"]=lorem_ipsum_short("taxonomic category detail taxo "+categ, iCols )
         cat["taxonomic_category_confidence_pc"]=random.randrange(1,100)
+        cat["taxonomic_category_quantity"]=random.randrange(100,1000000)
         cert0=random.randrange(1,25)
         cat["taxonomic_category_mids_0_pc"]=cert0
         cert1=random.randrange(1,25)
