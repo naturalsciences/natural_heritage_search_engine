@@ -37,6 +37,9 @@ framework:
 twig:
     debug: '%kernel.debug%'
     strict_variables: '%kernel.debug%'
+    globals:
+        wfs_url: '%wfs_url%'
+        bing_api_key: "Ap3eFRefFd94_D4cqsicw-Fk1-d4kRat9pstTO4oo_i9anyUqrfQcqL9Ew9CJahg"
     #path:
     #    '%kernel.project_dir%/src/Naturalheritage/SearchBundle/Resources/views/Default': test
 
@@ -94,4 +97,6 @@ ongr_elasticsearch:
 naoned_oai_pmh_server:
     data_provider_service_name: naoned.oaipmh.data_provider
     count_per_load: 50
+    
+
         

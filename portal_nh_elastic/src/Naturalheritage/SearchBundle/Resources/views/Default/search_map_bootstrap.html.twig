@@ -125,7 +125,7 @@ var source_draw = new ol.source.Vector({wrapX: false});
 bingBackground= new ol.layer.Tile(
 		    {
 		        preload: Infinity,
-		        source: new ol.source.BingMaps({key: 'Ap9VNKmWsntrnteCapydhid0fZxzbV_9pBTjok2rQZS4pi15zfBbIkJkvrZSuVnJ', imagerySet:'AerialWithLabels' })
+		        source: new ol.source.BingMaps({key: "{{ bing_api_key }}" , imagerySet:'AerialWithLabels' })
 		    }
 		);
 
