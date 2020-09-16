@@ -1,8 +1,10 @@
 import pandas as pd
+import csv
 
 cols_obj={}
 results={}
-src_excel="C:\\Users\\ftheeten\\Downloads\\passport_identification_export_url.xlsx"
+src_excel="passport_identification_export_url.xlsx"
+save_file = "cetaf_inst.txt"
 
 def add_or_concatenate_key(row, institution, pos, field):
     global results
@@ -17,9 +19,10 @@ def add_or_concatenate_key(row, institution, pos, field):
             existing=row[pos]
         results[institution].update({field:str(existing).strip()})
 
-def parse(excel):
+def parse(excel,p_file):
     global results
     print(excel)
+    csv_columns=[]
     ex_data = pd.read_excel(excel)
     headers=ex_data.head()
     current_inst=""
@@ -30,18 +33,28 @@ def parse(excel):
         i+=1
     for i, row in ex_data.iterrows():
         print(i)
-        if not pd.isna(row[0]):
-            current_inst=row[0]
+        if not pd.isna(row[1]):
+            current_inst=row[1]
             results.update({current_inst:{}})
         print(current_inst)
         
-        results[current_inst].update({'name':current_inst})
+        results[current_inst].update({'Name':current_inst})
         for key, col_name in cols_obj.items():
-              print(key)
+              print("key="+str(key))
               print(col_name)
               print(row[key])
+              if i==0:
+                  csv_columns.append(col_name)
               add_or_concatenate_key(row, current_inst, key, col_name)
-    print(results)
+    #print(results)
+    print(csv_columns)    
+    with open(p_file, 'w', encoding="utf-8",newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=csv_columns, delimiter='\t')
+        writer.writeheader()
+        for val in results.items():
+            print(val[1])
+            writer.writerow(val[1])
+            
 
 if __name__ == "__main__":
-    parse(src_excel)
+    parse(src_excel, save_file)
