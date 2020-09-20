@@ -141,7 +141,7 @@ def get_gollection_url(key):
             else:
                 print("GO NEXT" + next)
                 data=requests.get(next, headers={'accept':'application/json'},auth=auth_mars)
-                dict=json.loads(data.text, institution_id, institution_name)
+                dict=json.loads(data.text)
     else:
         print("no batching")
         browse_folder(dict, institution_id, institution_name)
