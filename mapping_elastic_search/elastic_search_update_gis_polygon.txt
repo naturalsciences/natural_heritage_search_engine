@@ -1,0 +1,68 @@
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "exists": {
+      "field": "gis_point"
+    }
+  },
+  "aggs": {
+    "inst": {
+      "terms": { "field": "institution" } 
+    }
+  }
+}
+'
+
+
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "nested": {
+      "path": "coordinates",
+	  
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "coordinates.geo_ref_point"
+                            }
+                        }
+                    ]
+                }
+            }
+    }
+  },
+  "aggs": {
+    "inst": {
+      "terms": { "field": "institution" } 
+    }
+  }
+}
+'
+
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?pretty" -H 'Content-Type: application/json' -d'
+{
+ "script" : {
+    "lang":"painless",
+    "source": "ctx._source.gis_point = \"POINT(\"+ctx._source[\"coordinates\"].get(0)[\"geo_ref_point\"].get(\"lon\")+\" \" +ctx._source[\"coordinates\"].get(0)[\"geo_ref_point\"].get(\"lat\")+\")\""    
+  },
+  "query": {
+    "nested": {
+      "path": "coordinates",
+	  
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "coordinates.geo_ref_point"
+                            }
+                        }
+                    ]
+                }
+            }
+    }
+  }
+}
+'
