@@ -11,7 +11,7 @@ cols_obj={}
 dict={}
 dict_inst={}
 results={}
-src_excel="C:\\Users\\ftheeten\\Downloads\\passport_export_facilities_flat_mod.xlsx"
+src_excel="passport_export_facilities_flat_mod.xlsx"
 
 INDEX_NAME_FACILITIES="cetaf_passport_facilities"
 
@@ -19,7 +19,7 @@ INDEX_NAME_FACILITIES="cetaf_passport_facilities"
 def parse_row(row_excel, row_json, key_excel, key_json):
     row_json[key_json]=None
     if key_excel in row_excel:
-        row_json[key_json]=row_excel[key_excel].strip().replace("\r\n", "<br/>")
+        row_json[key_json]=str(row_excel[key_excel]).strip().replace("\r\n", "<br/>")
         print(key_json)
         print(row_json[key_json])
         
@@ -44,7 +44,7 @@ def parse_for_es():
         row_json=parse_row(item, row_json, "tools", "tools")
         print(row_json)
         print(row_json["laboratory"])
-        facility_key=key_inst+"/"+key_inst
+        facility_key=key_inst+"/"+row_json["laboratory"]
         updated= {
                    
                     "facility_acronym":facility_key,
@@ -59,18 +59,7 @@ def parse_for_es():
         
         response2 = es.update(index=INDEX_NAME_FACILITIES,  id=facility_key, body={"doc":updated,'doc_as_upsert':True})
         
-def add_or_concatenate_key(row, institution, pos, field):
-    global results
-    if not pd.isna(row[pos]):
-        existing=""
-        if field in results[institution]:            
-            existing=results[institution][field]
-            print("EXISTING "+field + " in "+institution+"="+existing)
-            existing=existing+"\r\n"+str(row[pos])
-        else:
-            print("NEW "+field + " in "+institution+"="+str(row[pos]))
-            existing=str(row[pos])
-        results[institution].update({field:str(existing).strip()})
+
 def parse(excel):
     global results
     print(excel)
@@ -84,18 +73,13 @@ def parse(excel):
         i+=1
     for i, row in ex_data.iterrows():
         print(i)
-        if not pd.isna(row[0]):
-            current_inst=row[1].lower() #mars_code
-            results.update({current_inst:{}})
-        print(current_inst)
-        
-        results[current_inst].update({'name':current_inst})
+        key_facility=row[1]+"/"+row[3]
+        print(key_facility)
+        json_row={}
         for key, col_name in cols_obj.items():
-              #print(key)
-              #print(col_name)
-              #print(row[key])
-              add_or_concatenate_key(row, current_inst, key, col_name)
-    #print(results)
+            json_row[col_name] =row[key]
+        print(json_row)
+        results[key_facility] = json_row       
 
 if __name__ == "__main__":
     es =  Elasticsearch(
