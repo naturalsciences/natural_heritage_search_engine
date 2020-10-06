@@ -54,7 +54,8 @@ def parse_for_es():
                     "facility_description":row_json["laboratory_desc"],
                     "institution_name":row_json["institution"],
                     "available_tools":{"tool_description":row_json["tools"]},
-                    "facility_address":{"country": row_json["country"]}
+                    "facility_address":{"country": row_json["country"]},
+                    "to_parent_institution": key_inst
                  }
         
         response2 = es.update(index=INDEX_NAME_FACILITIES,  id=facility_key, body={"doc":updated,'doc_as_upsert':True})
