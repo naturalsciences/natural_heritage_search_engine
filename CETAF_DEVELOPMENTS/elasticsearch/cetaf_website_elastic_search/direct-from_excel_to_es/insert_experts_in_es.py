@@ -42,6 +42,8 @@ def parse_for_es():
         row_json=parse_row(item, row_json, "service", "service")
         row_json=parse_row(item, row_json, "first_name", "first_name")
         row_json=parse_row(item, row_json, "last_name", "last_name")
+        row_json=parse_row(item, row_json, "country", "country")
+        row_json=parse_row(item, row_json, "mars_code", "mars_code")
         name_full=""
         if row_json["first_name"] is not None:
             name_full=row_json["first_name"]
@@ -65,9 +67,12 @@ def parse_for_es():
                     },
                      "to_parent_collection_in_institution" :[{
                         "institution_name":str(row_json["institution"]).strip(),
+                        "institution_acronym":str(row_json["mars_code"]).strip(),
                          "collection_name":str(row_json["service"]).strip()
                     }],
-                    "areas_of_expertise": expertise 
+                    "areas_of_expertise": expertise,
+                    "country_en":str(row_json["country"]).strip(),
+                    "to_parent_institution":str(row_json["mars_code"]).strip(),
                         
                     
                  }

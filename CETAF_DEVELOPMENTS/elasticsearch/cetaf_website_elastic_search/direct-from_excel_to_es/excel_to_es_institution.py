@@ -92,9 +92,9 @@ def parse_for_es():
             res=[item.strip() for item in res]
             res=[item for item in res if len(item) > 2  ]
             print(res)
-            updated["research"]["research_fields"]=res
+            updated["research"]["research_fields"]=sorted(res, key=str.lower)
             res=[item.capitalize() for item in res]
-            updated2["research"]["research_fields"]=res
+            updated2["research"]["research_fields"]=sorted(res, key=str.lower)
         else:
             updated["research"]["research_fields"]=[]
             updated2["research"]["research_fields"]=[]
