@@ -1,0 +1,354 @@
+curl -X PUT "localhost:9200/naturalheritage/_mapping?pretty" -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "cetaf_collection": {
+      "type": "nested",
+	  "properties":{
+		"acronym":
+		{
+			"type":"keyword"
+		},
+		"full_name":
+		{
+			"type":"nested",
+			"properties":
+			{
+				"lang":
+				{
+					"type":"keyword"
+				},
+				"value":
+				{
+					"type":"keyword"
+				}
+			}
+		}
+	  }
+    }
+  }
+}
+'
+-------
+
+
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "size": 0,
+  "aggs": {
+    "institution": {
+       "terms":
+	   {
+			"field":"institution"
+	   }
+    },
+	"aggs":
+	{
+		
+		"terms":
+		{
+			"field":"department"
+		},
+		"aggs":
+		{
+			"main_coll":
+			{
+			"terms":
+			{
+				"field":"main_collection"
+			}
+			}
+		}
+		
+	}
+  }
+}
+'
+
+--------------------------
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"INV",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Invertebrates (Zoology)"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "Entomology"
+    }
+  }
+}
+'
+
+-------------------------------
+
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"PAL",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Paleontology"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "Paleontology"
+    }
+  }
+}
+'
+
+-------------------------
+
+PB Mémoire
+--------------------------
+curl -X PUT "localhost:9200/naturalheritage_2020/_settings?pretty" -H 'Content-Type: application/json' -d'
+{
+ "index": {
+   "blocks": {
+     "read_only_allow_delete": "false"
+    }
+  }
+}'
+
+
+curl -X POST "localhost:9200/naturalheritage_flat/_delete_by_query?pretty" -H 'Content-Type: application/json' -d'
+{
+
+  "query": {
+      "match_all": {}
+  }
+}
+'
+------------------------
+mapping
+------------------------
+
+curl -X PUT "localhost:9200/naturalheritage/_settings?pretty" -H 'Content-Type: application/json' -d'
+{
+ "index": {
+   "blocks": {
+     "read_only_allow_delete": null
+    }
+  }
+}'
+
+
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"BOT",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Botany"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "institution": "Meise Botanic Garden"
+    }
+  }
+}
+'
+-----------------------------
+
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"ZOO-VER",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Zoology Vertebrates"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "BE-RMCA-Vertebrates"
+    }
+  }
+}
+'
+-----------------
+
+
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"ZOO-INV",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Zoology Invertebrates"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "BE-RMCA-Invertebrates"
+    }
+  }
+}
+'
+--------------------------------------------------
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"ZOO-VER",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Zoology Vertebrates"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "Vertebrates"
+    }
+  }
+}
+'
+
+---------------------------------------------------
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"ZOO-INV",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Zoology Invertebrates"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "Invertebrates"
+    }
+  }
+}
+'
+--------------------------------
+curl -X POST "localhost:9200/naturalheritage/_update_by_query?conflicts=proceed" -H 'Content-Type: application/json' -d'
+{
+  "script": {
+    "inline": "ctx._source.cetaf_collection=params.cetaf_code",
+	"params" : {
+          "cetaf_code" : {
+			"acronym":"DAT",
+			"full_name":
+			{
+				"lang":"en",
+				"value":"Data"
+			}
+		  }
+       },
+    "lang": "painless"
+  },
+  "query": {
+    "term": {
+      "main_collection": "BE-RBINS-Publications"
+    }
+  }
+}
+'
+
+-----
+CHECk
+------
+
+curl -X GET "localhost:9200/naturalheritage/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "size":0,
+  "aggs": {
+    "cetaf": {
+      "nested": {
+        "path": "cetaf_collection"
+		
+	  } 
+	  ,"aggs":
+		{
+			"acro":
+			{
+				"terms":  { "field": "cetaf_collection.acronym" } ,
+				"aggs":
+				{
+					"value_nested":
+					{
+						"nested":  { 
+							"path": "cetaf_collection.full_name" 
+							},
+							"aggs":
+							{
+								"filter_en":
+								{
+								    "filter": { "term": { "cetaf_collection.full_name.lang": "en" } },
+									"aggs":
+									{
+										"value_en":
+										{
+											"terms":  { "field": "cetaf_collection.full_name.value" } 
+										}
+									}
+								}
+							}
+					}
+				}
+			}
+		}  
+    }
+  }
+}
+'
+
+----------------
+WIN SIZE
+-----------------
+
+http://ursidae.rbins.be:9200/naturalheritage/_flush

@@ -562,6 +562,16 @@ var search_fct = function(page, load_facets) {
             }
         }
     }
+	
+	if ($("#elastic_search_cetaf_collections").val()) {
+        if ($("#elastic_search_cetaf_collections").val().length > 0) {
+            var cetaf_collection = $("#elastic_search_cetaf_collections").val();
+            if (cetaf_collection.length > 0) {
+                criterias["cetaf_collection"] = cetaf_collection;
+            }
+        }
+    }
+	
     criterias["expanded"] = false;
     if ($("#facet_criteria").val().length > 0) {
 

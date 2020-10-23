@@ -40,6 +40,7 @@ twig:
     globals:
         wfs_url: '%wfs_url%'
         bing_api_key: "Ap3eFRefFd94_D4cqsicw-Fk1-d4kRat9pstTO4oo_i9anyUqrfQcqL9Ew9CJahg"
+        iiif_viewer: "https://virtualcol.africamuseum.be/providence/pawtucket/assets/universalviewer/dist/uv/app.html?manifestUri="
     #path:
     #    '%kernel.project_dir%/src/Naturalheritage/SearchBundle/Resources/views/Default': test
 

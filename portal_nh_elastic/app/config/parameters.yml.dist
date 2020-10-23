@@ -23,3 +23,5 @@ parameters:
     elastic_type:
     elastic_oai_type : ~	
     elastic_oai_prefix : ~
+	wfs_url : ~
+	iiif_viewer: ~

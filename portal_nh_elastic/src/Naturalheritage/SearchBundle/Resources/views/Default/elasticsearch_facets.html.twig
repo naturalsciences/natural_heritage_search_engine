@@ -5,7 +5,7 @@
 	<link href="{{asset('assets/vendor/bootstrap-4.3.1-dist/css/bootstrap-grid.min.css')}}" rel="stylesheet" />
     <link href="{{asset('assets/vendor/bootstrap-datepicker-1.6.4-dist/css/bootstrap-datepicker.min.css')}}" rel="stylesheet" />
 	<link href="{{asset('assets/vendor/select2/dist/css/select2.css')}}" rel="stylesheet" />
-	<link href="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.css')}}" rel="stylesheet" />
+	<link href="{{asset('assets/vendor/openlayers/v6.4.3-dist/ol.css')}}" rel="stylesheet" />
     <link href="{{asset('assets/vendor/css_facets/theme.css')}}" rel="stylesheet" />    
 	<link href="{{asset('assets/styles/naturalheritage.css')}}" rel="stylesheet" />   
 </head>
@@ -21,7 +21,7 @@
 <script src="{{asset('assets/vendor/select2/dist/js/select2.full.js')}}"></script>
 <script src="{{asset('assets/vendor/bootstrap-4.3.1-dist/js/bootstrap.bundle.js')}}"></script>
 <script src="{{asset('assets/vendor/bootstrap-datepicker-1.6.4-dist/js/bootstrap-datepicker.min.js')}}"></script>
-<script src="{{asset('assets/vendor/openlayers/v4.x.x-dist/ol.js')}}"></script>
+<script src="{{asset('assets/vendor/openlayers/v6.4.3-dist/ol.js')}}"></script>
 <script src="{{asset('assets/js/logic_facets.js?v=20200903')}}"></script>
 
 <div class="row hide_frame">
@@ -85,9 +85,22 @@
 			<div class="container-fluid padding-left">
 			<div class="row" >
 			<div class="col-md-8 col-sm-8">
-			<div>Free text: <select id="elastic_search_freetext" class="select2 memoryforfacet" style='width:300px'></select><img src="{{asset('assets/img/remove.png')}}" id="clear_freetext"/><input type="button" id="toggle_details" class="toggle_details " value="Toggle details"></input></div>
-			</div>
+				<div class="row" >
+					<div class="col-md-2 col-sm-2">Free text : </div>
+					<div class="col-md-10 col-sm-10"><select id="elastic_search_freetext" class="select2 memoryforfacet" style='width:300px'></select><img src="{{asset('assets/img/remove.png')}}" id="clear_freetext"/></div>
+			
+					<div class="col-md-2 col-sm-2">Cetaf collections : </div>
+					<div class="col-md-10 col-sm-10">
+						<select id="elastic_search_cetaf_collections" class="select2 memoryforfacet" multiple="multiple">
+						</select>
+					</div>
+					<div class="col-md-12 col-sm-12">
+					<input type="button" id="toggle_details" class="toggle_details " value="Toggle details"></input>
+					</div>
+			
+				</div>
             </div>
+			</div>
             <div class="row" >
             <div class="col-md-4 col-sm-4">
 			{% include 'NaturalheritageSearchBundle:Default:elasticsearch_facets_detailed_search.html.twig' with {'details' : details} %}</br>
@@ -164,7 +177,17 @@ var route;
 var full_screen=true;
 route=$("#base_url").val();
 
+var $_GET = {};
 
+document.location.search.replace(/\??(?:([^=]+)=([^&]*)&?)/g, function () {
+    function decode(s) {
+        return decodeURIComponent(s.split("+").join(" "));
+    }
+
+    $_GET[decode(arguments[1])] = decode(arguments[2]);
+});
+
+console.log($_GET);
 
 
 
@@ -197,7 +220,50 @@ $(document).ready(
 					}
 				  }
 				});
-                
+				
+	     $('#elastic_search_cetaf_collections').select2({
+				width: "300px",
+				
+				multiple: true, 
+				/*ajax: {
+				url: detect_https(route.concat("autocompletecetafcolls")),
+				dataType: 'json',
+				
+				},
+				data: function (data) 
+				{
+				    console.log("loaded");
+					if('cetaf_category' in $_GET)
+					{
+						console.log($_GET["cetaf_category"]);
+						$("#elastic_search_cetaf_collections").val($_GET["cetaf_category"]).trigger('change');
+					}
+				}*/				
+            });
+		
+			$.ajax({
+				type: 'GET',
+				dataType:"json",
+				url: detect_https(route.concat("autocompletecetafcolls"))
+			}).then(function (data) {
+				console.log("LOADED");
+				console.log(data);
+				$.each( data["results"], function( key, value ) {
+				  console.log( value );
+				  selected=false; 
+				  if('cetaf_category' in $_GET)
+				  {
+						if($_GET['cetaf_category']==value.id)
+						{
+							selected=true;
+						}
+				  }
+				  var newOption = new Option(value.text, value.id, selected, selected);
+				 
+				  $('#elastic_search_cetaf_collections').append(newOption).trigger('change');
+				})
+			});
+		
          $('#elastic_search_freetext').on('select2:select', function (e) {
 					    $("#facet_criteria").val("");
 						$("#facet_criteria_generic").val("");

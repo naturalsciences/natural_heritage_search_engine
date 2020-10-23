@@ -127,4 +127,9 @@ naturalheritage_resultfacets_standalone:
 naturalheritage_es_facets:
     path:      /detail
     defaults:
-        _controller:  NaturalheritageSearchBundle:Default:detail      
+        _controller:  NaturalheritageSearchBundle:Default:detail
+
+naturalheritage_search_autocomplete_cetaf_collections:
+    path:     /autocompletecetafcolls
+    defaults:  
+        _controller: NaturalheritageSearchBundle:Default:autocompletecetafcolls       

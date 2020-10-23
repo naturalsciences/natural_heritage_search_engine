@@ -886,7 +886,7 @@ class DefaultController extends Controller
         return $param;
      }
      
-     protected function es_wrapper_logic( $p_term,$p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_wkt_search, $p_wfs_search,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
+     protected function es_wrapper_logic( $p_term, $p_cetaf_collection, $p_extra_params, $p_extra_params_annex, $p_extra_params_generic, $p_extra_params_facets, $p_extra_params_annex_facets, $p_coordinates,  $p_wkt_search, $p_wfs_search,  $p_date_from, $p_date_from_types, $p_date_to, $p_date_to_types , $p_page, $p_expanded)
     {
 
             $go_query=false;
@@ -912,6 +912,7 @@ class DefaultController extends Controller
 			$from= ($page -1 ) * $this->max_results; 
           
             if(null !==$this->unset_if_empty($p_extra_params)
+				||null !==$this->unset_if_empty($p_cetaf_collection)
                 ||null !==$this->unset_if_empty($p_extra_params_annex)
                 ||null !==$this->unset_if_empty($p_extra_params_generic)
                 ||null !==$this->unset_if_empty($p_coordinates)
@@ -923,7 +924,7 @@ class DefaultController extends Controller
                 ||null !==$this->unset_if_empty($p_extra_params_annex_facets) )
             {
 
-            
+                $cetaf_collection=Array();
                 $extra_params=Array();
 				$extra_params_facets=Array();
 				$extra_params2=Array();
@@ -936,6 +937,19 @@ class DefaultController extends Controller
 				$date_from_types=Array();
 				$date_to="";
 				$date_to_types=Array();
+				if(isset($p_cetaf_collection))
+                {
+					
+					if(is_array($p_cetaf_collection))
+					{
+						if(count($p_cetaf_collection)>0)
+						{
+							
+							$cetaf_collection = $p_cetaf_collection;
+						}
+					}
+					//$session->set("extra_params", $extra_params);
+                }
                 if(isset($p_extra_params))
                 {
                     $extra_params = json_decode($p_extra_params,true);
@@ -1033,10 +1047,41 @@ class DefaultController extends Controller
                 $clausesNested=Array();
 				$clausesNestedFacets=Array();
                 $criteriaBuildNested=Array();
+				
 				$criteriaBuildNestedFacets=Array();
 			    $criteriaBuild2=Array();
                 $operatorsClausesNested=Array();
                 $operatorsClauses2=Array();
+				if(count($cetaf_collection)>0)
+				{
+					$cetaf_collection_clause=Array();
+					foreach($cetaf_collection as $cetaf_coll)
+					{
+						
+						if(strlen($cetaf_coll)>0)
+						{
+							$cetaf_collection_clause[]=
+														["nested" => [
+														"path" => "cetaf_collection",
+														"query"=>
+															["term" => [ "cetaf_collection.acronym" => $cetaf_coll]]
+															]];
+							
+						}
+					
+						
+					}
+					$criteriaBuildNested[] =[ 
+                                "bool"=>[
+									"must"=>[
+										["bool"=>[
+												"should"=>$cetaf_collection_clause
+												]
+											]
+											]
+									 ]
+                            ];
+				}
 				foreach($extra_params as $criteria )
                 {
                        if(array_key_exists("operator",$criteria))
@@ -1486,6 +1531,8 @@ class DefaultController extends Controller
 					}
 				}
 				
+				
+				
 				if(count($criteriaBuildNestedFacets)>0)
 				{
 					foreach($criteriaBuildNestedFacets as $sub_criteria=>$sub_query)
@@ -1807,12 +1854,13 @@ class DefaultController extends Controller
     public function esWrapperAction(Request $request)
     {
         //$session = $request->getSession();
-        if($request->request->has('term')||$request->request->has('extra_params')||$request->request->has('extra_params_annex')||$request->request->has('coordinates')||$request->request->has('extra_params_generic')||$request->request->has('date_from')||$request->request->has('date_to')||$request->request->has("wkt_search")||$request->request->has("wfs_search"))
+        if($request->request->has('term')||$request->request->has('cetaf_collection')||$request->request->has('extra_params')||$request->request->has('extra_params_annex')||$request->request->has('coordinates')||$request->request->has('extra_params_generic')||$request->request->has('date_from')||$request->request->has('date_to')||$request->request->has("wkt_search")||$request->request->has("wfs_search"))
 		{
             //$this->recordStateHistory($request, $session);
             return $this->es_wrapper_logic( 
                 //$session,
                 $request->request->get('term',""), 
+				$request->request->get('cetaf_collection',""), 
                 $request->request->get('extra_params'), 
                 $request->request->get('extra_params_annex'), 
                 $request->request->get('extra_params_generic'),
@@ -2135,6 +2183,72 @@ class DefaultController extends Controller
 		}
 		return new JsonResponse(array_merge(Array(Array("id"=>"all","text"=>"All")), $results));
 		
-	}    
+	} 
+
+    public function autocompletecetafcollsAction(Request $request)
+    {
+		$results=Array();
+		if(count($results)==0)
+		{
+			$this->instantiateClient();
+			$client = $this->elastic_client;
+			
+			$params = [
+			    'index' => $this->getParameter('elastic_index'),
+			    'type' => $this->getParameter('elastic_type'),
+                'size' => 0,
+			    'body' => [
+				"aggs"=> [
+					"cetaf"=> [
+					  "nested"=> [
+						"path"=> "cetaf_collection"
+						
+					  ] 
+					  ,"aggs"=>
+						[
+							"acro"=>
+							[
+								"terms"=>  [ "field"=> "cetaf_collection.acronym" ] ,
+								"aggs"=>
+								[
+									"value_nested"=>
+									[
+										"nested"=>  [ 
+											"path"=> "cetaf_collection.full_name" 
+											],
+											"aggs"=>
+											[
+												"filter_en"=>
+												[
+													"filter"=> [ "term"=> [ "cetaf_collection.full_name.lang"=> "en" ] ],
+													"aggs"=>
+													[
+														"value_en"=>
+														[
+															"terms"=>  [ "field"=> "cetaf_collection.full_name.value" ] 
+														]
+													]
+												]
+											]
+									]
+								]
+							]
+						]  
+					]
+				  ]
+				]
+			];
+			$resultsTmp = $client->search($params);
+			foreach($resultsTmp["aggregations"]["cetaf"]["acro"]["buckets"] as $item)
+			{				
+				$key=$item["key"];
+				$val=$item["value_nested"]["filter_en"]["value_en"]["buckets"][0]["key"];
+				$results[]=["id"=>$key,"text"=> $val];
+			}
+			sort($results);
+	    }
+		return new JsonResponse(["results"=>$results]);
+		
+	}	
     
 }

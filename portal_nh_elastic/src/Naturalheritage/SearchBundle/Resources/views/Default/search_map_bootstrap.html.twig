@@ -53,6 +53,7 @@
 		<select id="addwms" class="form-control">
 			  <option value="rbins_natural_earth_adm" >Natural Earth Administrative</option>
 			  <option value="rbins_natural_earth_physical" >Natural Earth Physical</option>
+			  <option value="rbins_generic" >Other layers</option>
         </select>
         <input id="browse_wms" type="button" value="Browse layers"></input>		
 		<select id="addwmslayer" class="form-control">
@@ -322,7 +323,10 @@ scaleLineControl = new ol.control.ScaleLine();
 			}		
 		}
 		
-	
+	    var ol_ext_inherits = function(child,parent) {
+				child.prototype = Object.create(parent.prototype);
+				child.prototype.constructor = child;
+			};
             
     	function addDarwinLayer(feature,origininput)
         {
@@ -378,7 +382,7 @@ scaleLineControl = new ol.control.ScaleLine();
                   target: options.target
                 });
       };
-     ol.inherits(DrawBoxControl, ol.control.Control);
+     ol_ext_inherits(DrawBoxControl, ol.control.Control);
      
      //button draw Polygons
       DrawPolygonControl = function(opt_options) {
@@ -409,7 +413,7 @@ scaleLineControl = new ol.control.ScaleLine();
                   target: options.target
                 });
       };
-     ol.inherits(DrawPolygonControl, ol.control.Control); 
+     ol_ext_inherits(DrawPolygonControl, ol.control.Control); 
 
 
 	 

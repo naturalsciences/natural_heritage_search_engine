@@ -14,15 +14,16 @@
            <div class="caption">
            <div class="col-md-12 col-sm12">
            <div>{{ initcount }}</div>
-         
+			<div class="col-md-12 col-sm12">
             {{ record["_source"]["institution"] |default('')  }}<br/>
 			{% if "RBINS" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="http://www.naturalheritage.be/partners/rbins/logo1.png"/></div>
+				<div><img class="instilink" src="{{asset('assets/img/institutions/rbins.png')}}"/></div>
 			{% elseif "Meise" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="http://www.naturalheritage.be/partners/mbg/logo1.png"/></div>
+				<div><img class="instilink" src="{{asset('assets/img/institutions/apm.png')}}"</div>
 			{% elseif "RMCA" in record["_source"]["institution"] |default('')  %}
-				<div><img class="instilink" src="http://www.naturalheritage.be/partners/rmca/logo1.png"/></div>
+				<div><img class="instilink" src="{{asset('assets/img/institutions/rmca.png')}}"/></div>
 			{% endif %}
+			</div>
             {{ record["_source"]["main_collection"]|default('') }}<br/>
             {% if record["_source"]["sub_collection"]|default('')|length > 0 %}{{ record["_source"]["sub_collection"]|default('') }}<br/>{% endif %}
             {% if record["_source"]["object_type"]|default('') is iterable %}
@@ -35,14 +36,21 @@
             {% for identifier in record["_source"]["object_identifiers"]|default('') %}
                 {{ identifier.identifier_type }} : {{ identifier.identifier }}<br/>
             {% endfor %}
-            <a href={{ record["_source"]["id"] }} class="link" target="_blank">Link</a><br/>
+            <a href={{ record["_source"]["id"] }} class="link" target="_blank">Link to data</a><br/>
+			{% if record["_source"]["iiif"]|default('')|length > 0 %}
+			{% set tmp_id = "" %}
+			{% set tmp_id = record["_source"]["id"] | md5 %}			
+			IIIF View:
+					{% include 'NaturalheritageSearchBundle:Default:iiif_detail.html.twig' with { 'iiif_id' :  tmp_id , 'manifest_url': record["_source"]["iiif"] } %}
+				<a href={{ iiif_viewer }}{{ record["_source"]["iiif"] }} class="link" target="_blank">Link to IIIF Viewer</a><br/>
+           
+		   {% endif %}
            </div>
            
-		  
-          
            <div class="col-md-4 col-sm6">
           {% set tmp_id = "" %}   
           {% if "coordinates" in record["_source"]|keys  %}
+		      Map:<br/>
               {% for coordinate in record["_source"]["coordinates"] %}
               {% set tmp_id = record["_source"]["id"] | md5 %}
                     <input type="hidden" class="coords_for_map" value='{"id":"{{ tmp_id  }}", "lat":{{ coordinate.geo_ref_point.lat }}, "lon":{{ coordinate.geo_ref_point.lon }}, "url":"{{record["_source"]["id"] }}"}'/>

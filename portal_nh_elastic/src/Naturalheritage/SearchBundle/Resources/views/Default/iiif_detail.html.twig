@@ -1,0 +1,129 @@
+<div id="iiif_map_{{ iiif_id }}" class="map" style="width: 100%; height:500px;"></div><br/>
+<select id="iiif_chooser_{{ iiif_id }}" name="iiif_chooser_{{ iiif_id }}"></select><br/>
+<script>
+
+
+
+var img_list=Array();
+var layers=Array();
+var maps=Array();
+var map;
+var layer;
+
+var get_img=function(data)
+{
+	if("images" in data)
+	{
+		$.each(data.images, function( index, value ) {
+			
+			img_list.push(value["@id"]);
+		});
+	}		
+}
+
+var seqs=function(data)
+{
+	if("canvases" in data)
+	{
+		$.each(data.canvases, function( index, value ) {
+			
+			get_img(value);
+		});
+	}		
+}
+
+function refreshMap(imageInfoUrl) {
+  fetch(imageInfoUrl)
+    .then(function (response) {
+      response
+        .json()
+        .then(function (imageInfo) {
+          var options = new ol.format.IIIFInfo(imageInfo).getTileSourceOptions();
+          if (options === undefined || options.version === undefined) {
+            //notifyDiv.textContent =
+            //  'Data seems to be no valid IIIF image information.';
+			console.log('Data seems to be no valid IIIF image information.');
+            return;
+          }
+          options.zDirection = -1;
+          var iiifTileSource = new ol.source.IIIF(options);
+          layer.setSource(iiifTileSource);
+          map.setView(
+            new ol.View({
+              resolutions: iiifTileSource.getTileGrid().getResolutions(),
+              extent: iiifTileSource.getTileGrid().getExtent(),
+              constrainOnlyCenter: true,
+            })
+          );
+          map.getView().fit(iiifTileSource.getTileGrid().getExtent());
+		  map.updateSize();
+		  console.log('initialized');
+          //notifyDiv.textContent = '';
+        })
+        .catch(function (body) {
+          console.log('Could not read image info json. ' + body);
+        });
+    })
+    .catch(function () {
+       console.log('Could not read data from URL.');
+    });
+}
+
+var create_ol_iiif=function()
+{
+	if(img_list.length>0)
+	{
+		 console.log(img_list);
+		 layer = new ol.layer.Tile(),
+		 map = new ol.Map({
+			layers: [layer],
+			target: 'iiif_map_{{ iiif_id }}'
+		  });
+		  refreshMap(img_list[0]);
+		  for(var i=0;i<img_list.length; i++)
+		  {
+			  $('#iiif_chooser_{{ iiif_id }}').append($('<option>', {
+					value: img_list[i],
+					text: img_list[i]
+				}));
+		  }
+	}
+	
+}
+
+$('#iiif_chooser_{{ iiif_id }}').change(
+	function()
+	{
+		refreshMap($('#iiif_chooser_{{ iiif_id }}').val());
+	}
+);
+		
+$(document).ready(
+
+        
+        function()
+        {   
+			
+			var manifest_url='{{ manifest_url }}';
+			
+			
+			  $.getJSON( manifest_url, {				
+				format: "json"
+			  }).done(function( data ) 
+				{
+					
+					if("sequences" in data)
+					{
+						
+						$.each(data.sequences, function( index, value ) {
+							seqs(value);
+						});
+					}
+					create_ol_iiif();
+				}
+				);
+				
+		}
+		);
+
+</script>
