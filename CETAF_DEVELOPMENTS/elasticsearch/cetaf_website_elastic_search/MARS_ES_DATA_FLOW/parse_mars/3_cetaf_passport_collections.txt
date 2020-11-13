@@ -1,0 +1,44 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/2-cetaf-passport-collections
+@type	<class 'str'>		cetaf_passport_collections
+accessions__specimens_	<class 'NoneType'>		
+archives	<class 'NoneType'>		
+collection_contact_position_in_the_institution	<class 'str'>		Head of Scientific Service of Heritage
+collections_discipline	<class 'list'>		['Anthropology']
+collections_discipline_if_other	<class 'NoneType'>		
+collections_email	<class 'str'>		patrick.semal@naturalsciences.be
+collections_first_name_s	<class 'str'>		Patrick
+collections_name_s	<class 'str'>		Semal
+collections_phone	<class 'str'>		+3226274380
+collections_statistics	text/html		
+collections_title_s	<class 'str'>		Mr
+created	<class 'str'>		2019-09-12T09:58:00+02:00
+description	<class 'str'>		
+file_info	<class 'NoneType'>		
+genetic_repositories	<class 'list'>		[]
+heritage_year	<class 'NoneType'>		
+index_hebarium_code	<class 'NoneType'>		
+items_total	<class 'int'>		6
+library	text/html		
+library_number_of_items	<class 'NoneType'>		
+library_number_of_maps	<class 'NoneType'>		
+link_to_genetic_repository	text/html		
+lsid	<class 'str'>		http://biocol.org/urn:lsid:biocol.org:col:35271
+modified	<class 'str'>		2020-11-10T10:46:16+01:00
+ontgoing_loans__parcels___specimens__per_year	<class 'NoneType'>		
+orcid_id	<class 'str'>		0000-0002-4048-7728
+other_heritage	<class 'NoneType'>		
+other_size_indicator	<class 'NoneType'>		
+outstanding_collection_features	text/html		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+primary_types	<class 'int'>		200000
+recorded_cards_in_database	<class 'NoneType'>		
+registered_cards	<class 'NoneType'>		
+review_state	<class 'str'>		published
+scientific_visitors_per_year	<class 'NoneType'>		
+title	<class 'str'>		BE-RBINS Passport Collections
+total_specimens	<class 'int'>		38000000
+uid	<class 'str'>		0c9a650aeff34cddb80584e216cb77e0
+virtual_access_per_year	<class 'NoneType'>		
+visiting_days_per_year	<class 'NoneType'>		
+year_of_reference	<class 'str'>		2020

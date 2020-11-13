@@ -1,0 +1,31 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/6-cetaf-passport-public-relations-communication
+@type	<class 'str'>		cetaf_passport_public_relations_communication
+communication_discipline	<class 'list'>		[]
+communication_discipline_if_other	<class 'NoneType'>		
+communication_email	<class 'NoneType'>		
+communication_first_name_s	<class 'NoneType'>		
+communication_name_s	<class 'NoneType'>		
+communication_phone	<class 'NoneType'>		
+communication_position_in_the_institution	<class 'NoneType'>		
+communication_title_s	<class 'NoneType'>		
+communication_tools	text/html		
+created	<class 'str'>		2019-09-11T16:16:21+02:00
+description	<class 'str'>		
+description_of_main_activities_carried_in_communication_and_outreach	<class 'NoneType'>		
+edition_of_communication_material	text/html		
+facebook	<class 'str'>		https://www.facebook.com/museumdino/?fref=ts
+instagram	<class 'NoneType'>		
+items_total	<class 'int'>		0
+last_year_public_visitors	<class 'NoneType'>		
+modified	<class 'str'>		2020-11-10T10:35:27+01:00
+orcid_id	<class 'NoneType'>		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+review_state	<class 'str'>		published
+tiktok	<class 'NoneType'>		
+title	<class 'str'>		BE-RBINS Passport Public relations & Communication
+trends_public_visitors	<class 'NoneType'>		
+twitter	<class 'str'>		https://twitter.com/RBINSmuseum
+uid	<class 'str'>		f2a3eaf5960a4278bd0b58f95883ea45
+website_visitors_per_year	<class 'NoneType'>		
+youtube	<class 'NoneType'>		

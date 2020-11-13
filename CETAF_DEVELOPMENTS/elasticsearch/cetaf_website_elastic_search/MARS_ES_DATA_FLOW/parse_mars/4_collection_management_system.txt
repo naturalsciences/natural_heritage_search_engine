@@ -1,0 +1,43 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/2-cetaf-passport-collections/collection_management_system
+@type	<class 'str'>		collection_management_system
+api_rest_json	<class 'NoneType'>		
+cetaf_permalink	<class 'bool'>		True
+cms_contact_position_in_the_institution	<class 'NoneType'>		
+cms_description	<class 'NoneType'>		
+cms_development	<class 'list'>		['Consortium (e.g. DINA)', 'In house development']
+cms_discipline	<class 'list'>		[]
+cms_discipline_if_other	<class 'NoneType'>		
+cms_email	<class 'NoneType'>		
+cms_first_name_s	<class 'NoneType'>		
+cms_gbif_connector	<class 'bool'>		True
+cms_licence	<class 'str'>		Open Access
+cms_name_s	<class 'NoneType'>		
+cms_orcid_id	<class 'NoneType'>		
+cms_phone	<class 'NoneType'>		
+cms_title_s	<class 'NoneType'>		
+collection_management_system	<class 'str'>		DaRWIN
+communication_standards	<class 'NoneType'>		
+created	<class 'str'>		2020-11-09T16:03:48+01:00
+data_standards	<class 'NoneType'>		
+description	<class 'str'>		
+github_ressource	<class 'NoneType'>		
+if_open_source_type_of_licence	<class 'NoneType'>		
+iiif_compatibilty	<class 'bool'>		True
+iiif_viewer	<class 'list'>		['Universal Viewer']
+items_total	<class 'int'>		0
+menu	<class 'NoneType'>		
+modified	<class 'str'>		2020-11-09T16:26:06+01:00
+ms_description	<class 'NoneType'>		
+ms_licence	<class 'str'>		Open Access
+ms_open_source	<class 'NoneType'>		
+multimedia_server_integration	<class 'list'>		['Independent ']
+multimedia_server_system	<class 'NoneType'>		
+open_source	<class 'NoneType'>		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/2-cetaf-passport-collections', '@type': 'cetaf_passport_collections', 'description': '', 'review_state': 'published', 'title': 'BE-RBINS Passport Collections'}
+platform___os	<class 'NoneType'>		
+review_state	<class 'str'>		published
+server_os	<class 'NoneType'>		
+title	<class 'str'>		BE-RBINS Collection Management System
+uid	<class 'str'>		5e790d1602964967ba793cac00f2d5e8
+viewer_3d	<class 'NoneType'>		

@@ -1,0 +1,32 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/5-cetaf-passport-taxonomic-expertise/staff_member
+@type	<class 'str'>		staff_member
+created	<class 'str'>		2020-10-02T16:43:13+02:00
+description	<class 'str'>		
+expertise_description	<class 'NoneType'>		
+expertise_division	<class 'list'>		[]
+expertise_geography	<class 'list'>		[]
+first_name	<class 'NoneType'>		
+full_time_equivalent	<class 'NoneType'>		
+full_time_research_equivalent	<class 'NoneType'>		
+items_total	<class 'int'>		0
+last_name	<class 'NoneType'>		
+link	<class 'str'>		http://
+master_discipline	<class 'NoneType'>		
+master_title	<class 'NoneType'>		
+master_year	<class 'NoneType'>		
+menu	text/html		
+modified	<class 'str'>		2020-10-02T16:43:53+02:00
+orcid_id	<class 'NoneType'>		
+orcid_view	text/html		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/5-cetaf-passport-taxonomic-expertise', '@type': 'cetaf_passport_taxonomic_expertise', 'description': '', 'review_state': 'published', 'title': 'BE-RBINS Passport Taxonomic Expertise'}
+phd_discipline	<class 'NoneType'>		
+phd_thesis_title	<class 'NoneType'>		
+phd_year	<class 'NoneType'>		
+research_work	<class 'list'>		[]
+review_state	<class 'str'>		published
+role	<class 'list'>		[]
+staff_title_s	<class 'NoneType'>		
+status	<class 'list'>		[]
+title	<class 'str'>		Herpetology
+uid	<class 'str'>		cfb06c8080be41f994b640009137fb44

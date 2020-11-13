@@ -1,0 +1,12 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/5-cetaf-passport-taxonomic-expertise
+@type	<class 'str'>		cetaf_passport_taxonomic_expertise
+created	<class 'str'>		2019-09-12T11:53:00+02:00
+description	<class 'str'>		
+items_total	<class 'int'>		3
+main_areas_of_taxonomic_expertise	text/html		
+modified	<class 'str'>		2020-10-05T13:23:26+02:00
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+review_state	<class 'str'>		published
+title	<class 'str'>		BE-RBINS Passport Taxonomic Expertise
+uid	<class 'str'>		eaf3b5a3247841199f735d074a4f14b1

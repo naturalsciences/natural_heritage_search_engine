@@ -1,0 +1,26 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/4-cetaf-passport-research
+@type	<class 'str'>		cetaf_passport_research
+annual_journals_series	text/html		
+created	<class 'str'>		2019-09-12T11:06:33+02:00
+description	<class 'str'>		
+file_info	<class 'NoneType'>		
+items_total	<class 'int'>		5
+modified	<class 'str'>		2020-11-10T10:33:17+01:00
+number_of_peer_reviewed_publications_per_year	<class 'NoneType'>		
+orcid_id	<class 'str'>		0000-0001-8680-973X
+other_publications	text/html		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+research_fields	text/html		
+review_state	<class 'str'>		published
+science_discipline	<class 'list'>		['Zoology']
+science_discipline_if_other	<class 'NoneType'>		
+science_email	<class 'NoneType'>		
+science_first_name_s_	<class 'str'>		Koenraad
+science_name_s	<class 'str'>		Martens
+science_phone	<class 'str'>		+32 2 627 43 15
+science_position_in_the_institution	<class 'str'>		Head of Science
+science_title_s	<class 'str'>		Mr
+title	<class 'str'>		BE-RBINS Passport Research
+uid	<class 'str'>		bd06a09808be4a84b12713b0311939a2
+year_of_reference	<class 'NoneType'>		

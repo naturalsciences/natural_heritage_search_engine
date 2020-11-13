@@ -1,0 +1,29 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/3-cetaf-passport-facilities/be-rbins-imagery-platform
+@type	<class 'str'>		cetaf_passport_facility
+conditions_of_usage	text/html		
+created	<class 'str'>		2020-10-02T16:24:06+02:00
+description	<class 'str'>		
+example	text/html		
+facility_description	text/html		
+facility_discipline	<class 'list'>		[]
+facility_discipline_if_other	<class 'NoneType'>		
+facility_email	<class 'NoneType'>		
+facility_first_name_s	<class 'NoneType'>		
+facility_menu	text/html		
+facility_name_s	<class 'NoneType'>		
+facility_phone	<class 'NoneType'>		
+facility_position_in_the_institution	<class 'NoneType'>		
+facility_technical	<class 'list'>		[]
+facility_title_s	<class 'NoneType'>		
+facility_uid	<class 'NoneType'>		
+facility_url	<class 'NoneType'>		
+file	<class 'NoneType'>		
+items_total	<class 'int'>		4
+modified	<class 'str'>		2020-11-10T10:26:27+01:00
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/3-cetaf-passport-facilities', '@type': 'cetaf_passport_facilities', 'description': '', 'review_state': 'published', 'title': 'BE-RBINS Passport Facilities'}
+related_publications	text/html		
+review_state	<class 'str'>		private
+service_for_external_users	<class 'NoneType'>		
+title	<class 'str'>		BE-RBINS Imagery Platform
+uid	<class 'str'>		1231888495814a3da10e008ecf20a763

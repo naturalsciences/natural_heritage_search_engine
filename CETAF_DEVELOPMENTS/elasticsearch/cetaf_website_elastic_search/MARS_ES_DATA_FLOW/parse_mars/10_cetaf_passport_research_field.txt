@@ -1,0 +1,24 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/4-cetaf-passport-research/nature-discovery
+@type	<class 'str'>		cetaf_passport_research_field
+created	<class 'str'>		2020-09-25T15:23:26+02:00
+description	<class 'str'>		The RBINS catalogues the diversity of life in rich and vulnerable ecosystems and preserves it in collections and databases
+file	<class 'NoneType'>		
+items_total	<class 'int'>		0
+link_s_	text/html		
+modified	<class 'str'>		2020-11-10T10:31:50+01:00
+orcid_id	<class 'NoneType'>		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/4-cetaf-passport-research', '@type': 'cetaf_passport_research', 'description': '', 'review_state': 'published', 'title': 'BE-RBINS Passport Research'}
+research_field	<class 'list'>		[]
+research_field_position_in_the_institution	<class 'NoneType'>		
+review_state	<class 'str'>		published
+science_discipline_field_if_other	<class 'NoneType'>		
+science_field_discipline	<class 'list'>		[]
+science_field_email	<class 'NoneType'>		
+science_field_first_name_s_	<class 'NoneType'>		
+science_field_name_s	<class 'NoneType'>		
+science_field_phone	<class 'NoneType'>		
+science_field_title_s	<class 'NoneType'>		
+summary_of_research_programme	text/html		
+title	<class 'str'>		FLAGSHIP 1: NATURE DISCOVERY
+uid	<class 'str'>		0390db5ff9284d498bb2310435713d92

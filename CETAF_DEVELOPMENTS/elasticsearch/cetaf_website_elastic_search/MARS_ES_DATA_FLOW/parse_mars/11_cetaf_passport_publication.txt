@@ -1,0 +1,28 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/4-cetaf-passport-research/european-journal-of-taxonomy
+@type	<class 'str'>		cetaf_passport_publication
+created	<class 'str'>		2020-09-25T16:25:09+02:00
+description	<class 'str'>		European Journal of Taxonomy is an open access peer-reviewed journal publishing zoology, botany, entomology and palaeontology papers.
+impact_factor	<class 'NoneType'>		
+issn	<class 'NoneType'>		
+items_total	<class 'int'>		0
+link_s_	text/html		
+modified	<class 'str'>		2020-11-10T10:31:51+01:00
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/4-cetaf-passport-research', '@type': 'cetaf_passport_research', 'description': '', 'review_state': 'published', 'title': 'BE-RBINS Passport Research'}
+periodicity	<class 'NoneType'>		
+publication_discipline	<class 'list'>		['Zoology']
+publication_discipline_if_other	<class 'NoneType'>		
+publication_email	<class 'str'>		Koen.Martens@natuurwetenschappen.be
+publication_first_name_s	<class 'str'>		Koen
+publication_iframe	<class 'NoneType'>		
+publication_name_s	<class 'str'>		Martens
+publication_phone	<class 'str'>		+32 2 627 43 15
+publication_position_in_the_institution	<class 'NoneType'>		
+publication_title	<class 'NoneType'>		
+publication_title_s	<class 'str'>		Mr
+publication_type	<class 'list'>		[]
+research_field	<class 'list'>		[]
+review_state	<class 'str'>		published
+title	<class 'str'>		European Journal of Taxonomy
+uid	<class 'str'>		cd8e828a4fe944108e4c905650ae33c7
+year_of_reference	<class 'NoneType'>		

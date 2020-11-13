@@ -1,0 +1,17 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/9-cetaf-passport-finances
+@type	<class 'str'>		cetaf_passport_finances
+any_other_relevant_information_on_the_operating_budget	text/html		
+created	<class 'str'>		2019-09-12T13:58:05+02:00
+description	<class 'str'>		
+external_percentage	<class 'NoneType'>		
+external_resources	<class 'NoneType'>		
+internal_percentage	<class 'NoneType'>		
+internal_resources	<class 'NoneType'>		
+items_total	<class 'int'>		0
+modified	<class 'str'>		2020-10-01T22:40:07+02:00
+operating_budget	<class 'NoneType'>		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+review_state	<class 'str'>		published
+title	<class 'str'>		BE-RBINS Passport Finances
+uid	<class 'str'>		1ea93a665d7b43948f06681712d037b5

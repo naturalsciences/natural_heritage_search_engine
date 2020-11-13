@@ -1,0 +1,26 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/
+@type	<class 'str'>		collection_institution
+created	<class 'str'>		2019-09-11T15:41:49+02:00
+dashboard	text/html		
+description	<class 'str'>		
+grid_id	<class 'str'>		grid.20478.39
+grscicoll_code	<class 'str'>		RBINS
+institution_id	<class 'str'>		BE-RBINS
+international_name	<class 'str'>		Royal Belgian Institute of Natural Sciences
+items_total	<class 'int'>		14
+language	<class 'str'>		en
+modified	<class 'str'>		2020-11-10T10:05:08+01:00
+original_name_1	<class 'str'>		Institut Royal des Sciences Naturelles de Belgique
+original_name_1_language	<class 'str'>		fr - French
+original_name_2	<class 'str'>		Koninklijk Belgisch Instituut voor Natuurwetenschappen
+original_name_2_language	<class 'str'>		nl - Dutch; Flemish
+original_name_3	<class 'str'>		Königliches Belgisches Institut für Naturwissenschaften
+original_name_3_language	<class 'str'>		de - German
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium', '@type': 'Folder', 'description': '', 'review_state': 'published', 'title': 'Belgium'}
+reports_accounts	text/html		
+review_state	<class 'str'>		published
+subjects	<class 'list'>		['CETAF member', 'DiSSCo member', 'Museum', 'Research Institute']
+title	<class 'str'>		Royal Belgian Institute of Natural Sciences
+uid	<class 'str'>		9ffdcb21c1fd4230beb21aab27f834a1
+wikidata_id	<class 'str'>		Q16665660

@@ -1,0 +1,77 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/1-cetaf-passport-administration
+@type	<class 'str'>		cetaf_passport_administration
+address_city	<class 'str'>		Bruxelles
+address_country	<class 'list'>		['BE - Belgium']
+address_email	<class 'str'>		info@naturalsciences.be
+address_phone	<class 'str'>		+32 (0)2 627 42 11
+address_postcode	<class 'str'>		BE-1000
+address_street	<class 'str'>		29, rue Vautier
+created	<class 'str'>		2019-09-11T15:51:21+02:00
+deputy_discipline	<class 'list'>		[]
+deputy_discipline_if_other	<class 'NoneType'>		
+deputy_email	<class 'str'>		thierry.backeljau@naturalsciences.be
+deputy_first_name_s_	<class 'str'>		Thierry
+deputy_name_s	<class 'str'>		Backeljau
+deputy_orcid_id	<class 'str'>		0000-0002-9057-9727
+deputy_phone	<class 'str'>		+32 (0)2 627 43 39
+deputy_position_in_the_institution	<class 'str'>		Head of Taxonomy and Phylogeny Operationnal Directorate
+deputy_title_s	<class 'str'>		Mr
+description	<class 'str'>		
+direction_discipline	<class 'list'>		['Economy']
+direction_discipline_if_other	<class 'NoneType'>		
+direction_email	<class 'str'>		direction@naturalsciences.be
+direction_first_name_s_	<class 'str'>		Patricia
+direction_name_s	<class 'str'>		Supply
+direction_orcid_id	<class 'NoneType'>		
+direction_phone	<class 'NoneType'>		
+direction_title_s	<class 'str'>		Ms
+externalized_services__subcontracted_and_or_concessions_	text/html		
+file_information	<class 'NoneType'>		
+governing_and_executive_bodies_	text/html		
+if_part_of_a_larger_entity_body	<class 'NoneType'>		
+institution_type_if_other	<class 'NoneType'>		
+items_total	<class 'int'>		0
+legal_status	<class 'list'>		['State', 'Public']
+membership_category	<class 'str'>		Full member
+membership_date	<class 'NoneType'>		
+modified	<class 'str'>		2020-11-10T10:23:50+01:00
+other_information_scientific_staf	text/html		
+other_staff_members_with_connections_to_cetaf_	text/html		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+position_in_ec	text/html		
+position_in_the_executive_committee	<class 'str'>		No
+representative_discipline	<class 'list'>		['Economy']
+representative_discipline_if_other	<class 'NoneType'>		
+representative_email	<class 'str'>		direction@naturalsciences.be
+representative_first_name_s_	<class 'str'>		Patricia
+representative_name_s	<class 'str'>		Supply
+representative_orcid_id	<class 'NoneType'>		
+representative_phone	<class 'NoneType'>		
+representative_position_in_the_institution	<class 'str'>		General Director a.i.
+representative_title_s	<class 'str'>		Ms
+review_state	<class 'str'>		published
+scientific_staff_associated	<class 'float'>		0.0
+scientific_staff_collections_non_permanent	<class 'float'>		1.0
+scientific_staff_collections_permanent	<class 'float'>		6.0
+scientific_staff_non_permanent	<class 'float'>		113.0
+scientific_staff_permanent	<class 'float'>		51.0
+scientific_staff_post_doc_non_permanent	<class 'float'>		96.0
+staff_administrative_non_permanent	<class 'NoneType'>		
+staff_administrative_permanent	<class 'NoneType'>		
+staff_collection_managers_technicians_non_permanent	<class 'float'>		6.0
+staff_collection_managers_technicians_permanent	<class 'float'>		12.0
+staff_exhibitions_non_permanent	<class 'float'>		156.0
+staff_exhibitions_permanent	<class 'float'>		104.0
+staff_females_non_permanent	<class 'NoneType'>		
+staff_females_permanent	<class 'NoneType'>		
+staff_males_non_permanent	<class 'NoneType'>		
+staff_males_permanent	<class 'NoneType'>		
+staff_number	text/html		
+staff_total	<class 'float'>		505.0
+staff_year_of_reference	<class 'int'>		2016
+structure_chart	text/html		
+structure_chart_file	<class 'NoneType'>		
+title	<class 'str'>		BE-RBINS Passport Organisation
+type_of_institution	<class 'list'>		['Research Institute', 'Museum']
+uid	<class 'str'>		96c592ef74bf4d8d9dc0decdf8bac46e

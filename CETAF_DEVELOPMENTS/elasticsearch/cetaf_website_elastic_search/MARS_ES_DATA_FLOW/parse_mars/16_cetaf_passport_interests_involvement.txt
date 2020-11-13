@@ -1,0 +1,15 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/8-cetaf-passport-interests-involvement
+@type	<class 'str'>		cetaf_passport_interests_involvement
+created	<class 'str'>		2019-09-11T16:29:52+02:00
+description	<class 'str'>		
+gbif_institution_page	<class 'str'>		https://www.gbif.org/dataset/8138eb72-f762-11e1-a439-00145eb45e9a
+gbif_institution_view	text/html		
+items_total	<class 'int'>		0
+main_topics_of_current_interest_for_your_institution	text/html		
+main_topics_of_future_interest_for_your_institution	text/html		
+modified	<class 'str'>		2020-11-10T10:42:03+01:00
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins', '@type': 'collection_institution', 'description': '', 'review_state': 'published', 'title': 'Royal Belgian Institute of Natural Sciences'}
+review_state	<class 'str'>		published
+title	<class 'str'>		BE-RBINS Passport Interests & Involvement
+uid	<class 'str'>		6f5a22d360e34234b87095aae896f619

@@ -1,0 +1,29 @@
+field	type	description	sample value
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/3-cetaf-passport-facilities/be-rbins-human-evolution
+@type	<class 'str'>		cetaf_passport_exhibition
+created	<class 'str'>		2020-10-02T16:29:42+02:00
+date_of_creation	<class 'NoneType'>		
+date_of_lifting	<class 'NoneType'>		
+description	<class 'str'>		
+exhibition_description	text/html		
+exhibition_menu	text/html		
+exhibition_surface	<class 'NoneType'>		
+expo_contact_position_in_the_institution	<class 'NoneType'>		
+expo_discipline	<class 'list'>		[]
+expo_discipline_if_other	<class 'NoneType'>		
+expo_email	<class 'NoneType'>		
+expo_first_name_s	<class 'NoneType'>		
+expo_name_s	<class 'NoneType'>		
+expo_orcid_id	<class 'NoneType'>		
+expo_phone	<class 'NoneType'>		
+expo_title_s	<class 'NoneType'>		
+facility_url	<class 'NoneType'>		
+file	<class 'NoneType'>		
+items_total	<class 'int'>		0
+modified	<class 'str'>		2020-10-02T16:29:42+02:00
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/3-cetaf-passport-facilities', '@type': 'cetaf_passport_facilities', 'description': '', 'review_state': 'published', 'title': 'BE-RBINS Passport Facilities'}
+review_state	<class 'str'>		private
+title	<class 'str'>		BE-RBINS Human Evolution
+topic	<class 'list'>		[]
+uid	<class 'str'>		79fc461228ea4e499c5537c4479518d9
+virtual_visit	<class 'NoneType'>		

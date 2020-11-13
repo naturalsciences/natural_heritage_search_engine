@@ -1,0 +1,38 @@
+field	type	description	sample value
+ instrument_technical	<class 'list'>		['Imaging / RX / CT / microscanner']
+@id	<class 'str'>		http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/3-cetaf-passport-facilities/be-rbins-imagery-platform/micro-ct-easytom-rx-solution
+@type	<class 'str'>		cetaf_passport_equipment
+brand	<class 'NoneType'>		
+conditions_of_usage	text/html		
+created	<class 'str'>		2020-09-25T15:12:39+02:00
+description	<class 'str'>		
+example	text/html		
+exhibition_menu	text/html		
+file	<class 'NoneType'>		
+firmware	<class 'NoneType'>		
+if_other_instrument_or_servicename	<class 'NoneType'>		
+instrument_contact_position_in_the_institution	<class 'NoneType'>		
+instrument_description	text/html		
+instrument_discipline	<class 'list'>		[]
+instrument_discipline_if_other	<class 'NoneType'>		
+instrument_email	<class 'NoneType'>		
+instrument_first_name_s	<class 'NoneType'>		
+instrument_name_s	<class 'NoneType'>		
+instrument_phone	<class 'NoneType'>		
+instrument_title_s	<class 'NoneType'>		
+instrument_transportablility	<class 'str'>		fixed
+instrument_uid	<class 'NoneType'>		
+items_total	<class 'int'>		0
+model	<class 'NoneType'>		
+modified	<class 'str'>		2020-09-25T15:12:39+02:00
+orcid_id	<class 'NoneType'>		
+other_information	<class 'NoneType'>		
+parent	<class 'dict'>		{'@id': 'http://collections.naturalsciences.be/cpb/nh-collections/countries/belgium/be-rbins/3-cetaf-passport-facilities/be-rbins-imagery-platform', '@type': 'cetaf_passport_facility', 'description': '', 'review_state': 'private', 'title': 'BE-RBINS Imagery Platform'}
+related_publications	text/html		
+review_state	<class 'str'>		private
+serial_number	<class 'NoneType'>		
+service_for_external_users	<class 'bool'>		True
+software	<class 'NoneType'>		
+software_version	<class 'NoneType'>		
+title	<class 'str'>		Micro-CT EasyTOM RX Solution
+uid	<class 'str'>		dcda7f5d90f64303be8ee6ba16617a27
