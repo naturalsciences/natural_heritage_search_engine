@@ -21,7 +21,7 @@ def get_mars_url(p_url, p_dest):
     data=requests.get(p_url, headers={'accept':'application/json'}, auth=auth_mars)
     dict=json.loads(data.text)
     bold = workbook.add_format({'bold': True})
-    sheet.write_row(0,0, ["field", "type", "description", "sample value"], bold)
+    sheet.write_row(0,0, ["field", "type", "description", "sample value", "url"], bold)
     i_row=1
     for key, val in dict.items():            
         if key not in ["items", "edition_menu", "parent"]:
@@ -34,7 +34,7 @@ def get_mars_url(p_url, p_dest):
                     val=None
             except TypeError as te:
                 print(key, 'is not iterable')
-            sheet.write_row(i_row, 0, [str(key), str(type_v), "", str(val)])
+            sheet.write_row(i_row, 0, [str(key), str(type_v), "", str(val), p_url+'?'+str(key)])
             i_row+=1
     children=dict["items"]
     for child in children:
