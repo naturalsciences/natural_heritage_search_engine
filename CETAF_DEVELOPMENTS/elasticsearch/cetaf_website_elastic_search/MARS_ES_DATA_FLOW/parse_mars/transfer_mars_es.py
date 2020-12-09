@@ -1,14 +1,17 @@
+import argparse
 import requests,json, sys, collections
 from requests.auth import HTTPBasicAuth
 import pandas as pd
-from collections import OrderedDict
+from collections import OrderedDict, ChainMap
 from bs4 import BeautifulSoup
 from deepmerge import always_merger
+from mergedeep import merge, Strategy
 from copy import deepcopy
+from elasticsearch import Elasticsearch
 
 
 
-src_excel="mars_model_20201811_mapping.xlsx"
+src_excel=""
 dict_mapping={}
 dict_inst_urls={}
 dict_concepts_url={}
@@ -17,25 +20,23 @@ found_items={}
 absent_items={}
 structure_es={}
 data_es={}
-auth_mars = HTTPBasicAuth('ftheeten', 'mamy1999')
-
+auth_mars = HTTPBasicAuth('', '')
+es=None
 
 root_list_institutions="https://collections.naturalsciences.be/cpb/nh-collections/institutions/institutions"
 
-def merge_dicts(a, b, path=None):
-    "merges b into a"
-    if path is None: path = []
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_dicts(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass # same leaf value
+
+def merge_dict(a,b):
+    returned={}
+    if isinstance(b, dict):
+        for key, item in b.items():
+            if key in a :
+                a[key].append(b[key])
             else:
-                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
-        else:
-            a[key] = b[key]
-    return a
+                a[key]=[b[key]]
+    returned=a
+    return returned            
+    
 
     
 def convert_path_to_array(path, value):
@@ -55,8 +56,32 @@ def convert_path_to_array(path, value):
                     acc2[item] =acc.copy()
                     acc=acc2
                 i=i+1
-    return acc        
+    return acc       
     
+def prepare_for_es():    
+    global data_es
+    global es
+    print("ES")
+    for key, item in data_es.items():
+        print(key)
+        print(json.dumps(item))
+        for instit, content in item.items():
+            for instit2, content2 in content.items():
+                for index, es_content in content2.items():
+                    print("INDEX")
+                    print(index)
+                    print("DATA")
+                    print(json.dumps(es_content))
+                    if isinstance(es_content, list):
+                        tmp={}
+                        for elem in es_content:
+                            tmp=merge_dict(tmp, elem)                       
+                        print("FLAT")
+                        print(json.dumps(tmp))
+                        es_content=tmp
+                    es_content.pop('_id', None)
+                    es.update(index=index,id=instit2,body={'doc': es_content,'doc_as_upsert':True})
+
 def copy_to_es():
     global dict_inst_urls
     global dict_concepts_url
@@ -95,7 +120,8 @@ def copy_to_es():
                             print("FIELD_FOUND "+url_field+ " URL=" +main_url+ " KEY="+key)
                             json_rep=convert_path_to_array(key, found_items[main_url][url_field])
                             tmp={}
-                            print(json_rep)
+                            #print("JSON_REP=")
+                            print(json.dumps(json_rep))
                             if inst_url not in data_es:
                                 data_es[inst_url]={}
                             tmp[inst_url]={}
@@ -105,7 +131,7 @@ def copy_to_es():
                             main=deepcopy(data_es[inst_url][index])
                             merged=always_merger.merge(main,tmp)
                             print("MERGED=>")
-                            print(merged)
+                            print(json.dumps(merged))
                             print("<=")
                             data_es[inst_url][index]=merged
     '''            
@@ -211,7 +237,7 @@ def test_object_exists():
        
 def get_mars_url(p_url):    
     global dict_inst_urls
-    data=requests.get(p_url, headers={'accept':'application/json'}, auth=auth_mars)
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     dict=json.loads(data.text)
     go=True
     while go:
@@ -265,11 +291,28 @@ def parse(p_file):
         parse_sheet(items)    
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--user_mars")
+    parser.add_argument("--password_mars")
+    parser.add_argument("--source_excel")
+    parser.add_argument("--es_server")
+    args = parser.parse_args()
+    
+    es =  Elasticsearch(
+        [args.es_server],       
+        use_ssl = False,
+        port=9200,
+    )
+    auth_mars = HTTPBasicAuth(args.user_mars, args.password_mars)
+    src_excel=args.source_excel
     get_mars_url(root_list_institutions)
     parse(src_excel)
     test_object_exists()
     copy_to_es()
-    print(data_es)
+    print("<=VIEW_ALL=>")
+    #print(json.dumps(data_es))
+    prepare_for_es()
     '''
     print("MAPPING")
     print("=======")
