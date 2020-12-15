@@ -201,16 +201,7 @@ curl -XPUT 'localhost:9200/naturalheritage?pretty' -H 'Content-Type: application
         "search_criteria" : {
           "type" : "nested",
           "properties" : {
-            "biological_type" : {
-              "type" : "text",
-              "fields" : {
-                "keyword" : {
-                  "type" : "keyword",
-                  "ignore_above" : 256
-                }
-              }
-            },
-            "hide_in_facets" : {
+              "hide_in_facets" : {
               "type" : "boolean"
             },
             "main_category" : {
