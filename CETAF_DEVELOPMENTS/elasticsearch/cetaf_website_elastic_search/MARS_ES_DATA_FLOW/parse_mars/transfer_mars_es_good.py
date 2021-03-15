@@ -23,6 +23,12 @@ explored=[]
 non_clustered_concat={}
 default_concatenation_character=";"
 
+def set_flag_to_true_false(test_value, default_true="yes"):
+    returned=False
+    if not test_value is None:
+        if test_value.lower().strip()==default_true.lower():
+            returned=True
+    return returned
 
 def remove_html(dict_var):
     returned=dict_var
@@ -67,17 +73,19 @@ def get_value(row, dict_mars):
  
 def create_cluster(current_index, cluster, cluster_index, fill_array):
     global current_json
-    print("CLUSTER_INDEX="+cluster_index)
+    print("CLUSTER_INDEX_1="+cluster_index)
     zero_cluster_index=int(cluster_index)-1
+    print("FILL_ARRAY="+str(fill_array))
     for es_field, value in fill_array.items():
         tmp=es_field.strip("/").split("/")
+        print("TMP="+str(tmp))
         parent_path=""
         selected_parent=None
         current_level=current_json[current_index]
         if tmp is not None:
             i=0
             for item in tmp:
-                print("test elem ="+item)
+                print("TEST_ELEM ="+item)
                 print("CURRENT_ELEM ="+str(current_level))
                 if item not in current_level:
                     current_level[item]={}
@@ -93,12 +101,24 @@ def create_cluster(current_index, cluster, cluster_index, fill_array):
                         if len(current_level[item])<(zero_cluster_index+1):
                             for j in range(len(current_level[item]), zero_cluster_index+1):
                                 current_level[item].append({})
+                        print("SET_PARENT HERE")        
                         current_level=current_level[item][zero_cluster_index]
+                    else:
+                        print("TO_DO ?")
+                        #if not isinstance(current_level[item],list):
+                        #    interm=current_level[item]
+                        #    current_level[item]=[]
+                        #    current_level[item].append(interm) 
+                        #if len(current_level[item])<(zero_cluster_index+1):
+                        #    for j in range(len(current_level[item]), zero_cluster_index+1):
+                        #        current_level[item].append({})
+                        current_level=current_level[item]
                 elif i==len(tmp)-1:
                     print("CURRENT_LEVEL="+str(current_level))                    
                     current_level[item]=value
                     print("INSERTED="+str(value))
                     #current_level= current_level[item]
+               
                 #print("VALUE_3="+str(value))
                 #pdb.set_trace()
                 
@@ -108,7 +128,7 @@ def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, f
     global explored
     global current_json
     print("CLUSTER="+cluster)
-    print("CLUSTER_INDEX="+str(cluster_index))
+    print("CLUSTER_INDEX_0="+str(cluster_index))
     print("ROW_INDEX="+str(index_rox))
     concat_list={}
     field_list={}
@@ -119,7 +139,7 @@ def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, f
             mars_concept=row['field']
             es_field=row['es_field']
             explored.append(i)
-            print("CLUSTER FOUND FOR "+str(mars_concept)+" "+ str(es_field))
+            print("CLUSTER FOUND FOR "+str(mars_concept)+" =>"+ str(es_field))
             value=get_value(row, dict_mars)
             if not value is None:
                 print("VALUE_CLUSTER="+str(value))
@@ -127,9 +147,11 @@ def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, f
                 concat_flag=None
                 if "es_concatenate" in row:
                     concat_flag=row["es_concatenate"]
-                if concat_flag is None:
+                if not set_flag_to_true_false(concat_flag):
                     field_list[es_field]=value
                 else:
+                    print("CONCATENATE FLAG=")
+                    print(concat_flag)
                     if not es_field in concat_list:
                         concat_list[es_field]=value
                         print("VALUE_1="+str(value))
@@ -144,7 +166,9 @@ def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, f
                         #pdb.set_trace()
     print("CLUSTER_CONCAT="+str(concat_list))
     print("CLUSTER_NON_CONCAT="+str(field_list))
+    print("==>INSERT BY CONCAT")
     create_cluster(current_index, cluster, cluster_index, concat_list)
+    print("==>INSERT BY FIELD")
     create_cluster(current_index, cluster, cluster_index, field_list)
     
     
@@ -179,6 +203,9 @@ def convert_path_to_list(p_sheet, index_row, dict_mars, field, index, path, conc
             #insert
             print("INSERT_VALUE="+str(value))
             tmp=path.split("/")
+            #if isinstance(current_json[index],list):
+            #    if len(current_json[index])==1:
+            #        current_json[index]=current_json[index][0]
             current_level=current_json[index]
             if tmp is not None:
                 i=0
@@ -190,7 +217,15 @@ def convert_path_to_list(p_sheet, index_row, dict_mars, field, index, path, conc
                         if item not in current_level:
                             current_level[item]={}
                     elif i==len(tmp)-1:
+                        print(current_level)
+                        if isinstance(current_level, list):
+                            print("LEN="+str(len(current_level)))
+                            if len(current_level)==1:
+                                print("GO_FLAT")
+                                current_level=current_level[0]
                         if item not in current_level:
+                            print("DEBUG_CURRENT")
+                            print(current_level)
                             current_level[item]={}
                         current_level[item]=value
                         print("INSERTED="+str(value))
@@ -291,6 +326,9 @@ def get_data(p_sheet, p_url):
     #pdb.set_trace()
     #print(current_json)
     for current_index, json_data in current_json.items():
+        if isinstance(json_data,list):
+            if len(json_data)==1:
+                json_data=json_data[0]
         es_content=json_data
         es_content.pop('_id', None)
         print(es_content)
