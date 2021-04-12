@@ -4,8 +4,8 @@ from requests.auth import HTTPBasicAuth
 import pandas as pd
 from collections import OrderedDict, ChainMap
 from bs4 import BeautifulSoup
-from deepmerge import always_merger
-from mergedeep import merge, Strategy
+#from deepmerge import always_merger
+#from mergedeep import merge, Strategy
 from copy import deepcopy
 from elasticsearch import Elasticsearch
 #import pdb
@@ -32,16 +32,42 @@ def set_flag_to_true_false(test_value, default_true="yes"):
 
 def remove_html(dict_var):
     returned=dict_var
+    list_data=None
+    table_data=None
+    table_data_set=False
     if  isinstance(dict_var,dict):
         if "content-type" in dict_var and "data" in dict_var:
             if dict_var["content-type"]=="text/html":
                 print("IS_HTML")
-                table_data = [[cell.text.replace('\xa0', ' ').strip() for cell in row("td")]
+                print(dict_var["data"])
+                go_parse_table=False
+                go_find_item=False
+                if BeautifulSoup(dict_var["data"]).find("div", {"class": "field-item"}):
+                    go_find_item=True
+                    list_items=BeautifulSoup(dict_var["data"]).find_all("div", {"class": "field-item"})
+                    list_data=[]
+                    for item_row in list_items:
+                        list_data.append(item_row.text.replace('\xa0', ' ').strip())
+                elif BeautifulSoup(dict_var["data"]).find("tr"):
+                    if BeautifulSoup(dict_var["data"]).find("td"):
+                        go_parse_table=True
+                if go_find_item is True:
+                    returned=list_data
+                elif go_parse_table:
+                    table_data = [[cell.text.replace('\xa0', ' ').strip() for cell in row("td")]
                                                      for row in BeautifulSoup(dict_var["data"])("tr")]
-                if table_data==[['']]:
-                    returned=[]
+                    table_data_set=True
                 else:
-                    returned=table_data
+                    table_data=dict_var["data"]
+                    table_data_set=True
+                if table_data_set is True:
+                    if table_data==[['']]:
+                        print("TABLE_1")
+                        returned=[]
+                    else:
+                        print("TABLE_2")
+                        returned=table_data
+                        print(returned)
     return returned
 
 def flatten(list_of_lists):
@@ -60,14 +86,24 @@ def get_value(row, dict_mars):
             if len(row['es_use_field_name_in_data'].strip())>0:
                 source= row['es_use_field_name_in_data']+": "+str(source)
         if isinstance(source, list):
-            source=flatten(source)
-            source='; '.join(source)
+            go_flat=True
+            if "es_keep_list" in row:
+                if row["es_keep_list"].lower().strip()=="true":
+                    go_flat=False
+            source=flatten(source)            
+            if go_flat is True:                
+                source='; '.join(source)            
         elif isinstance(source, dict):
             if "download" in source:
                 source=source["download"]
-        if len(source.strip())>0:
-            if isinstance(source, list):
-                source=flatten(source)
+        print(source)
+        #if len(source.strip())>0:
+            #if isinstance(source, list):
+            #    source=flatten(source)
+        if isinstance(source, str):
+            if len(source.strip())>0:
+                returned=source.strip()
+        else:
             returned=source
     return returned    
  
@@ -253,7 +289,8 @@ def get_data(p_sheet, p_url):
         if not i in explored:
             row=p_sheet.iloc[i]
             #print(row)
-            if 'es_index' in row and 'field' in row and 'es_field' in row and 'url' in row:
+            if 'es_index' in row and 'field' in row and 'es_field' in row and 'url' in row: 
+                print("INIT FOUND=>  for : \t url="+row["url"]+" \t index="+ row["es_index"]+" \t field="+ row["field"]+" \r"+row["es_field"])
                 if len(row['es_index'].strip())>0 and len(row['field'].strip())>0 and len(row['es_field'].strip())>0 and len(row['url'].strip())>0 :
                     if not row['es_index'] in current_json:
                         current_json[row['es_index']]={}
@@ -331,6 +368,11 @@ def get_data(p_sheet, p_url):
                 json_data=json_data[0]
         es_content=json_data
         es_content.pop('_id', None)
+        print("ES_INDEX")
+        print(current_index)
+        print("ES_ID")
+        print(current_id)
+        print("ES_CONTENT")
         print(es_content)
         es.update(index=current_index,id=current_id,body={'doc': es_content,'doc_as_upsert':True})    
                         
@@ -339,6 +381,11 @@ def parse_excel(p_url_institution, p_excel_file):
     print("parse "+p_url_institution)
     sheet_to_df_map = pd.read_excel(p_excel_file, sheet_name=None, dtype = str)
     for file, sheet in sheet_to_df_map.items():
+        print("NEW_SHEET")
+        print("FILE")
+        print(file)
+        #print("SHEET")
+        #print(sheet)
         #print(sheet)
         sheet.fillna('', inplace=True)
         go_scan=False
@@ -398,6 +445,7 @@ if __name__ == "__main__":
         [args.es_server],       
         use_ssl = False,
         port=9200,
+        timeout=30
     )
     auth_mars = HTTPBasicAuth(args.user_mars, args.password_mars)
     src_excel=args.source_excel
