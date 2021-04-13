@@ -15,6 +15,7 @@ src_excel=""
 data_es={}
 auth_mars = HTTPBasicAuth('', '')
 es=None
+create_es=False
 
 root_list_institutions="https://collections.naturalsciences.be/cpb/nh-collections/institutions/institutions"
 current_json={}
@@ -85,10 +86,13 @@ def get_value(row, dict_mars):
         if 'es_use_field_name_in_data' in row:
             if len(row['es_use_field_name_in_data'].strip())>0:
                 source= row['es_use_field_name_in_data']+": "+str(source)
+        #if 'es_prefix' in row:
+        #    if len(row['es_prefix'].strip())>0:
+        #        source= row['es_prefix']+": "+str(source)       
         if isinstance(source, list):
             go_flat=True
             if "es_keep_list" in row:
-                if row["es_keep_list"].lower().strip()=="true":
+                if row["es_keep_list"].lower().strip()=="yes":
                     go_flat=False
             source=flatten(source)            
             if go_flat is True:                
@@ -160,9 +164,10 @@ def create_cluster(current_index, cluster, cluster_index, fill_array):
                 
                 i=i+1
             
-def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, field, index, path,  cluster=None, cluster_index=None, concat_char=";"):
+def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, field, index, path,  cluster=None, cluster_index=None, concat_char=";", check_null=False):
     global explored
     global current_json
+    global create_es
     print("CLUSTER="+cluster)
     print("CLUSTER_INDEX_0="+str(cluster_index))
     print("ROW_INDEX="+str(index_rox))
@@ -171,13 +176,19 @@ def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, f
     
     for i in range(0, len(p_sheet.index)):
         row=p_sheet.iloc[i]
+        
         if row["es_cluster"]==cluster and str(row["es_cluster_index"])==str(cluster_index):
             mars_concept=row['field']
-            es_field=row['es_field']
+            es_field=row['es_field'].strip("/")
             explored.append(i)
             print("CLUSTER FOUND FOR "+str(mars_concept)+" =>"+ str(es_field))
             value=get_value(row, dict_mars)
             if not value is None:
+                if check_null:
+                    flag_not_null=set_flag_to_true_false(row["es_not_null"])
+                    if flag_not_null:
+                        print("CREATE_ES TO TRUE 1")
+                        create_es=True
                 print("VALUE_CLUSTER="+str(value))
                 #pdb.set_trace()
                 concat_flag=None
@@ -208,18 +219,28 @@ def convert_path_to_list_cluster(current_index, p_sheet, index_rox, dict_mars, f
     create_cluster(current_index, cluster, cluster_index, field_list)
     
     
-def convert_path_to_list(p_sheet, index_row, dict_mars, field, index, path, concat_flag=None, concat_char=";"):
+def convert_path_to_list(p_sheet, index_row, dict_mars, field, index, path, concat_flag=None, concat_char=";", check_null=False):
     global explored
     global current_json
     global non_clustered_concat
+    global create_es
     concat_list={}
     print("NOT_A_CLUSTER FIELD="+str(field))
     row=p_sheet.iloc[index_row]
+    
     mars_concept=row['field']
-    es_field=row['es_field']
+    es_field=row['es_field'].strip("/")
     value=get_value(row, dict_mars)
     explored.append(index_row)
     if not value is None:
+        if check_null:
+            print("CHECK_NULL IS TRUE")
+            flag_not_null=set_flag_to_true_false(row["es_not_null"])
+            if flag_not_null:
+                print("row_es_null")
+                print(row["es_not_null"])
+                print("CREATE_ES TO TRUE 2")
+                create_es=True
         print("VALUE_ROW="+str(value))
         if not concat_flag is None:
             print("CONCAT")
@@ -270,13 +291,14 @@ def convert_path_to_list(p_sheet, index_row, dict_mars, field, index, path, conc
                     current_level= current_level[item]
                     i=i+1
                             
-def get_data(p_sheet, p_url):
+def get_data(p_sheet, p_url, p_check_null, p_url_institution):
     global current_json
     global explored
     global current_id
     global es
     global non_clustered_concat
     global default_concatenation_character
+    global create_es
     current_json={}
     explored=[]
     non_clustered_concat={}
@@ -288,10 +310,23 @@ def get_data(p_sheet, p_url):
     for i in range(0, len(p_sheet.index)):
         if not i in explored:
             row=p_sheet.iloc[i]
+            
             #print(row)
-            if 'es_index' in row and 'field' in row and 'es_field' in row and 'url' in row: 
+            if 'es_index' in row and 'field' in row and 'es_field' in row and 'url' in row:
+                row['es_field']=str(row['es_field']).strip("/")              
                 print("INIT FOUND=>  for : \t url="+row["url"]+" \t index="+ row["es_index"]+" \t field="+ row["field"]+" \r"+row["es_field"])
                 if len(row['es_index'].strip())>0 and len(row['field'].strip())>0 and len(row['es_field'].strip())>0 and len(row['url'].strip())>0 :
+                    url_interm=p_url_institution+row['url']
+                    if url_interm != p_url:
+                        #redo URL
+                        print("CHANGE_URL")
+                        print("OLD_URL")
+                        print(p_url)                       
+                        p_url=url_interm
+                        print("NEW_URL")
+                        print(p_url)
+                        data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
+                        dict_mars=json.loads(data.text)
                     if not row['es_index'] in current_json:
                         current_json[row['es_index']]={}
                         current_index=row['es_index']
@@ -331,12 +366,12 @@ def get_data(p_sheet, p_url):
                         if not cluster_flag is None and not cluster_index_flag is None:
                             print("CLUSTER")
                             #pdb.set_trace()                            
-                            convert_path_to_list_cluster(current_index, p_sheet, row.name, dict_mars, row['field'], row['es_index'], row["es_field"],   cluster_flag,  cluster_index_flag)
+                            convert_path_to_list_cluster(current_index, p_sheet, row.name, dict_mars, row['field'], row['es_index'], row["es_field"],   cluster_flag,  cluster_index_flag, p_check_null)
                         else:
                             if not concat_flag is None:
                                 print("WAIT")
                                 #pdb.set_trace()
-                            convert_path_to_list(p_sheet, i, dict_mars, row['field'], row['es_index'], row["es_field"],  concat_flag, concat_sign)
+                            convert_path_to_list(p_sheet, i, dict_mars, row['field'], row['es_index'], row["es_field"],  concat_flag, concat_sign, p_check_null)
     
     for path_concat, json_value in non_clustered_concat.items():
         tmp=path_concat.split("/")
@@ -374,32 +409,59 @@ def get_data(p_sheet, p_url):
         print(current_id)
         print("ES_CONTENT")
         print(es_content)
-        es.update(index=current_index,id=current_id,body={'doc': es_content,'doc_as_upsert':True})    
-                        
+        if create_es:
+            print("CREATE")
+            es.update(index=current_index,id=current_id,body={'doc': es_content,'doc_as_upsert':True})
+        else:
+            #TODO DELETE
+            print("DELETE")
+            print("DELETE_INDEX")
+            print(current_index)
+            print("DELETE_ID")
+            print(current_id)
+            es.delete(index=current_index,id=current_id)
+               
+        
 def parse_excel(p_url_institution, p_excel_file):
     global current_id
+    global create_es
     print("parse "+p_url_institution)
     sheet_to_df_map = pd.read_excel(p_excel_file, sheet_name=None, dtype = str)
     for file, sheet in sheet_to_df_map.items():
+        print("------------------------------------------------------------------------------------")
         print("NEW_SHEET")
         print("FILE")
         print(file)
+        print("CREATE_ES TO FALSE 1")
+        create_es=False 
         #print("SHEET")
         #print(sheet)
         #print(sheet)
         sheet.fillna('', inplace=True)
         go_scan=False
+        check_null=True
         if 'es_index' in sheet.columns and 'field' in sheet.columns and 'es_field' in sheet.columns and 'url' in sheet.columns:
             #print(sheet)
             #print(len(sheet))
+            if not 'es_not_null' in sheet.columns:
+                print("CREATE_ES TO TRUE 4")
+                create_es=True
+                check_null=False
             if(len(sheet))>1:
                 first_row=sheet.iloc[0]
                 #print(first_row)
                 #print(first_row['url'])
                 if len(first_row['url'].strip())>0  :
+                    explore_flag=False
+                    explore_field=None
+                    if 'explore_url' in first_row:
+                        if len(first_row['explore_url'].strip())>0:
+                            explore_flag=True
+                            explore_field=first_row['explore_url'].strip()
+                            #TO COMPLETE
                     url_page=p_url_institution+first_row['url']                    
                     current_id=p_url_institution
-                    get_data(sheet, url_page)
+                    get_data(sheet, url_page, check_null, p_url_institution)
                 else:
                     print("NOGO!!!!!!!!!!!!!!!!!!!!!!!!")                
           
