@@ -1,6 +1,6 @@
 import requests,json, sys, collections, argparse
 from requests.auth import HTTPBasicAuth
-from transfer_mars_lib import remove_html, get_value_field
+from transfer_mars_lib import remove_html, get_value_field, cast_to_numeric, cast_to_int
 from elasticsearch import Elasticsearch
 import copy
 
@@ -10,6 +10,7 @@ create_es=False
 root_list_institutions="https://collections.naturalsciences.be/cpb/nh-collections/institutions/institutions"
 url_suffix_collection="/2-cetaf-passport-collections/collections/collections"
 url_suffix_geo="/collection_geography"
+url_suffix_mids="/list-mids"
 search_index="cetaf_passport_collections"
 data_index="cetaf_passport_collections_full"
 es_server_name=None
@@ -20,6 +21,86 @@ check_date_default="2021-01-01T00:00:00+02:00"
 all_arrays={}
 parent_children={}
 
+
+
+def get_mids(p_url, es_content_full, auth_mars):
+    print("MIDS_URL")
+    print(p_url)
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
+    p_dict=json.loads(data.text)
+    mids_geography_category = get_value_field(p_dict,"mids_geography_category")
+    mids_geography_mids_0 = get_value_field(p_dict,"mids-geography_mids_0")
+    mids_geography_mids_1 = get_value_field(p_dict,"mids-geography_mids_1")
+    mids_geography_mids_2 = get_value_field(p_dict,"mids-geography_mids_2")
+    mids_geography_mids_3 = get_value_field(p_dict,"mids-geography_mids_3")
+    mids_quantity = get_value_field(p_dict,"mids-geography_object_quantity")
+    if not mids_quantity is None:       
+        mids={}
+        #TEMP
+        mids["taxonomic_category_name"]=es_content_full["coverage_fields"]["main_category"]
+        mids["taxonomic_category_title"]=es_content_full["coverage_fields"]["main_category"]
+        mids["countries_and_areas"]=[] 
+        tmp_ctry={}        
+        tmp_ctry["area_type"]="TDWG Zone"
+        tmp_ctry["area_name"]=mids_geography_category
+        mids["countries_and_areas"].append(tmp_ctry)
+        mids["taxonomic_category_quantity"]=mids_quantity
+        mids["taxonomic_category_mids_0_pc"]=mids_geography_mids_0
+        mids["taxonomic_category_mids_1_pc"]=mids_geography_mids_1
+        mids["taxonomic_category_mids_2_pc"]=mids_geography_mids_2
+        mids["taxonomic_category_mids_3_pc"]=mids_geography_mids_3
+        es_content_full["coverage_fields"]["taxonomic_discipline"]["taxonomic_category"].append(mids)
+        return mids_geography_category, mids_quantity, mids_geography_mids_0, mids_geography_mids_1, mids_geography_mids_2, mids_geography_mids_3
+
+
+
+def explore_mids(p_url, es_content_full, auth_mars):
+    global url_suffix_mids
+    url_mids=p_url+url_suffix_mids
+    print("MIDS_EXPLORE_URL")
+    print(url_mids)
+    data=requests.get(url_mids, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
+    p_dict=json.loads(data.text)
+    print(p_dict)
+    sum_mids={}
+    if "items" in p_dict:
+        for item in p_dict["items"]:
+            print(item)
+            if "@type" in item:
+                if item["@type"]=="collection_mids_geography":
+                    url=item["@id"]
+                    mids_geography_category, mids_quantity, mids_geography_mids_0, mids_geography_mids_1, mids_geography_mids_2, mids_geography_mids_3 = get_mids(url, es_content_full, auth_mars)
+                    #print("mids_quantity")
+                    #print(mids_quantity)
+                    #print(cast_to_int(mids_quantity))
+                    sum_tmp={}
+                    sum_tmp["quantity"]=cast_to_int(mids_quantity)
+                    sum_tmp["mids_0"]=cast_to_numeric(mids_geography_mids_0)
+                    sum_tmp["mids_1"]=cast_to_numeric(mids_geography_mids_1)
+                    sum_tmp["mids_2"]=cast_to_numeric(mids_geography_mids_2)
+                    sum_tmp["mids_3"]=cast_to_numeric(mids_geography_mids_3)
+                    print("SUM_TMP")
+                    print(sum_tmp)
+                    sum_mids[url]=sum_tmp
+    #sum
+    sum=0
+    sum_mids0=0
+    sum_mids1=0
+    sum_mids2=0
+    sum_mids3=0
+    for key, sum_elem in sum_mids.items():
+        sum += sum_elem["quantity"]
+        sum_mids0+=sum_elem["mids_0"]/100*sum_elem["quantity"]
+        sum_mids1+=sum_elem["mids_1"]/100*sum_elem["quantity"]
+        sum_mids2+=sum_elem["mids_2"]/100*sum_elem["quantity"]
+        sum_mids3+=sum_elem["mids_3"]/100*sum_elem["quantity"]
+    es_content_full["coverage_fields"]["taxonomic_discipline"]["sum_quantity"]=sum
+    if sum !=0:
+        es_content_full["coverage_fields"]["taxonomic_discipline"]["sum_mids_0"]=round((float(sum_mids0)/float(sum))*100,3)
+        es_content_full["coverage_fields"]["taxonomic_discipline"]["sum_mids_1"]=round((float(sum_mids1)/float(sum))*100,3)
+        es_content_full["coverage_fields"]["taxonomic_discipline"]["sum_mids_2"]=round((float(sum_mids2)/float(sum))*100,3)
+        es_content_full["coverage_fields"]["taxonomic_discipline"]["sum_mids_3"]=round((float(sum_mids3)/float(sum))*100,3)
+    
 def add_collection_es(index_name, current_id,  es_content):
     #global es
     es.update(index=index_name,id=current_id,body={'doc': es_content,'doc_as_upsert':True})
@@ -32,7 +113,7 @@ def find_parent(child_id):
                 return key
     return None  
     
-def explore_sub_collection_detail(p_url, p_dict,parent_url):
+def explore_sub_collection_detail(p_url, p_dict,parent_url, auth_mars):
     global parent_children
     current_json={}
     print(p_dict)
@@ -42,22 +123,22 @@ def explore_sub_collection_detail(p_url, p_dict,parent_url):
         tmp=[]
     tmp.append(p_url)
     parent_children[parent_url]=tmp
-    copy_collection(p_url, p_dict, True)
+    copy_collection(p_url, p_dict, auth_mars, True)
 
-def explore_sub_collection(p_url, parent_url):
+def explore_sub_collection(p_url, parent_url, auth):
     global check_date
     #print(p_url)
-    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'})
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     p_dict=json.loads(data.text)
     if "modified" in p_dict:
         modified=p_dict["modified"]
         if modified>check_date:
             #print("UPDATE!!!")
             #print(modified)
-            explore_sub_collection_detail(p_url, p_dict, parent_url)
+            explore_sub_collection_detail(p_url, p_dict, parent_url, auth)
     
 
-def parse_sub_collection_index(p_dict, elem, parent_url):
+def parse_sub_collection_index(p_dict, elem, parent_url, auth_mars):
     if elem in p_dict:
         #print("INDEX")
         #print(p_dict[elem])
@@ -68,13 +149,13 @@ def parse_sub_collection_index(p_dict, elem, parent_url):
             if item_type=="nh_sub_collection":
                 print("SUB_COLLECTION")
                 print(coll_url)
-                explore_sub_collection(coll_url, parent_url)
+                explore_sub_collection(coll_url, parent_url, auth_mars)
  
-def get_geography(p_url):
+def get_geography(p_url, auth_mars):
     print("URL_GEO=")
     print(p_url)
     returned=[]    
-    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'})
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     p_dict=json.loads(data.text)
     #print(p_dict)
     if "countries" in p_dict:
@@ -85,7 +166,7 @@ def get_geography(p_url):
     return returned        
     
     
-def copy_collection(p_url, p_dict, sub_collection=False):
+def copy_collection(p_url, p_dict, auth_mars, sub_collection=False):
     global es
     global search_index
     global data_index
@@ -130,14 +211,14 @@ def copy_collection(p_url, p_dict, sub_collection=False):
             current_json["coverage_fields"]["main_category"]=name_collection
             current_json["coverage_fields"]["taxonomic_discipline"]="Main collection"
     areas={}
-    areas=get_geography(p_url+url_suffix_geo)
+    areas=get_geography(p_url+url_suffix_geo, auth_mars)
     for area in areas:
         print(area)
         new_area={}
         new_area["area_name"]=area
         current_json["coverage_fields"]["countries_and_areas"].append(new_area)
     all_arrays[p_url]=current_json
-    parse_sub_collection_index(p_dict, "items", p_url)
+    parse_sub_collection_index(p_dict, "items", p_url, auth_mars)
     es_content=current_json
     
     add_collection_es(search_index, current_id,es_content)
@@ -145,6 +226,7 @@ def copy_collection(p_url, p_dict, sub_collection=False):
     
     #es_content_full["coverage_fields"].pop("taxonomic_discipline", None)
     #es_content_full["coverage_fields"]["taxonomic_discipline"]={}
+    #GOOD ?
     es_content_full["coverage_fields"]["name_taxonomic_category"]=name_collection
     abstract=get_value_field(p_dict, "abstract")
     es_content_full["collection_abstract"]=abstract
@@ -162,13 +244,18 @@ def copy_collection(p_url, p_dict, sub_collection=False):
     
     owc=get_value_field(p_dict, "owc_evaluation")
     es_content_full["size_and_digitisation_fields"]["owc_size_evaluation"]=owc
+    es_content_full["coverage_fields"].pop("taxonomic_discipline", None)
+    es_content_full["coverage_fields"]["taxonomic_discipline"]={}
+    es_content_full["coverage_fields"]["taxonomic_discipline"]["taxonomic_category"]=[]
+    explore_mids(p_url, es_content_full, auth_mars)
+    print("ES_CONTENT_FULL===>")
     print(es_content_full)
     add_collection_es(data_index, current_id,es_content_full)
     #es.update(index=search_index,id=current_id,body={'doc': es_content,'doc_as_upsert':True})
 
-def get_collection(p_url):
+def get_collection(p_url, auth_mars):
     print(p_url)
-    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'})
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     p_dict=json.loads(data.text)
     #print(dict)
     not_null_id=p_dict["collection_id"]
@@ -176,12 +263,12 @@ def get_collection(p_url):
     print(not_null_id)
     if not not_null_id is None:
         print("PARSE___!")
-        copy_collection(p_url,p_dict )
+        copy_collection(p_url,p_dict, auth_mars )
     
-def parse_collections(p_url):
+def parse_collections(p_url, auth_mars):
     print("collection list:")
     print(p_url)
-    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'})
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     p_dict=json.loads(data.text)
     list_collections=p_dict["items"]
     print(list_collections)
@@ -189,20 +276,20 @@ def parse_collections(p_url):
         print(item)
         if item["@type"]=="nh_collection":
             print("go")
-            get_collection(item["@id"])
+            get_collection(item["@id"], auth_mars)
 
     
 
 #def parse_institution_detail(p_url):
 #    parse_collections(p_url)
 
-def parse_institution(p_url):
+def parse_institution(p_url, auth_mars):
     global url_suffix_collection
     global current_institution_name
     global current_institution_url
     current_institution_name=""
     current_institution_url=""
-    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'})
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     p_dict=json.loads(data.text)
 
     name_museum=p_dict["title"]
@@ -211,10 +298,10 @@ def parse_institution(p_url):
        if len(name_museum.lower().strip())>0:
             current_institution_name=name_museum
             current_institution_url=p_dict["@id"]
-    parse_collections(p_url+url_suffix_collection)
+    parse_collections(p_url+url_suffix_collection, auth_mars)
    
-def get_collections(p_url):
-    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'})
+def get_collections(p_url, auth_mars):
+    data=requests.get(p_url, headers={'accept':'application/json', 'Accept-Charset':'iso-8859-1'}, auth=auth_mars)
     p_dict=json.loads(data.text)
     go=True
     i=0
@@ -227,23 +314,26 @@ def get_collections(p_url):
         for inst in p_dict["items"]:
             print(i)
             #print(inst["@id"])
-            data2=requests.get(inst["@id"], headers={'accept':'application/json'})
+            data2=requests.get(inst["@id"], headers={'accept':'application/json'}, auth=auth_mars)
             dict2=json.loads(data2.text)
             if "institution_id" in dict2:
                 #print("IS_MUSEUM")
-                parse_institution( inst["@id"])
+                parse_institution( inst["@id"], auth_mars)
                 i=i+1
         if current==last:
            go=False
         else:
             #print("GO NEXT" + next)
-            data=requests.get(next, headers={'accept':'application/json'})
+            data=requests.get(next, headers={'accept':'application/json'}, auth=auth_mars)
             p_dict=json.loads(data.text)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--es_server")
     parser.add_argument("--check_date", default=check_date_default)
+    parser.add_argument("--user_mars")
+    parser.add_argument("--password_mars")
+    
     args = parser.parse_args()
     check_date=args.check_date
     print(check_date)
@@ -255,4 +345,6 @@ if __name__ == "__main__":
         timeout=30
     )
     #get_collections(root_list_institutions)
-    parse_institution("https://collections.naturalsciences.be/cpb/nh-collections/countries/germany/de-zfmk")
+    auth_mars = HTTPBasicAuth(args.user_mars, args.password_mars)
+    get_collections(root_list_institutions, auth_mars)
+    #parse_institution("https://collections.naturalsciences.be/cpb/nh-collections/countries/germany/de-zfmk", auth_mars)
