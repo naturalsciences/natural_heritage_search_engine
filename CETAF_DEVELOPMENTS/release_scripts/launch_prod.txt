@@ -1,0 +1,16 @@
+python transfer_mars_es_good.py --user_mars XXXX --password_mars XXXXX --source_excel mars_model_20210412_mapping.xlsx --es_server ursidae.rbins.be
++
+for collections:
+python3 transfer_mars_collections.py  --es_server ursidae.rbins.be --user_mars XXXXX --password_mars XXXXX
+for facilities:
+python3 transfer_mars_facilities.py  --es_server ursidae.rbins.be --user_mars XXXXX --password_mars XXXXX
+for expertises:
+python3 transfer_mars_expertises.py  --es_server ursidae.rbins.be --user_mars XXXXX --password_mars XXXXX
+
+
+
+Python modules =
+pandas
+bs4
+xlrd  version 1.2 (ther don't open xlsx)
+python3 -m pip install xlrd==1.2.0   
